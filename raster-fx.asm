@@ -50,7 +50,7 @@ SCREEN_SIZE_BYTES = &8000 - screen_addr
 FramePeriod = 312*64-2
 
 ; Calculate here the timer value to interrupt at the desired line
-TimerValue = 32*64 - 2*64 - 2 - 22
+TimerValue = 32*64 - 2*64 - 2 - 20
 
 \\ 40 lines for vblank
 \\ 32 lines for vsync (vertical position = 35 / 39)
@@ -92,11 +92,6 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .main
 {
-	\\ Reset stack
-
-	LDX #&FF					; X=11111111
-	TXS							; reset stack
-
 	\\ Set interrupts
 
 	SEI							; disable interupts
@@ -117,15 +112,29 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	STA escape_pressed
 
 	\\ Set MODE 1
+
 	LDA #22
 	JSR oswrch
 	LDA #1
 	JSR oswrch
 
-	\\ Initialise and system modules here!
+	\\ Turn off cursor
+
+	LDA #10: STA &FE00
+	LDA #32: STA &FE01
+
+	\\ Set Colour 2 to White - MODE 1 requires 4x writes to ULA Palette Register
+
+	LDA #MODE1_COL2 + PAL_white
+	STA &FE21
+	EOR #&10: STA &FE21
+	EOR #&40: STA &FE21
+	EOR #&10: STA &FE21
+
+	\\ Initialise system modules here!
 
 	\ ******************************************************************
-	\ *	DEMO START - from here on out there is no OS to help you!!
+	\ *	DEMO START - from here on out there are no interrupts enabled!!
 	\ ******************************************************************
 
 	SEI
@@ -190,7 +199,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 		lda #&42
 		sta &FE4D	\ clear vsync & timer 1 flags
 
-		\\ Wait for Timer1 at scanline 0
+		\\ Wait for Timer1 at rasterline 0
 
 		lda #&40
 		.waitTimer1
@@ -228,7 +237,12 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	\\ Service any system modules here!
 
-	\\ TODO: check for Escape key here!
+	\\ Check for Escape key
+
+	LDA #&79
+	LDX #(&70 EOR &80)
+	JSR osbyte
+	STX escape_pressed
 
 	\\ FX update callback here!
 
@@ -242,22 +256,13 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 		.waitTimer1
 		BIT &FE4D				; 4c + 1/2c
 		BEQ waitTimer1         	; poll timer1 flag
-		STA &FE4D             		; clear timer1 flag ; 4c +1/2c
+		STA &FE4D             	; clear timer1 flag ; 4c +1/2c
 	}
 
-	\\ Check if our FX has changed?
+	\\ Check if Escape pressed
 
 	LDA escape_pressed
-	BEQ call_draw
-
-	\\ FX has changed so get current module to return CRTC to known state
-
-	.call_kill
-	JSR fx_kill_function
-
-	\\ Then exit
-
-	JMP exit
+	BMI call_kill
 
 	\\ FX draw callback here!
 
@@ -266,13 +271,17 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	\\ Loop as fast as possible
 
-	.done_first_frame
 	JMP main_loop
 
-	\\ Maybe one day we'l escape the loop...
+	\\ Get current module to return CRTC to known state
 
-	.exit
+	.call_kill
+	JSR fx_kill_function
 
+	\\ Re-enable useful interupts
+
+	LDA #&D3					; A=11010011
+	STA &FE4E					; R14=Interrupt Enable
     CLI
 
 	\\ Exit gracefully (in theory)
@@ -307,7 +316,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 \ any precalculated screen memory etc. required for the FX.
 \
 \ This function will be called during vblank
-\ The CRTC registers & ULA will be set to default MODE 2 values
+\ The CRTC registers will be set to default MODE 0,1,2 values
 \
 \ The function can take as long as is necessary to initialise.
 \ ******************************************************************
@@ -340,6 +349,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_update_function
 {
+	\\ Increment our index into the palette table
 	INC fx_colour_index
 	RTS
 }
@@ -354,7 +364,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 \
 \ This means that a new CRTC cycle has just started! If you didn't
 \ specify the registers from the previous frame then they will be
-\ the default MODE 2 values as per initialisation.
+\ the default MODE 0,1,2 values as per initialisation.
 \
 \ If messing with CRTC registers, THIS FUNCTION MUST ALWAYS PRODUCE
 \ A FULL AND VALID 312 line PAL signal before exiting!
@@ -365,15 +375,16 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDX #0					; 2c
 	LDY fx_colour_index		; 3c
 
-	; shift timing so palette change happens during hblank as much as possible
+	\\ Shift timing so palette change happens during hblank as much as possible
 
-	FOR n,1,38,1
+	FOR n,1,33,1
 	NOP
 	NEXT
+	\\ Wait 66c
 
 	.raster_loop
 
-	\\ Set colour 1 - requires 4x write to ULA Palette Register
+	\\ Set Colour 1 - MODE 1 requires 4x writes to ULA Palette Register
 
 	LDA fx_colour1_table, Y	; 4c
 	STA &FE21				; 4c
@@ -385,7 +396,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	STA &FE21				; 4c
 	\\ Total = 26c
 
-	\\ Set colour 2 - requires 4x write to ULA Palette Register
+	\\ Set Colour 2 - MODE 1 requires 4x writes to ULA Palette Register
 
 	LDA fx_colour2_table, Y	; 4c
 	STA &FE21				; 4c
@@ -401,7 +412,9 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	NOP
 	NEXT
 	BIT 0
-	\\ Wait 69c					
+	\ Wait 69c
+
+	\\ Loop 256 times
 
 	INY						; 2c
 	INX						; 2c
@@ -409,7 +422,6 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ Loop total = 26 + 26 + 69 + 7 = 128c
 
     RTS
-	RTS
 }
 
 \ ******************************************************************
@@ -424,7 +436,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 \
 \ This means that a new CRTC cycle has just started! If you didn't
 \ specify the registers from the previous frame then they will be
-\ the default MODE 2 values as per initialisation.
+\ the default MODE 0,1,2 values as per initialisation.
 \
 \ THIS FUNCTION MUST ALWAYS ENSURE A FULL AND VALID 312 line PAL
 \ signal will take place this frame! The easiest way to do this is
@@ -434,6 +446,8 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_kill_function
 {
+	\\ Set all CRTC registers back to their defaults for MODE 0,1,2
+
 	LDX #13
 	.loop
 	STX &FE00
@@ -441,7 +455,6 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	STA &FE01
 	DEX
 	BPL loop
-	RTS
 
 	RTS
 }
@@ -449,7 +462,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 .fx_end
 
 \ ******************************************************************
-\ *	DATA
+\ *	SYSTEM DATA
 \ ******************************************************************
 
 .data_start
@@ -491,6 +504,10 @@ EQUD 0
 .osfile_endaddr
 EQUD 0
 
+\ ******************************************************************
+\ *	FX DATA
+\ ******************************************************************
+
 ALIGN &100
 .fx_colour1_table
 {
@@ -517,25 +534,25 @@ ALIGN &100
 .fx_colour2_table
 {
 	FOR n,1,21,1
-	EQUB MODE1_COL2 + PAL_red
+	EQUB MODE1_COL3 + PAL_red
 	NEXT
 	FOR n,1,42,1
-	EQUB MODE1_COL2 + PAL_magenta
+	EQUB MODE1_COL3 + PAL_magenta
 	NEXT
 	FOR n,1,43,1
-	EQUB MODE1_COL2 + PAL_blue
+	EQUB MODE1_COL3 + PAL_blue
 	NEXT
 	FOR n,1,43,1
-	EQUB MODE1_COL2 + PAL_cyan
+	EQUB MODE1_COL3 + PAL_cyan
 	NEXT
 	FOR n,1,43,1
-	EQUB MODE1_COL2 + PAL_green
+	EQUB MODE1_COL3 + PAL_green
 	NEXT
 	FOR n,1,42,1
-	EQUB MODE1_COL2 + PAL_yellow
+	EQUB MODE1_COL3 + PAL_yellow
 	NEXT
 	FOR n,1,22,1
-	EQUB MODE1_COL2 + PAL_red
+	EQUB MODE1_COL3 + PAL_red
 	NEXT
 }
 
