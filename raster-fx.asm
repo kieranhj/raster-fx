@@ -74,6 +74,8 @@ GUARD &9F
 \\ FX variables
 
 .fx_colour_index		SKIP 1		; index into our colour palette
+.fx_raster_count		SKIP 1		; count our raster lines in draw function
+.fx_char_row_count		SKIP 1		; count our character rows in draw function
 
 \ ******************************************************************
 \ *	CODE START
@@ -341,6 +343,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 .fx_update_function
 {
 	INC fx_colour_index
+
 	RTS
 }
 
@@ -362,14 +365,37 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_draw_function
 {
-	LDX #0					; 2c
-	LDY fx_colour_index		; 3c
+	\\ Set up vertical rupture
+
+	\\ R4=0 - CRTC cycle is one row
+	LDA #4: STA &FE00
+	LDA #0: STA &FE01
+
+	\\ R7=&FF - no vsync
+	LDA #7:	STA &FE00
+	LDA #&FF: STA &FE01
+
+	\\ R6=0 - one row displayed
+	LDA #6: STA &FE00
+	LDA #1: STA &FE01		; 8 * 6c = 48c
+
+	LDA #12: STA &FE00
+	LDA #HI((screen_addr + &1400) / 8): STA &FE01
+
+	LDA #13: STA &FE00
+	LDA #LO((screen_addr + &1400) / 8): STA &FE01
 
 	; shift timing so palette change happens during hblank as much as possible
 
-	FOR n,1,38,1
+	FOR n,1,14,1
 	NOP
 	NEXT
+
+	LDX #0					; 2c
+	LDY fx_colour_index		; 3c
+
+	LDA #254
+	STA fx_raster_count
 
 	.raster_loop
 
@@ -397,18 +423,28 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	STA &FE21				; 4c
 	\\ Total = 26c
 
-	FOR n,1,33,1
+	FOR n,1,32,1
 	NOP
 	NEXT
-	BIT 0
-	\\ Wait 69c					
+	\\ Wait 64c					
 
 	INY						; 2c
 	INX						; 2c
-	BNE raster_loop			; 3c
-	\\ Loop total = 26 + 26 + 69 + 7 = 128c
 
-    RTS
+	DEC fx_raster_count		; 5c
+	BNE raster_loop			; 3c
+	\\ Loop total = 26 + 26 + 64 + 12 = 128c
+
+	\\ Must setup final display cycle with vsync in correct place
+
+	\\ Vertical Total R7 = ((312 - 248) / 8) - 1 = (64 / 8) - 1 = 8 - 1 = 7
+	LDA #4: STA &FE00
+	LDA #7: STA &FE01		
+
+	\\ Vertical Sync Position R4 = (280 - 248) / 8 = 4 character rows
+	LDA #7:	STA &FE00
+	LDA #4: STA &FE01
+
 	RTS
 }
 
@@ -514,6 +550,7 @@ ALIGN &100
 	NEXT
 }
 
+ALIGN &100
 .fx_colour2_table
 {
 	FOR n,1,21,1
@@ -536,6 +573,31 @@ ALIGN &100
 	NEXT
 	FOR n,1,22,1
 	EQUB MODE1_COL2 + PAL_red
+	NEXT
+}
+
+ALIGN &100
+.fx_character_offset
+{
+	FOR n,0,255,1
+	EQUB 10  + 10 * SIN(2 * PI * n / 256)
+	NEXT
+}
+
+ALIGN &100
+.fx_row_address_LO
+{
+	FOR n,0,31,1
+	addr = screen_addr + n * 640
+	EQUB LO(addr / 8)
+	NEXT
+}
+
+.fx_row_address_HI
+{
+	FOR n,0,31,1
+	addr = screen_addr + n * 640
+	EQUB HI(addr / 8)
 	NEXT
 }
 
