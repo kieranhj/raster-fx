@@ -74,6 +74,9 @@ GUARD &9F
 \\ FX variables
 
 .fx_colour_index		SKIP 1		; index into our colour palette
+.fx_byte				SKIP 1
+.fx_raster_count		SKIP 1
+.fx_xpos				SKIP 1
 
 \ ******************************************************************
 \ *	CODE START
@@ -115,7 +118,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	LDA #22
 	JSR oswrch
-	LDA #1
+	LDA #2
 	JSR oswrch
 
 	\\ Turn off cursor
@@ -324,10 +327,13 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 .fx_init_function
 {
     \ Ask OSFILE to load our screen
-	LDX #LO(osfile_params)
-	LDY #HI(osfile_params)
-	LDA #&FF
-    JSR osfile
+;	LDX #LO(osfile_params)
+;	LDY #HI(osfile_params)
+;	LDA #&FF
+;   JSR osfile
+
+	LDA #128
+	STA fx_colour_index
 
 	RTS
 }
@@ -350,7 +356,37 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 .fx_update_function
 {
 	\\ Increment our index into the palette table
-	INC fx_colour_index
+	LDX fx_colour_index
+;	INX
+;	BNE ok2
+;	LDX #128
+	.ok2
+	STX fx_colour_index
+
+	LDA fx_colour_index
+	STA fx_byte
+
+	LDX #0
+	LDA #0
+	.loop
+	STA &7C58,X
+	INX
+	CPX #80
+	BCC loop
+
+	LDX fx_xpos
+	INX
+;	CPX #80
+;	BCC ok
+;	LDX #0
+	.ok
+	STX fx_xpos
+
+	STX left_addr+1
+	STX left_addr+4
+	STX right_addr+1
+	STX right_addr+4
+
 	RTS
 }
 
@@ -371,58 +407,86 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 \ ******************************************************************
 
 .fx_draw_function
-{
-	LDX #0					; 2c
-	LDY fx_colour_index		; 3c
+\{
+	\\ We're only ever going to display this one scanline
+	LDA #12: STA &FE00
+	LDA #HI(&2858): STA &FE01		; &7C00 + 88 bytes
 
-	\\ Shift timing so palette change happens during hblank as much as possible
+	LDA #13: STA &FE00
+	LDA #LO(&2858): STA &FE01		; &7C00 + 88 bytes
 
-	FOR n,1,33,1
+	\\ R9=0 - character row = 1 scanline
+	LDA #9: STA &FE00
+	LDA #0:	STA &FE01
+
+	\\ R4=0 - CRTC cycle is one row
+	LDA #4: STA &FE00
+	LDA #0: STA &FE01
+
+	\\ R7=&FF - no vsync
+	LDA #7:	STA &FE00
+	LDA #&FF: STA &FE01
+
+	\\ R6=1 - one row displayed
+	LDA #6: STA &FE00
+	LDA #1: STA &FE01
+
+	\\ Wait a bit
+
+	FOR n,1,14,1
 	NOP
 	NEXT
-	\\ Wait 66c
 
+	LDA #254				; 2c
+	STA fx_raster_count
+
+	LDY fx_colour_index
+	
 	.raster_loop
 
-	\\ Set Colour 1 - MODE 1 requires 4x writes to ULA Palette Register
+	LDA pixels_left, Y		; 4c
+	LDX offset_left, Y		; 4c
+	.left_addr
+	EOR &7C00, X			; 4c
+	STA &7C00, X			; 5c
+	; 17c per byte
 
-	LDA fx_colour1_table, Y	; 4c
-	STA &FE21				; 4c
-	EOR #&10				; 2c
-	STA &FE21				; 4c
-	EOR #&40				; 2c
-	STA &FE21				; 4c
-	EOR #&10				; 2c
-	STA &FE21				; 4c
-	\\ Total = 26c
-
-	\\ Set Colour 2 - MODE 1 requires 4x writes to ULA Palette Register
-
-	LDA fx_colour2_table, Y	; 4c
-	STA &FE21				; 4c
-	EOR #&10				; 2c
-	STA &FE21				; 4c
-	EOR #&40				; 2c
-	STA &FE21				; 4c
-	EOR #&10				; 2c
-	STA &FE21				; 4c
-	\\ Total = 26c
-
-	FOR n,1,33,1
-	NOP
-	NEXT
-	BIT 0
-	\ Wait 69c
-
-	\\ Loop 256 times
+	LDA pixels_right, Y		; 4c
+	LDX offset_right, Y		; 4c
+	.right_addr
+	EOR &7C00, X			; 4c
+	STA &7C00, X			; 5c
 
 	INY						; 2c
-	INX						; 2c
+
+	FOR n,1,42,1
+	NOP
+	NEXT
+
+	\\ Loop 254 times
+
+	DEC fx_raster_count		; 5c
 	BNE raster_loop			; 3c
 	\\ Loop total = 26 + 26 + 69 + 7 = 128c
 
+	\\ R9=7 - character row = 8 scanlines
+	LDA #9: STA &FE00
+	LDA #1-1:	STA &FE01		; 1 scanline
+
+	\\ R4=6 - CRTC cycle is 32 + 7 more rows = 312 scanlines
+	LDA #4: STA &FE00
+	LDA #56-1+1: STA &FE01		; 312 - 256 = 56 scanlines
+
+	\\ R7=3 - vsync is at row 35 = 280 scanlines
+	LDA #7:	STA &FE00
+	LDA #24+1: STA &FE01			; 280 - 256 = 24 scanlines
+
+	\\ R6=1 - got to display just one row
+	LDA #6: STA &FE00
+	LDA #1: STA &FE01
+
     RTS
-}
+\}
 
 \ ******************************************************************
 \ Kill FX
@@ -509,52 +573,56 @@ EQUD 0
 \ ******************************************************************
 
 ALIGN &100
-.fx_colour1_table
-{
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_red
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL1 + PAL_magenta
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_blue
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_cyan
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_green
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL1 + PAL_yellow
-	NEXT
-}
+.pixels_left
+FOR n,0,63,2
+EQUB 2,1			; right red, left red
+NEXT
+FOR n,0,63,2
+EQUB 1,2			; left red, right red
+NEXT
+FOR n,0,127,1
+EQUB 0
+NEXT
 
-.fx_colour2_table
-{
-	FOR n,1,21,1
-	EQUB MODE1_COL3 + PAL_red
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL3 + PAL_magenta
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL3 + PAL_blue
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL3 + PAL_cyan
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL3 + PAL_green
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL3 + PAL_yellow
-	NEXT
-	FOR n,1,22,1
-	EQUB MODE1_COL3 + PAL_red
-	NEXT
-}
+.pixels_right
+FOR n,0,63,2
+EQUB 1,2			; right red, left red
+NEXT
+FOR n,0,63,2
+EQUB 2,1			; left red, right red
+NEXT
+FOR n,0,127,1
+EQUB 0
+NEXT
+
+ALIGN &100
+.offset_left
+EQUB 32
+FOR n,31,0,-1
+EQUB n,n
+NEXT
+FOR n,1,31
+EQUB n,n
+NEXT
+EQUB 32
+
+FOR n,0,127,1
+EQUB 0
+NEXT
+
+.offset_right
+EQUB 32
+FOR n,1,31,1
+EQUB 32+n,32+n
+NEXT
+FOR n,32,1,-1
+EQUB 32+n,32+n
+NEXT
+EQUB 32
+
+FOR n,0,127,1
+EQUB 0
+NEXT
 
 .data_end
 

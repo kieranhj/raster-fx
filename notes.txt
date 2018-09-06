@@ -1,0 +1,263 @@
+Raster Sprites
+~~~~~~~~~~~~~~
+Fastest possible ? draw is 11c so 128/11 = 11 bytes writes per raster line
+LDA #pixels     ; 2c
+EOR screen,X    ; 4c (+1c)
+STA screen,X    ; 5c
+
+Worst case?
+LDY table,X     ; 4c
+LDA pixels,X    ; 4c
+EOR (screen),Y  ; 5c (+1c)
+STA (screen),Y  ; 6c
+= 20c = 6 writes per scanline
+
+Med case?
+LDA #pixels     ; 2c
+LDY #offset     ; 2c
+EOR (screen),Y  ; 5c (+1c)
+STA (screen),y  ; 6c
+= 15c = 8 writes per scanline
+
+Idea would be to plot additional pixels each rasterline in a one scanline buffer
+
+                    xxxx
+                  yyxxxxyy
+                 zyyxxxxyyz
+                  yyxxxxyy
+                    xxxx
+
+Each line just EOR extra pixels into the scanline buffer. Reverse the process to remove pixels. Very similiar to vertical XOR technique for fill is for "free".
+
+Could autogenerate code to plot or create a table with offsets and pixel bytes.
+Use MODE 2 and only support byte aligned positions to begin with.
+One challenge is needing to accomodate extra cycles when crossing page boundary
+(or remove EOR and leave sprites solid.)
+
+Scanline buffer is 640 bytes wide (80 columns.) Sprite can be max width of 256/8=32 columns = 64 pixels. (Unless switching to low frequency MODE.)
+
+Circle:
+x^2 + y^2 = r^2
+x = sqrt(r^2 - y^2)
+r=32
+x = sqrt(1024 - y^2)
+y = 31 x = 8
+y = 30 x = 11 d = 3 
+y = 29 x = 14 d = 3
+y = 28 x = 15 d = 1
+y = 27 x = 17 d = 2
+y = 26 x = 19 d = 2
+y = 25 x = 20 d = 1
+y = 24 x = 21 d = 1
+y = 23 x = 22 d = 1
+...
+y = 0 x = 32
+
+For r=32 max d=8 (3x writes) otherwise 0 <= d <= 3 (can be done in 2x writes)
+Remember this is pixels. So in MODE 1 this is max 3 bytes to write 8 (square) pixels.
+But also remember have to double up pixels on both sides of circle. Whenever >1 pixel to plot always possible to be split across byte boundaries so always need 2 writes. Therefore always need 4x writes per scanline of circle. :\
+Possible to draw one circle per frame but not even two. Goal is 3x !!
+
+For r=64 max d=11 (4x writes) otherwise 0 <= d <= 5 (can be done in 2x writes)
+
+Subroutine overhead: JSR + RTS = 12c
+3x would leave 92c for writing bytes to screen.
+Need to write 4x bytes per scanline per sprite = 12 writes = ~10c per write.
+
+That's for circle sprites. For a diamond shape always 2 writes per sprite (one pixel each side) = 6 writes per scanline.
+
+                  aa
+                .baab.
+                cbaabc
+              .dcbaabcd.
+                cbaabc
+                .baab.
+                  aa
+
+Would only be impressive if diamonds could be different sizes / change sizes / get quite large. Can they be made larger than 256/8=32 columns?
+
+In MODE 2 pixels will alternate between left & right each scanline.
+Offset increases / decreases by 8 each scanline.
+
+Effectively want to do:
+
+LDY #0                  ; 2c
+
+LDA # PIXEL_RIGHT_1     ; 2c
+EOR (screen_left),Y     ; 5c
+STA (screen_left),Y     ; 6c
+LDA # PIXEL_LEFT_2      ; 2c
+EOR (screen_right),Y    ; 5c
+STA (screen_right),Y    ; 6c
+; 26c
+
+CLC                     ; 2c
+LDA screen_right        ; 3c
+ADC #8                  ; 2c
+STA screen_left         ; 3c
+LDA screen_right+1      ; 3c
+ADC #0                  ; 2c
+STA screen_right+1      ; 3c
+; 18 x2 = 36c => 62c total x3 = 186c > 128c Too slow! Try:
+
+LDA # PIXEL_RIGHT_1     ; 2c
+LDY left_off            ; 3c
+EOR (screen_left),Y     ; 5c
+STA (screen_left),Y     ; 6c
+LDA # PIXEL_LEFT_2      ; 2c
+LDY right_off           ; 3c
+EOR (screen_right),Y    ; 5c
+STA (screen_right),Y    ; 6c
+; 32c
+
+SEC             ; 2c
+LDA left_off    ; 3c
+SBC #8          ; 2c
+STA left_off    ; 3c
+LDA right_off   ; 3c
+ADC #8          ; 2c
+STA right_off   ; 3c
+; 18c => 50c total x3 = 150c > 128c Too slow! Gah. :)
+
+LDA next_right_off,Y  ; 4c
+STA right_off         ; 3c
+LDA next_left_off,Y   ; 4c
+STA left_off          ; 3c
+; 14c => 46c x3 = 138c
+
+Or just unroll everything?
+
+LDA # PIXEL_RIGHT_1     ; 2c
+LDY # 248               ; 2c
+EOR (screen_left),Y     ; 5c
+STA (screen_left),Y     ; 6c
+LDA # PIXEL_LEFT_1      ; 2c
+LDY # 0                 ; 2c
+EOR (screen_right),Y    ; 5c
+STA (screen_right),Y    ; 6c
+; 30c
+
+; Then Y=240 & Y=8
+; Y=232 & Y=16
+.. until ..
+; Y=0 & Y=248
+But how to extend to x3?
+
+LDA pixel_right, X      ; 4c
+LDY off_left, X         ; 4c
+EOR (screen_left),Y     ; 5c
+STA (screen_left),Y     ; 6c
+LDA pixel_left, X       ; 4c
+LDY off_right, X        ; 4c
+EOR (screen_right),Y    ; 5c
+STA (screen_right),Y    ; 6c
+; 38c x3 = 114c
+Where X is the scanline # for the sprite
+But need to set the scanline # per sprite
+
+LDX sprite_scanline     ; 3c
+INX                     ; 2c
+STX sprite_scanline     ; 3c
+; 38c + 8c = 46c x3 = 138c Can have 42c max. So close!
+
+Or give up single pixel in MODE 2 and just go down to single byte :(
+
+LDX sprite_scanline     ; 3c
+LDA pixel, X            ; 4c
+LDY off_left, X         ; 4c
+EOR (screen_left),Y     ; 5c
+STA (screen_left),Y     ; 6c
+LDY off_right, X        ; 4c
+EOR (screen_right),Y    ; 5c
+STA (screen_right),Y    ; 6c
+INX                     ; 2c
+STX sprite_scanline     ; 3c
+; 42c x 3 = 126c
+
+Holy shit - can you combine the linear addressing mode with vertical rupture / 1x256 CRTC?
+This would allow us to index subsequent bytes linearly avoiding the need for increments of 8?!
+Looks like linear addressing mode works fine in high frequency modes (see Some Nasty Effects)
+Yes, this appears to work, giving us a simple 80 byte single line linear frame buffer :)
+Could also use this for multiple lines repeated for up to 12 scanlines. :)
+
+So now there are only 80 bytes to write to w/ no carry guaranteed code could look something like:
+
+LDX left                ; 3c
+LDA # PIXEL_LEFT_1      ; 2c
+EOR &7C00, X            ; 4c
+STA &7C00, X            ; 5c
+DEX                     ; 2c
+STX left                ; 3c
+
+LDX right               ; 3c
+LDA # PIXEL_RIGHT_1     ; 2c
+EOR &7C00, X            ; 4c
+STA &7C00, X            ; 5c
+INX                     ; 2c
+STX right               ; 3c
+; 38c x3 = 114c Yay!
+
+                  aa
+                .baab.
+                cbaabc
+              .dcbaabcd.
+              edcbaabcde
+              EdcbaabcdE
+              .DcbaabcD.
+                CbaabC
+                .BaaB.
+                  AA
+
+left = 2,1,1,0,0,1,1,2
+right = 2,3,3,4,4,3,3,2
+N pixels across (N+1)/2 bytes
+Centre at (N+1)/4
+
+Probably unroll two lines because of two pixels per byte
+How to draw sprites starting at different scanlines?
+
+Y register could contain scanline #
+Can also poke an address into the plot code
+To avoid branching want to write 0 pixels until reach sprite Y pos
+CPY ypos produces Carry flag
+
+LDY ypos            ; 3c    0 = top of sprite
+LDA pixel_left,Y    ; 4c    contains 0 when outside visible size
+LDX off_left,Y      ; 4c    from left-hand edge
+EOR &7C00,X         ; 4c    poked as left-hand edge
+STA &7C00,X         ; 5c
+LDA pixel_right,Y   ; 4c
+LDX off_right,Y     ; 4c
+EOR &7C00,X         ; 4c
+STA &7C00,X         ; 5c
+INY                 ; 2c
+STY ypos            ; 3c
+; 42c x3 = 126c squeeky!
+
+Quick note on other effects inspired
+~~~
+Up to 6x vertical wavey lines that correspond to EOR'd blocks of colour
+
+Like the effect of the diamond looking like the top of a cuboid as edges accidentaly drawn down the screen. Could we colour the sides in? (With dither?!)
+- Animate these as large beat bars in time to the music
+- Could they be rotated? (Run into 6 byte write limit if square on but could keep shallow angle.)
+
+Shifting per-scanline offsets by another table so otherwise regular shapes become wavey
+
+Scroll around a massive isometric landscape by moving diamond pillars around the screen and adding / remooving them as they reach the edges.
+
+To do
+~~~
+- clipping top & bottom (hardest)
+- clipping left (easiest) - DONE
+- 3x sprites
+- better sprite shapes
+
+Left & right clipping achieved by centring 80 visible bytes in the middle of the &7C00 page.  (Set linear buffer to &2858)
+
+Top & bottom clipping
+If off the top then need to fill the first scanline buffer with all the missing bytes before getting to draw part - also need to not wrap around the draw index
+
+If off the bottom then need to defer starting the draw part until appropriate scanline
+
+Could have (up to) a page of pixels & offsets above and below the sprite we're interested in - but we're going to get extra cycles when crossing page boundaries. Can calculate based on Y pos how many cycles but not sure how to compensate (yet)
