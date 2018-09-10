@@ -73,10 +73,10 @@ GUARD &9F
 
 \\ FX variables
 
-.fx_colour_index		SKIP 1		; index into our colour palette
-.fx_byte				SKIP 1
+.fx_ypos				SKIP 2
 .fx_raster_count		SKIP 1
 .fx_xpos				SKIP 1
+.fx_tmp					SKIP 1
 
 \ ******************************************************************
 \ *	CODE START
@@ -118,7 +118,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	LDA #22
 	JSR oswrch
-	LDA #2
+	LDA #1
 	JSR oswrch
 
 	\\ Turn off cursor
@@ -128,11 +128,16 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	\\ Set Colour 2 to White - MODE 1 requires 4x writes to ULA Palette Register
 
-	LDA #MODE1_COL2 + PAL_white
+	LDA #MODE1_COL2 + PAL_yellow
 	STA &FE21
 	EOR #&10: STA &FE21
 	EOR #&40: STA &FE21
 	EOR #&10: STA &FE21
+
+	lda #$08
+	sta &FE20
+	lda #$18
+	sta &FE20
 
 	\\ Initialise system modules here!
 
@@ -332,8 +337,11 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 ;	LDA #&FF
 ;   JSR osfile
 
-	LDA #128
-	STA fx_colour_index
+	LDA #0
+	STA fx_ypos
+
+	LDA #88
+	STA fx_xpos
 
 	RTS
 }
@@ -355,28 +363,21 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_update_function
 {
-	\\ Increment our index into the palette table
-	LDX fx_colour_index
-;	INX
+\\ Set ypos for plot
+
+	LDX fx_ypos
+;	DEX
+;	DEX
 ;	BNE ok2
 ;	LDX #128
 	.ok2
-	STX fx_colour_index
+	STX fx_ypos
 
-	LDA fx_colour_index
-	STA fx_byte
-
-	LDX #0
-	LDA #0
-	.loop
-	STA &7C58,X
-	INX
-	CPX #80
-	BCC loop
+\\ Set xpos for plot
 
 	LDX fx_xpos
-	INX
-;	CPX #80
+;	INX
+;	CPX #88
 ;	BCC ok
 ;	LDX #0
 	.ok
@@ -386,6 +387,66 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	STX left_addr+4
 	STX right_addr+1
 	STX right_addr+4
+	STX middle_addr1+1
+	STX middle_addr1+4
+	STX middle_addr2+1
+	STX middle_addr2+4
+	STX middle_addr3+1
+	STX middle_addr3+4
+
+\\ Clear line buffer
+
+	LDX #0
+	LDA #0
+	.loop
+	STA &7C58,X
+	INX
+	CPX #80
+	BCC loop
+
+\\ Top clip
+
+	LDY fx_ypos
+	DEY
+
+	\\ Left edge
+	LDX offset_right, Y		; 4c
+	STX fx_tmp
+
+	LDA pixels_left, Y		; 4c
+	BEQ do_right
+	ORA #1		; merge right pixel
+
+	LDX offset_left, Y		; 4c
+	.middle_addr1
+	EOR &7C00, X			; 4c
+	STA &7C00, X			; 5c
+
+	CPX fx_tmp
+	BEQ done_clip
+
+	.clip_loop
+	INX
+	CPX fx_tmp
+	BEQ do_right
+
+	LDA #3
+	.middle_addr2
+	EOR &7C00, X			; 4c
+	STA &7C00, X			; 5c
+	JMP clip_loop
+
+	\\ Right edge
+
+	.do_right
+	LDA pixels_right, Y		; 4c
+	BEQ done_clip
+	ORA #2			; merge left pixel
+
+	.middle_addr3
+	EOR &7C00, X			; 4c
+	STA &7C00, X			; 5c
+	.done_clip
 
 	RTS
 }
@@ -440,10 +501,11 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #254				; 2c
 	STA fx_raster_count
 
-	LDY fx_colour_index
+	LDY fx_ypos
 	
 	.raster_loop
 
+	.left_clip
 	LDA pixels_left, Y		; 4c
 	LDX offset_left, Y		; 4c
 	.left_addr
@@ -451,6 +513,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	STA &7C00, X			; 5c
 	; 17c per byte
 
+	.right_clip
 	LDA pixels_right, Y		; 4c
 	LDX offset_right, Y		; 4c
 	.right_addr
@@ -459,9 +522,10 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	INY						; 2c
 
-	FOR n,1,42,1
+	FOR n,1,40,1
 	NOP
 	NEXT
+	BIT 0
 
 	\\ Loop 254 times
 
@@ -575,22 +639,24 @@ EQUD 0
 ALIGN &100
 .pixels_left
 FOR n,0,63,2
-EQUB 2,1			; right red, left red
+EQUB &C,&30			; right red, left red
 NEXT
 FOR n,0,63,2
-EQUB 1,2			; left red, right red
+EQUB &30,&C			; left red, right red
 NEXT
+
 FOR n,0,127,1
 EQUB 0
 NEXT
 
 .pixels_right
 FOR n,0,63,2
-EQUB 1,2			; right red, left red
+EQUB &30,&C			; right red, left red
 NEXT
 FOR n,0,63,2
-EQUB 2,1			; left red, right red
+EQUB &C,&30			; left red, right red
 NEXT
+
 FOR n,0,127,1
 EQUB 0
 NEXT

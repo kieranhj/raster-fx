@@ -256,8 +256,12 @@ To do
 Left & right clipping achieved by centring 80 visible bytes in the middle of the &7C00 page.  (Set linear buffer to &2858)
 
 Top & bottom clipping
-If off the top then need to fill the first scanline buffer with all the missing bytes before getting to draw part - also need to not wrap around the draw index
+If off the top then need to fill the first scanline buffer with all the missing bytes before getting to draw part - also need to not wrap around the draw index.
+Can't just use the delta draw bytes directly as this could be up to 255 lines worth - need to have a short cut that just copies the bytes as expected on that scanline directly to the linear frame buffer.
 
 If off the bottom then need to defer starting the draw part until appropriate scanline
 
 Could have (up to) a page of pixels & offsets above and below the sprite we're interested in - but we're going to get extra cycles when crossing page boundaries. Can calculate based on Y pos how many cycles but not sure how to compensate (yet)
+
+Extra cycles will be a multiple of number of lines clipped (probably 4x N)
+Extra cycles going to be v difficult to handle. Maybe just wrap the shapes instead?
