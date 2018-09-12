@@ -265,3 +265,21 @@ Could have (up to) a page of pixels & offsets above and below the sprite we're i
 
 Extra cycles will be a multiple of number of lines clipped (probably 4x N)
 Extra cycles going to be v difficult to handle. Maybe just wrap the shapes instead?
+
+Linear addressing mode doesn't work as you expect in High Freq ULA mode
+
+From BeebWiki:
+
+TTX VDU 
+This mode is selected when the 2 MHz clock, and the CRTC's MA13 output (TTX VDU) are high. This mode delivers data to the SAA 5050 Teletext generator to display MODE 7. The CRTC's row address (RA) lines are ignored as the SAA 5050 contains its own scanline counter, and expects the same 40 bytes to be presented on each scanline of the text row. Thus: 
+
+DA14 | DA13..DA10 | DA9..DA7 | DA6         | DA5..DA0
+AA3  | all 1      | MA9..7   | MA6 ^ ~1MHz | MA5..MA0 
+
+In MODE 7 the MOS ensures that MA11 is set and MA12 clear, so that AA3 is 1. This arrangement automatically provides hardware scrolling as MA10, raised on overflow, is ignored and all addresses are in the range &7C00 to &7FFF. By toggling AA3 an application can instantly switch to a second screen at &3C00 to &3FFF. 
+The MA6 line is XORed with the 1 MHz monotonic clock, so two distinct bytes are fetched in TTX VDU mode every microsecond. The buffer IC 15 delivers one to the SAA 5050 and discards the other. Therefore 80 of the 128 DRAM rows are refreshed per text row, meaning the longest any row goes without a refresh is 640 �s. Without toggling MA6 it would be nearly 2 ms. 
+TTX ROW is gated by IC 10 and TTX COL by IC 11. 
+
+In practice this means that odd and even bytes in linear mode need to be address XOR 64. :S  No can no longer just write bytes consecutively as per Low Freq ULA mode.
+
+Back to the drawing board maybe?! Can still guarantee that bytes on the linear line fall within 1 page. Might possibly work with the current approach by making the odd offsets XOR 64 but definitely going to increase the complexity.
