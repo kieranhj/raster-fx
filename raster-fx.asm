@@ -95,6 +95,8 @@ GUARD &9F
 
 .billb_row_count		SKIP 1
 .billb_top_row			SKIP 1
+.billb_top_tmp			SKIP 1
+.billb_top_idx			SKIP 1
 
 \ ******************************************************************
 \ *	CODE START
@@ -344,16 +346,10 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_init_function
 {
-	FOR n,0,40,1
-	{
-		LDA #&11
-		STA STAR_ROW_ADDR + RND(BILLB_ROW_BYTES)
-	}
-	NEXT
-
 	LDA #0
 	STA billb_offset
 	STA billb_top_row
+	STA billb_top_idx
 
 	LDA #7
 	STA billb_glyph_col
@@ -362,6 +358,13 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	STA billb_message_ptr
 	LDA #HI(message_text)
 	STA billb_message_ptr+1
+
+	LDY #0
+	.loop
+ 	JSR star_plot
+	INY
+	CPY #8
+	BCC loop
 
 	RTS
 }
@@ -460,18 +463,28 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	ADC #BILLB_NUM_COLS/2
 	STA billb_right_off
 
+	\\ Update top row
+
+	LDX billb_top_idx
+	INX
+	STX billb_top_idx
+	LDA billb_top_table, X
+	TAX
+	STX billb_top_row
+
+	\\ Set CRTC address for row 0
+
+	STX billb_top_tmp
+	JSR billb_set_crtc_addr
+
 	\\ Which bit?
 
 	LDA #1
 	STA billb_mask
 
-	\\ Set CRTC address for row 0
-
-	LDX billb_top_row
-	JSR billb_set_crtc_addr
-
 	\\ Draw row 0
 
+	LDX #0
 	LDY billb_right_off			; 3c
 	JSR billb_set_writeptr
 
@@ -485,6 +498,48 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA billb_glyph_byte
 	AND billb_mask
 	JSR billb_plot_led
+
+	\\ Draw stars - could / should move this to draw fn
+	\\ (Would need to be exact timing for each loop)
+
+	LDY #0
+	.loop
+	JSR star_plot				; 79c
+
+	CLC							; 2c
+	LDA stars_XL,Y				; 4c
+	ADC stars_S,Y				; 4c
+	STA stars_XL,Y				; 5c
+	LDA stars_XH,Y				; 4c
+	ADC #0						; 2c
+	STA stars_XH,Y				; 5c
+	CMP #HI(640)				; 2c
+	BCC x_ok1					
+	; 2c
+	LDA stars_XL,Y				; 4c
+	CMP #LO(640)				; 2c
+	BCC x_ok2
+	; 2c
+	SBC #LO(640)				; 2c
+	STA stars_XL,Y				; 5c
+	LDA stars_XH,Y				; 4c
+	SBC #HI(640)				; 2c
+	STA stars_XH,Y				; 5c
+	BCC x_go					; 3c
+	\\ 
+	.x_ok1						; 3c
+	NOP:NOP:BIT 0				\\ Total 10
+
+	.x_ok2						; 3c
+	NOP:NOP:NOP:NOP:NOP			\\ NOT CHECKED FOR EXACT TIMING
+	NOP:NOP:NOP:NOP:NOP
+	\\ Total 23c
+
+	.x_go
+	JSR star_plot				; 79c
+	INY							; 2c
+	CPY #8						; 2c
+	BNE loop					; 3c
 
 	RTS
 }
@@ -547,6 +602,36 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 }
 \\ 74c
 
+.star_plot		; Y=star no / y pos
+{								; 6c
+	LDA stars_XH, Y				; 4c
+	STA writeptr+1				; 3c
+
+	LDA stars_XL, Y				; 4c
+	AND #&FC					; 2c
+	STA writeptr				; 3c
+
+	ASL writeptr				; 5c
+	ROL writeptr+1				; 5c
+
+	CLC							; 2c
+	LDA writeptr				; 3c
+	ADC #LO(STAR_ROW_ADDR)		; 2c
+	STA writeptr				; 3c
+	LDA writeptr+1				; 3c
+	ADC #HI(STAR_ROW_ADDR)		; 2c
+	STA writeptr+1				; 3c
+
+	LDA stars_XL, Y				; 4c
+	AND #&3						; 2c
+	TAX							; 2c
+
+	LDA pixels, X				; 4c
+	EOR (writeptr), Y			; 5c
+	STA (writeptr), Y			; 6c
+	RTS							; 6c
+}	\\ 79c
+
 \ ******************************************************************
 \ Draw FX
 \
@@ -582,13 +667,19 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	\\ Set address row 1
 
-	LDX billb_top_row
+	LDX billb_top_tmp
 	INX
+	TXA
+	AND #BILLB_NUM_ROWS-1
+	TAX
+	STX billb_top_tmp
 	JSR billb_set_crtc_addr		; 49c
 
 	\\ 38c
 
 	\\ Draw row 1
+
+	LDX #1
 
 	ROL billb_mask	; next row
 
@@ -616,15 +707,17 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	\\ Loop row rows 2-15
 
-	LDA #BILLB_NUM_ROWS - 2
+	LDA #2
 	STA billb_row_count
 
 	.raster_loop
 
+	LDX billb_top_tmp
 	INX
 	TXA
 	AND #BILLB_NUM_ROWS-1
 	TAX
+	STX billb_top_tmp
 
 	\\ Raster is displaying row N = X-1
 
@@ -637,6 +730,8 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	ROL billb_mask	; next row
 
 	\\ Draw row N
+
+	LDX billb_row_count
 
 	LDY billb_right_off			; 3c
 	JSR billb_set_writeptr		; 39c
@@ -654,43 +749,33 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	\\ 103c
 
-	FOR n,1,37,1
+	FOR n,1,27,1
 	NOP
 	NEXT
+	BIT 0
 
 	JSR cycles_wait_128
 	JSR cycles_wait_128
 
-	DEC billb_row_count		; 5c
+	INX
+	STX billb_row_count
+	CPX #BILLB_NUM_ROWS
 	BNE raster_loop			; 3c
+
+	LDX #15
+
+	.star_loop
 
 	\\ Displaying row 15 (counting from 0)
 
 	LDA #13:STA &FE00			; screen LO
 
-	LDA #LO(STAR_ROW_ADDR/8)
+	LDA stars_crtc_base_LO, X
 	STA &FE01
 
 	LDA #12:STA &FE00			; screen HI
-	LDA #HI(STAR_ROW_ADDR/8)
+	LDA stars_crtc_base_HI, X
 	STA &FE01
-
-	FOR n,1,45,1
-	NOP
-	NEXT
-
-	\\ Wait row 15 - update stars?
-
-	JSR cycles_wait_128
-	JSR cycles_wait_128
-	JSR cycles_wait_128
-	JSR cycles_wait_128
-	JSR cycles_wait_128
-	JSR cycles_wait_128
-	JSR cycles_wait_128
-
-	LDX #15
-	.star_loop
 
 	JSR cycles_wait_128
 	JSR cycles_wait_128
@@ -702,7 +787,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	JSR cycles_wait_128
 
 	DEX
-	BNE star_loop
+	BPL star_loop
 
 	\\ Very start of row 31, i.e. displayed 31 so far
 	\\ Need 39 total so 8 left to go
@@ -829,6 +914,27 @@ ALIGN &100				; ensure new page boundary
 	NEXT
 }
 
+.stars_crtc_base_LO
+{
+	FOR n,0,BILLB_NUM_ROWS-1,1
+;	EQUB LO((STAR_ROW_ADDR + n * (BILLB_ROW_BYTES/2) / BILLB_NUM_ROWS)/8)
+;	EQUB LO((STAR_ROW_ADDR)/8)
+	EQUB LO((STAR_ROW_ADDR + RND(BILLB_ROW_BYTES/2))/8)
+	NEXT
+}
+
+.stars_crtc_base_HI
+{
+	FOR n,0,BILLB_NUM_ROWS-1,1
+;	EQUB HI((STAR_ROW_ADDR + n * (BILLB_ROW_BYTES/2) / BILLB_NUM_ROWS)/8)
+;	EQUB HI((STAR_ROW_ADDR)/8)
+	EQUB HI((STAR_ROW_ADDR + RND(BILLB_ROW_BYTES/2))/8)
+	NEXT
+}
+
+.pixels
+EQUB &88,&44,&22,&11
+
 ALIGN &100
 .mult16_LO
 FOR n,0,79,1
@@ -840,8 +946,32 @@ FOR n,0,79,1
 EQUB HI(n * 16)
 NEXT
 
+.stars_XL
+FOR n,0,7,1
+;EQUB LO(160*n + n)
+EQUB LO((640 * n / 8) + RND(640/8))
+NEXT
+
+.stars_XH
+FOR n,0,7,1
+;EQUB HI(160*n + n)
+EQUB HI(640 * n / 7)
+NEXT
+
+.stars_S
+FOR n,0,7,1
+EQUB n+1;
+;EQUB RND(8)+1
+NEXT
+
 .message_text
 EQUS "HELLO WORLD!     ",0
+
+ALIGN &100
+.billb_top_table
+FOR n,0,255,1
+EQUB (12 + 4.5 * SIN(8 * PI * n / 256)) AND 15
+NEXT
 
 ALIGN &100
 .glyph_data
