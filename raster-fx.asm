@@ -701,9 +701,9 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	JSR cycles_wait_128
 	JSR cycles_wait_128
-	JSR cycles_wait_128
-
-	\\ REMOVE 45 NOPS
+;	JSR cycles_wait_128
+	NOP:NOP:NOP:NOP:NOP:NOP
+	NOP:NOP:NOP:NOP:NOP:NOP
 
 	\\ Loop row rows 2-15
 
@@ -762,7 +762,73 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	CPX #BILLB_NUM_ROWS
 	BNE raster_loop			; 3c
 
-	LDX #15
+	\\ Raster is displaying row N = X-1
+
+	\\ CRTC address will be for the same row
+
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+
+	\\ Wait until displaying row 16
+
+	\\ Reflection is 2 scanlines
+
+	LDA #9:STA &FE00			; scanlines per row = 2
+	LDA #1:STA &FE01			; R9 = 2 - 1 = 1
+
+	LDX billb_top_tmp
+	LDY #6
+
+	.reflection_loop
+
+	\\ Set address row N+1 = X
+
+	DEX
+	TXA
+	AND #BILLB_NUM_ROWS-1
+	TAX
+
+	JSR billb_set_crtc_addr
+
+	FOR n,1,30,1
+	NOP
+	NEXT
+
+	JSR cycles_wait_128
+
+	DEY
+	BPL reflection_loop
+
+	\\ Set stars
+
+	LDX #7+6
+
+	LDA #13:STA &FE00			; screen LO
+
+	LDA stars_crtc_base_LO, X
+	STA &FE01
+
+	LDA #12:STA &FE00			; screen HI
+	LDA stars_crtc_base_HI, X
+	STA &FE01
+
+	\\ Wait until last 2 scanline row displayed
+
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+
+	LDA #9:STA &FE00			; scanlines per row = 8
+	LDA #7:STA &FE01			; R9 = 8 - 1 = 7
+
+	\\ Raster is displaying row N = X-1
+
+	DEX
 
 	.star_loop
 
