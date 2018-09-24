@@ -74,6 +74,7 @@ GUARD &9F
 \\ FX variables
 
 .fx_colour_index		SKIP 1		; index into our colour palette
+.timer SKIP 1
 
 \ ******************************************************************
 \ *	CODE START
@@ -115,7 +116,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	LDA #22
 	JSR oswrch
-	LDA #1
+	LDA #2
 	JSR oswrch
 
 	\\ Turn off cursor
@@ -329,6 +330,11 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #&FF
     JSR osfile
 
+	LDA #&80
+	STA fx_colour_index
+	LDA #4
+	STA timer
+
 	RTS
 }
 
@@ -349,8 +355,57 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_update_function
 {
-	\\ Increment our index into the palette table
-	INC fx_colour_index
+	LDY timer
+	LDX fx_colour_index
+	BPL anim
+	INX
+	BNE return
+
+	LDA #PAL_black
+	.loop
+	STA fb_cols, X
+
+	INX
+	CPX #40
+	BCC loop
+
+	LDX #0
+	BEQ return 
+
+	.anim
+	DEY
+	BNE return
+
+	LDY #4
+	LDA #PAL_black
+	STA fb_cols, X
+	INX
+	CPX #40
+	BCC ok
+
+	LDX #0
+	.ok
+	LDA #PAL_red
+	STA fb_cols, X
+
+	.return
+	STX fx_colour_index
+	STY timer
+
+	\\ Set colours for top line
+
+	LDY #0
+	LDA fb_cols + 0, Y: ORA #&10: STA &FE21
+	LDA fb_cols + 1, Y: ORA #&20: STA &FE21
+	LDA fb_cols + 2, Y: ORA #&30: STA &FE21
+	LDA fb_cols + 3, Y: ORA #&40: STA &FE21
+	LDA fb_cols + 4, Y: ORA #&50: STA &FE21
+	LDA fb_cols + 5, Y: ORA #&60: STA &FE21
+	LDA fb_cols + 6, Y: ORA #&70: STA &FE21
+	LDA fb_cols + 7, Y: ORA #&80: STA &FE21
+	LDA fb_cols + 8, Y: ORA #&90: STA &FE21
+	LDA fb_cols + 9, Y: ORA #&a0: STA &FE21
+
 	RTS
 }
 
@@ -372,56 +427,52 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_draw_function
 {
-	LDX #0					; 2c
-	LDY fx_colour_index		; 3c
-
 	\\ Shift timing so palette change happens during hblank as much as possible
 
-	FOR n,1,33,1
+	FOR n,1,32,1
 	NOP
 	NEXT
-	\\ Wait 66c
+
+	CLC
+
+	LDY #10
 
 	.raster_loop
 
-	\\ Set Colour 1 - MODE 1 requires 4x writes to ULA Palette Register
+	JSR cycles_wait_63_scanlines
 
-	LDA fx_colour1_table, Y	; 4c
-	STA &FE21				; 4c
-	EOR #&10				; 2c
-	STA &FE21				; 4c
-	EOR #&40				; 2c
-	STA &FE21				; 4c
-	EOR #&10				; 2c
-	STA &FE21				; 4c
-	\\ Total = 26c
+	LDA fb_cols + 0, Y: ORA #&10: STA &FE21
+	LDA fb_cols + 1, Y: ORA #&20: STA &FE21
+	LDA fb_cols + 2, Y: ORA #&30: STA &FE21
+	LDA fb_cols + 3, Y: ORA #&40: STA &FE21
+	LDA fb_cols + 4, Y: ORA #&50: STA &FE21
+	LDA fb_cols + 5, Y: ORA #&60: STA &FE21
+	LDA fb_cols + 6, Y: ORA #&70: STA &FE21
+	LDA fb_cols + 7, Y: ORA #&80: STA &FE21
+	LDA fb_cols + 8, Y: ORA #&90: STA &FE21
+	LDA fb_cols + 9, Y: ORA #&a0: STA &FE21
 
-	\\ Set Colour 2 - MODE 1 requires 4x writes to ULA Palette Register
-
-	LDA fx_colour2_table, Y	; 4c
-	STA &FE21				; 4c
-	EOR #&10				; 2c
-	STA &FE21				; 4c
-	EOR #&40				; 2c
-	STA &FE21				; 4c
-	EOR #&10				; 2c
-	STA &FE21				; 4c
-	\\ Total = 26c
-
-	FOR n,1,33,1
-	NOP
-	NEXT
+	\\ Wait to EOL
 	BIT 0
-	\ Wait 69c
 
-	\\ Loop 256 times
+	TYA
+	ADC #10
+	TAY
 
-	INY						; 2c
-	INX						; 2c
-	BNE raster_loop			; 3c
-	\\ Loop total = 26 + 26 + 69 + 7 = 128c
+	CPY #40
+	BCC raster_loop
+
+	JSR cycles_wait_63_scanlines
 
     RTS
+}
+
+.cycles_wait_63_scanlines
+{
+	FOR n,1,63,1
+	JSR cycles_wait_128
+	NEXT
+	RTS
 }
 
 \ ******************************************************************
@@ -486,7 +537,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 }
 
 .osfile_filename
-EQUS "Screen", 13
+EQUS "Tris", 13
 
 .osfile_params
 .osfile_nameaddr
@@ -509,52 +560,42 @@ EQUD 0
 \ ******************************************************************
 
 ALIGN &100
-.fx_colour1_table
-{
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_red
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL1 + PAL_magenta
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_blue
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_cyan
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_green
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL1 + PAL_yellow
-	NEXT
-}
+.fb_cols
+FOR i,0,9,1
+IF i % 2=0
+c=PAL_red
+ELSE
+c=PAL_yellow
+ENDIF
+EQUB c
+NEXT
 
-.fx_colour2_table
-{
-	FOR n,1,21,1
-	EQUB MODE1_COL3 + PAL_red
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL3 + PAL_magenta
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL3 + PAL_blue
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL3 + PAL_cyan
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL3 + PAL_green
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL3 + PAL_yellow
-	NEXT
-	FOR n,1,22,1
-	EQUB MODE1_COL3 + PAL_red
-	NEXT
-}
+FOR i,0,9,1
+IF i % 2=0
+c=PAL_blue
+ELSE
+c=PAL_green
+ENDIF
+EQUB c
+NEXT
+
+FOR i,0,9,1
+IF i % 2=0
+c=PAL_magenta
+ELSE
+c=PAL_cyan
+ENDIF
+EQUB c
+NEXT
+
+FOR i,0,9,1
+IF i % 2=0
+c=PAL_black
+ELSE
+c=PAL_white
+ENDIF
+EQUB c
+NEXT
 
 .data_end
 
@@ -597,5 +638,5 @@ PRINT "------"
 \ *	Any other files for the disc
 \ ******************************************************************
 
-PUTBASIC "circle.bas", "Circle"
-PUTFILE "screen.bin", "Screen", &3000
+PUTFILE "triangles.bas", "mtri", &e00, &e00
+PUTFILE "tris.bin", "Tris", &3000
