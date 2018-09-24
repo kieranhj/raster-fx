@@ -406,6 +406,13 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA fb_cols + 8, Y: ORA #&90: STA &FE21
 	LDA fb_cols + 9, Y: ORA #&a0: STA &FE21
 
+	\\ Set screen address for tile
+
+	LDA #13:STA &FE00
+	LDA #LO(screen_addr/8):STA &FE01
+	LDA #12:STA &FE00
+	LDA #HI(screen_addr/8):STA &FE01
+
 	RTS
 }
 
@@ -427,9 +434,20 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_draw_function
 {
+	\\ Rupture
+
+	LDA #4: STA &FE00
+	LDA #7: STA &FE01			; R4=vertical total = 8-1 = 7
+
+	LDA #6: STA &FE00
+	LDA #8: STA &FE01			; R6=vertical displayed = 8
+
+	LDA #7: STA &FE00
+	LDA #&FF: STA &FE01			; R7=vsync = &FF (never)
+
 	\\ Shift timing so palette change happens during hblank as much as possible
 
-	FOR n,1,32,1
+	FOR n,1,7,1
 	NOP
 	NEXT
 
@@ -461,6 +479,16 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	CPY #40
 	BCC raster_loop
+
+	\\ Complete frame
+
+	LDA #4: STA &FE00
+	LDA #14: STA &FE01			; R4=vertical total = 39-24 = 15-1 = 7
+
+	; R6=vertical displayed = 8
+
+	LDA #7: STA &FE00
+	LDA #11: STA &FE01			; R7=vsync = 35-24 = 11
 
 	JSR cycles_wait_63_scanlines
 
@@ -639,4 +667,4 @@ PRINT "------"
 \ ******************************************************************
 
 PUTFILE "triangles.bas", "mtri", &e00, &e00
-PUTFILE "tris.bin", "Tris", &3000
+PUTFILE "tris2.bin", "Tris", &3000
