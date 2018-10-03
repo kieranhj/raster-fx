@@ -74,7 +74,12 @@ GUARD &9F
 \\ FX variables
 
 .fx_colour_index		SKIP 1		; index into our colour palette
-.timer SKIP 1
+.timer 					SKIP 1
+.timer2					SKIP 1
+.tri_char_x				SKIP 1
+.tri_offset_x			SKIP 1
+.tri_colour_index		SKIP 1
+.tri_quarters			SKIP 1
 
 \ ******************************************************************
 \ *	CODE START
@@ -332,8 +337,16 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	LDA #&80
 	STA fx_colour_index
+
 	LDA #4
 	STA timer
+	LDA #6
+	STA timer2
+
+	LDA #0
+	STA tri_char_x
+	STA tri_offset_x
+	STA tri_colour_index
 
 	RTS
 }
@@ -358,7 +371,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDY timer
 	LDX fx_colour_index
 	BPL anim
-	INX
+;	INX
 	BNE return
 
 	LDA #PAL_black
@@ -392,9 +405,28 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	STX fx_colour_index
 	STY timer
 
-	\\ Set colours for top line
+
+	LDY tri_offset_x
+
+	LDX tri_char_x
+	INX
+	CPX #20
+	BCC x_ok
+	LDX #0
+
+	INY
+	INY	; triangles means two blocks per repeat
+
+	CPY #14
+	BCC x_ok
 
 	LDY #0
+
+	.x_ok
+	STX tri_char_x
+
+	\\ Set colours for top line
+
 	LDA fb_cols + 0, Y: ORA #&10: STA &FE21
 	LDA fb_cols + 1, Y: ORA #&20: STA &FE21
 	LDA fb_cols + 2, Y: ORA #&30: STA &FE21
@@ -405,14 +437,32 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA fb_cols + 7, Y: ORA #&80: STA &FE21
 	LDA fb_cols + 8, Y: ORA #&90: STA &FE21
 	LDA fb_cols + 9, Y: ORA #&a0: STA &FE21
+	LDA fb_cols + 10, Y: ORA #&b0: STA &FE21
+	LDA fb_cols + 11, Y: ORA #&c0: STA &FE21
+
+	STY tri_offset_x
+	STY tri_colour_index
 
 	\\ Set screen address for tile
 
-	LDA #13:STA &FE00
-	LDA #LO(screen_addr/8):STA &FE01
-	LDA #12:STA &FE00
-	LDA #HI(screen_addr/8):STA &FE01
+;	LDY timer2
+;	DEY
+;	BNE no_anim
+;	LDY #6
 
+	.no_anim
+	LDA #13:STA &FE00
+	LDA screen_row_addr_LO + 0
+	CLC
+	ADC tri_char_x
+	STA &FE01
+
+	LDA #12:STA &FE00
+	LDA screen_row_addr_HI + 0
+	ADC #0
+	STA &FE01
+
+	STY timer2
 	RTS
 }
 
@@ -437,10 +487,10 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ Rupture
 
 	LDA #4: STA &FE00
-	LDA #7: STA &FE01			; R4=vertical total = 8-1 = 7
+	LDA #0: STA &FE01			; R4=vertical total = 1-1 = 0
 
 	LDA #6: STA &FE00
-	LDA #8: STA &FE01			; R6=vertical displayed = 8
+	LDA #1: STA &FE01			; R6=vertical displayed = 8
 
 	LDA #7: STA &FE00
 	LDA #&FF: STA &FE01			; R7=vsync = &FF (never)
@@ -451,13 +501,104 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	NOP
 	NEXT
 
-	CLC
+	LDA #4
+	STA tri_quarters
 
-	LDY #10
+	LDX #0
 
 	.raster_loop
 
-	JSR cycles_wait_63_scanlines
+;	JSR cycles_wait_63_scanlines
+
+	INX
+	TXA
+	AND #15
+	TAX
+	.row_loop
+
+	\\ Set screen address for next row / cycle
+
+	LDA #13:STA &FE00			; 6c
+	LDA screen_row_addr_LO, X	; 4c
+	CLC							; 2c
+	ADC tri_char_x				; 3c
+	STA &FE01					; 4c
+
+	LDA #12:STA &FE00			; 6c
+	LDA screen_row_addr_HI, X	; 4c
+	ADC #0						; 2c
+	STA &FE01					; 4c
+
+	; wait 7 scanlines
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+
+	FOR n,1,39,1
+	NOP
+	NEXT
+
+	INX							; 2c
+
+	TXA
+	AND #7
+;	CPX #8						; 2c
+	BNE row_loop				; 3c
+
+	DEC tri_quarters
+	BNE continue
+	JMP raster_loop_done
+
+	.continue
+
+	\\ Set screen address for next row / cycle
+
+	LDA #13:STA &FE00			; 6c
+	LDA screen_row_addr_LO,X	; 4c
+	CLC							; 2c
+	ADC tri_char_x				; 3c
+	STA &FE01					; 4c
+
+	LDA #12:STA &FE00			; 6c
+	LDA screen_row_addr_HI,X	; 4c
+	ADC #0						; 2c
+	STA &FE01					; 4c
+
+	FOR n,1,26,1
+	NOP
+	NEXT
+
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+
+	\\ Wait to EOL
+	BIT 0
+
+	FOR n,1,1,1
+	NOP
+	NEXT
+
+	; = 63 scanline
+
+	; Change 10 colours
+	; Starting colour # is the X offset DIV 10
+	; So 1 - 3 through to 10 - 12
+	; But still mappin
+
+	LDY tri_quarters
+	LDA tri_colour_index
+	ADC quarter_offsets, Y
+	CLC
+	STA tri_colour_index
+	TAY
 
 	LDA fb_cols + 0, Y: ORA #&10: STA &FE21
 	LDA fb_cols + 1, Y: ORA #&20: STA &FE21
@@ -469,28 +610,37 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA fb_cols + 7, Y: ORA #&80: STA &FE21
 	LDA fb_cols + 8, Y: ORA #&90: STA &FE21
 	LDA fb_cols + 9, Y: ORA #&a0: STA &FE21
+	LDA fb_cols + 10, Y: ORA #&b0: STA &FE21
+	LDA fb_cols + 11, Y: ORA #&c0: STA &FE21
 
-	\\ Wait to EOL
-	BIT 0
+	INY
 
-	TYA
-	ADC #10
-	TAY
-
-	CPY #40
-	BCC raster_loop
+	JMP raster_loop
+	.raster_loop_done
 
 	\\ Complete frame
 
 	LDA #4: STA &FE00
-	LDA #14: STA &FE01			; R4=vertical total = 39-24 = 15-1 = 7
+	LDA #7: STA &FE01			; R4=vertical total = 39-31 = 8-1 = 7
 
-	; R6=vertical displayed = 8
+	; R6=vertical displayed = 1
 
 	LDA #7: STA &FE00
-	LDA #11: STA &FE01			; R7=vsync = 35-24 = 11
+	LDA #4: STA &FE01			; R7=vsync = 35-31 = 4
 
-	JSR cycles_wait_63_scanlines
+
+;	JSR cycles_wait_63_scanlines
+
+	; Make sure we're off screen before doing any more processing
+
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+	JSR cycles_wait_128
+	JSR cycles_wait_128
 
     RTS
 }
@@ -589,7 +739,20 @@ EQUD 0
 
 ALIGN &100
 .fb_cols
-FOR i,0,9,1
+FOR i,0,31,1
+EQUB ((i MOD 7)+1) EOR 7
+NEXT
+FOR i,0,31,1
+EQUB ((i MOD 7)+1) EOR 7
+NEXT
+FOR i,0,31,1
+EQUB ((i MOD 7)+1) EOR 7
+NEXT
+FOR i,0,31,1
+EQUB ((i MOD 7)+1) EOR 7
+NEXT
+
+FOR i,0,31,1
 IF i % 2=0
 c=PAL_red
 ELSE
@@ -598,7 +761,8 @@ ENDIF
 EQUB c
 NEXT
 
-FOR i,0,9,1
+
+FOR i,0,31,1
 IF i % 2=0
 c=PAL_blue
 ELSE
@@ -607,7 +771,7 @@ ENDIF
 EQUB c
 NEXT
 
-FOR i,0,9,1
+FOR i,0,31,1
 IF i % 2=0
 c=PAL_magenta
 ELSE
@@ -616,7 +780,7 @@ ENDIF
 EQUB c
 NEXT
 
-FOR i,0,9,1
+FOR i,0,31,1
 IF i % 2=0
 c=PAL_black
 ELSE
@@ -624,6 +788,21 @@ c=PAL_white
 ENDIF
 EQUB c
 NEXT
+
+.screen_row_addr_LO
+FOR n,0,16,1
+m = n % 8
+EQUB LO((screen_addr + m*8*110)/8 + ((n DIV 8)%2)*10)
+NEXT
+
+.screen_row_addr_HI
+FOR n,0,16,1
+m = n % 8
+EQUB HI((screen_addr + m*8*110)/8 + ((n DIV 8)%2)*10)
+NEXT
+
+.quarter_offsets
+EQUB 0,31,33,31
 
 .data_end
 
@@ -667,4 +846,4 @@ PRINT "------"
 \ ******************************************************************
 
 PUTFILE "triangles.bas", "mtri", &e00, &e00
-PUTFILE "tris2.bin", "Tris", &3000
+PUTFILE "tris3.bin", "Tris", &3000
