@@ -73,9 +73,6 @@ GUARD &9F
 
 \\ FX variables
 
-.fx_colour_index		SKIP 1		; index into our colour palette
-.timer 					SKIP 1
-.timer2					SKIP 1
 .tri_char_x				SKIP 1
 .tri_offset_x			SKIP 1
 .tri_colour_index		SKIP 1
@@ -335,14 +332,6 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #&FF
     JSR osfile
 
-	LDA #&80
-	STA fx_colour_index
-
-	LDA #4
-	STA timer
-	LDA #6
-	STA timer2
-
 	LDA #0
 	STA tri_char_x
 	STA tri_offset_x
@@ -368,44 +357,6 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_update_function
 {
-	LDY timer
-	LDX fx_colour_index
-	BPL anim
-;	INX
-	BNE return
-
-	LDA #PAL_black
-	.loop
-	STA fb_cols, X
-
-	INX
-	CPX #40
-	BCC loop
-
-	LDX #0
-	BEQ return 
-
-	.anim
-	DEY
-	BNE return
-
-	LDY #4
-	LDA #PAL_black
-	STA fb_cols, X
-	INX
-	CPX #40
-	BCC ok
-
-	LDX #0
-	.ok
-	LDA #PAL_red
-	STA fb_cols, X
-
-	.return
-	STX fx_colour_index
-	STY timer
-
-
 	LDY tri_offset_x
 
 	LDX tri_char_x
@@ -445,11 +396,6 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	\\ Set screen address for tile
 
-;	LDY timer2
-;	DEY
-;	BNE no_anim
-;	LDY #6
-
 	.no_anim
 	LDA #13:STA &FE00
 	LDA screen_row_addr_LO + 0
@@ -462,7 +408,6 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	ADC #0
 	STA &FE01
 
-	STY timer2
 	RTS
 }
 
@@ -568,7 +513,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	ADC #0						; 2c
 	STA &FE01					; 4c
 
-	FOR n,1,26,1
+	FOR n,1,17,1
 	NOP
 	NEXT
 
@@ -578,13 +523,6 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	JSR cycles_wait_128
 	JSR cycles_wait_128
 	JSR cycles_wait_128
-
-	\\ Wait to EOL
-	BIT 0
-
-	FOR n,1,1,1
-	NOP
-	NEXT
 
 	; = 63 scanline
 
@@ -613,8 +551,13 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA fb_cols + 10, Y: ORA #&b0: STA &FE21
 	LDA fb_cols + 11, Y: ORA #&c0: STA &FE21
 
-	INY
+	\\ Wait to EOL
+	FOR n,1,4,1
+	NOP
+	NEXT
+	BIT 0
 
+	INY
 	JMP raster_loop
 	.raster_loop_done
 
@@ -739,6 +682,7 @@ EQUD 0
 
 ALIGN &100
 .fb_cols
+IF 0
 FOR i,0,31,1
 EQUB ((i MOD 7)+1) EOR 7
 NEXT
@@ -751,6 +695,7 @@ NEXT
 FOR i,0,31,1
 EQUB ((i MOD 7)+1) EOR 7
 NEXT
+ENDIF
 
 FOR i,0,31,1
 IF i % 2=0
@@ -803,6 +748,9 @@ NEXT
 
 .quarter_offsets
 EQUB 0,31,33,31
+
+.random
+
 
 .data_end
 
