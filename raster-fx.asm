@@ -78,6 +78,9 @@ GUARD &9F
 .tri_colour_index		SKIP 1
 .tri_quarters			SKIP 1
 
+.tri_rnd_colour			SKIP 1
+.tri_rnd_index			SKIP 1
+
 \ ******************************************************************
 \ *	CODE START
 \ ******************************************************************
@@ -336,6 +339,10 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	STA tri_char_x
 	STA tri_offset_x
 	STA tri_colour_index
+	STA tri_rnd_index
+
+	LDA #PAL_black
+	STA tri_rnd_colour
 
 	RTS
 }
@@ -357,7 +364,52 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_update_function
 {
+	\\ Do some amazing pattern on the tiles
+
+	LDX tri_rnd_index
+	LDA random, X
+	AND #127
+	TAY
+
+;	LDA fb_cols, Y
+;	CLC
+;	ADC #1
+;	AND #7
+	LDA tri_rnd_colour
+	STA fb_cols, Y
+
+	TYA
+	EOR #10
+	TAY
+
+;	LDA fb_cols, Y
+;	CLC
+;	ADC #1
+;	AND #7
+	
+	LDA tri_rnd_colour
+;	EOR #7
+	STA fb_cols, Y
+
+	INX
+	CPX #128
+	BCC rnd_ok
+	LDX #0
+
+	LDA tri_rnd_colour
+	SEC
+	SBC #1
+	AND #7
+	STA tri_rnd_colour
+
+	.rnd_ok
+	STX tri_rnd_index
+
+	\\ Scroll tiles
+
 	LDY tri_offset_x
+
+	\\ Increment byte offset (two pixels in X)
 
 	LDX tri_char_x
 	INX
@@ -365,10 +417,12 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	BCC x_ok
 	LDX #0
 
-	INY
-	INY	; triangles means two blocks per repeat
+	\\ Increment repeat offset
 
-	CPY #14
+	INY
+	INY	; triangles means two tiles per repeat
+
+	CPY #10;14
 	BCC x_ok
 
 	LDY #0
@@ -749,8 +803,11 @@ NEXT
 .quarter_offsets
 EQUB 0,31,33,31
 
+ALIGN &100
 .random
-
+FOR i,0,127,1
+EQUB RND(128)
+NEXT
 
 .data_end
 
