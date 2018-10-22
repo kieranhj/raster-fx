@@ -50,7 +50,7 @@ SCREEN_SIZE_BYTES = &8000 - screen_addr
 FramePeriod = 312*64-2
 
 ; Calculate here the timer value to interrupt at the desired line
-TimerValue = 32*64 - 2*64 - 2 - 20
+TimerValue = 32*64 - 2*64 - 2 - 22 - 9
 
 \\ 40 lines for vblank
 \\ 32 lines for vsync (vertical position = 35 / 39)
@@ -74,6 +74,7 @@ GUARD &9F
 \\ FX variables
 
 .fx_colour_index		SKIP 1		; index into our colour palette
+.fx_raster_count		SKIP 1
 
 \ ******************************************************************
 \ *	CODE START
@@ -256,7 +257,33 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 		.waitTimer1
 		BIT &FE4D				; 4c + 1/2c
 		BEQ waitTimer1         	; poll timer1 flag
-		STA &FE4D             	; clear timer1 flag ; 4c +1/2c
+
+
+		\\ Reading the T1 low order counter also resets the T1 interrupt flag in IFR
+
+		LDA &FE44					; 4c + 1c - will be even already?
+
+		\\ New stable raster NOP slide thanks to VectorEyes 8)
+
+		\\ Observed values $FA (early) - $F7 (late) so map these from 7 - 0
+		\\ then branch into NOPs to even this out.
+
+		AND #15
+		SEC
+		SBC #7
+		EOR #7
+		STA branch+1
+		.branch
+		BNE branch
+		NOP
+		NOP
+		NOP
+		NOP
+		NOP
+		NOP
+		NOP
+		.stable
+		BIT 0
 	}
 
 	\\ Check if Escape pressed
@@ -351,6 +378,10 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 {
 	\\ Increment our index into the palette table
 	INC fx_colour_index
+
+	LDA #0
+	STA fx_raster_count
+
 	RTS
 }
 
@@ -360,7 +391,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 \ The draw function is the main body of the FX.
 \
 \ This function will be exactly at the start* of raster line 0 with
-\ a maximum jitter of up to +10 cycles.
+\ a stablised raster. VC=0 HC=0|1 SC=0
 \
 \ This means that a new CRTC cycle has just started! If you didn't
 \ specify the registers from the previous frame then they will be
@@ -372,54 +403,24 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_draw_function
 {
-	LDX #0					; 2c
-	LDY fx_colour_index		; 3c
-
-	\\ Shift timing so palette change happens during hblank as much as possible
-
-	FOR n,1,33,1
+	LDA #&F0 + PAL_red
+	LDX #&F0 + PAL_yellow
+	LDY #&F0 + PAL_green
 	NOP
+	\\ 8c
+
+	.loop
+
+	FOR n,1,10,1
+	STA &FE21		; 4c
+	STX &FE21		; 4c
+	STY &FE21		; 4c
 	NEXT
-	\\ Wait 66c
+	\\ 10*12=120c
 
-	.raster_loop
-
-	\\ Set Colour 1 - MODE 1 requires 4x writes to ULA Palette Register
-
-	LDA fx_colour1_table, Y	; 4c
-	STA &FE21				; 4c
-	EOR #&10				; 2c
-	STA &FE21				; 4c
-	EOR #&40				; 2c
-	STA &FE21				; 4c
-	EOR #&10				; 2c
-	STA &FE21				; 4c
-	\\ Total = 26c
-
-	\\ Set Colour 2 - MODE 1 requires 4x writes to ULA Palette Register
-
-	LDA fx_colour2_table, Y	; 4c
-	STA &FE21				; 4c
-	EOR #&10				; 2c
-	STA &FE21				; 4c
-	EOR #&40				; 2c
-	STA &FE21				; 4c
-	EOR #&10				; 2c
-	STA &FE21				; 4c
-	\\ Total = 26c
-
-	FOR n,1,33,1
-	NOP
-	NEXT
-	BIT 0
-	\ Wait 69c
-
-	\\ Loop 256 times
-
-	INY						; 2c
-	INX						; 2c
-	BNE raster_loop			; 3c
-	\\ Loop total = 26 + 26 + 69 + 7 = 128c
+	DEC fx_raster_count		; 5c
+	BNE loop				; 3c
+	\\ Total =128c
 
     RTS
 }
