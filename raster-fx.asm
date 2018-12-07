@@ -93,10 +93,12 @@ GUARD &9F
 .billb_glyph_col		SKIP 1
 .billb_glyph_byte		SKIP 1
 
-.billb_row_count		SKIP 1
-.billb_top_row			SKIP 1
-.billb_top_tmp			SKIP 1
-.billb_top_idx			SKIP 1
+.table_index			SKIP 1
+.billb_y				SKIP 1
+.billb_scale			SKIP 1
+
+.billb_inc				SKIP 3
+.billb_row				SKIP 3
 
 \ ******************************************************************
 \ *	CODE START
@@ -396,8 +398,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 {
 	LDA #0
 	STA billb_offset
-	STA billb_top_row
-	STA billb_top_idx
+	STA table_index
 
 	LDA #60
 	STA billb_glyph_col
@@ -536,11 +537,35 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	CPX #8
 	BCC loop
 
-	\\ Update top row
+	\\ Update top row & scale
+
+	INC table_index
+
+	LDX table_index
+	LDA y_table, X
+	STA billb_y
+
+	LDA scale_table, X
+	STA billb_scale
+
+	\\ Set vars
+
+	LDX billb_scale
+	LDA scale_to_inc_FRAC, X
+	STA billb_inc
+	LDA scale_to_inc_LO, X
+	STA billb_inc+1
+	LDA scale_to_inc_HI, X
+	STA billb_inc+2
+
+	LDA #0
+	STA billb_row
+	STA billb_row+1
+	STA billb_row+2
 
 	\\ Set CRTC address for row 0
 
-	LDX #0
+	LDX #BILLB_NUM_ROWS
 	JSR billb_set_crtc_addr
 
 	RTS
@@ -632,49 +657,60 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #7:STA &FE00			; vsync
 	LDA #&FF:STA &FE01			; R7 = &FF (no vsync)
 
-	\\ Set address row 1-7
-
-	LDX #0
-	LDY #6
-	JSR billb_set_crtc_addr		; 49c
-	NOP:NOP:BIT 0
-
-	\ scanline=1
-
-	.line_loop0
-	JSR billb_set_crtc_addr		; 49c
-	FOR n,1,35,1
+	FOR n,1,27,1
 	NOP
 	NEXT
-	DEY
-	BNE line_loop0
 
-	INX
-	.row_loop
-	LDY #8
-	.line_loop_N
+	\\ Skip first Y lines
+
+	{
+		LDX billb_y
+		DEX
+		BEQ no_skip ; 2c/3c
+		JSR cycles_wait_scanlines
+		JMP here	; 3c
+		.no_skip
+		NOP			; 2c
+		.here
+	}
+
+	\\ Set scanline 1
+
+	LDY billb_y
+	LDX billb_row+2
+
+	.line_loop
 	JSR billb_set_crtc_addr		; 49c
-	FOR n,1,35,1
+	INY
+
+	FOR n,1,16,1
 	NOP
 	NEXT
-	DEY
-	BNE line_loop_N
+	BIT 0
 
-	INX
-	CPX #8
-	BCC row_loop
+	CLC
+	LDA billb_row
+	ADC billb_inc
+	STA billb_row
+	LDA billb_row+1
+	ADC billb_inc+1
+	STA billb_row+1
+	LDA billb_row+2
+	ADC billb_inc+2
+	STA billb_row+2
 
-	\\ Set remaining rows blanks
-
-	LDX #BILLB_NUM_ROWS
-	JSR billb_set_crtc_addr
+	TAX
+	CPX #BILLB_NUM_ROWS
+	BCC line_loop
 
 	\\ Wait remaining rows
 
-	LDX #255-64		; thru to 255
+	TYA
+	EOR #255
+	TAX
+	BEQ no_wait
 	JSR cycles_wait_scanlines
-
-	NOP:NOP:NOP:NOP:NOP:NOP
+	.no_wait
 
 	\\ Very start of row 31, i.e. displayed 31 so far
 	\\ Need 39 total so 8 left to go
@@ -767,19 +803,6 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 \ *	FX DATA
 \ ******************************************************************
 
-ALIGN &100				; ensure new page boundary
-.billb_onsprite
-{
-	EQUB &03, &37, &6F, &4F, &0F, &07, &03, &00			; &FF, &FF, &FF, &FF, &FF, &FF, &FF, &FF
-	EQUB &08, &0C, &0E, &0E, &0E, &0C, &08, &00			; &FF, &FF, &FF, &FF, &FF, &FF, &FF, &FF	
-}
-
-.billb_offsprite
-{
-	EQUB &20, &50, &A0, &50, &A0, &50, &20, &00			; &05, &0A, &05, &0A, &05, &0A, &05, &0A
-	EQUB &80, &40, &A0, &40, &A0, &40, &80, &00			; &05, &0A, &05, &0A, &05, &0A, &05, &0A
-}
-
 .billb_crtc_base_LO
 {
 	FOR n,0,BILLB_NUM_ROWS-1,1
@@ -813,6 +836,9 @@ ALIGN &100				; ensure new page boundary
 .pixels
 EQUB &88,&44,&22,&11
 
+.message_text
+EQUS "HELLO WORLD! BITSHIFTERS SCROLLTEXT PROTOTYPE CHALLENGE... VERTICAL ZOOM!      ",0
+
 ALIGN &100
 .mult8_LO
 FOR n,0,BILLB_NUM_CHARS*2-1,1
@@ -825,8 +851,32 @@ FOR n,0,BILLB_NUM_CHARS*2-1,1
 EQUB HI(n * 8)
 NEXT
 
-.message_text
-EQUS "HELLO WORLD! THIS IS A MUCH LONGER MESSAGE...         ",0
+ALIGN &100
+.scale_to_inc_FRAC
+FOR n,0,255,1
+EQUB LO(256*256 * 8 / (n+1))
+NEXT
+
+.scale_to_inc_LO
+FOR n,0,255,1
+EQUB HI(256*256 * 8 / (n+1))
+NEXT
+
+.scale_to_inc_HI
+FOR n,0,255,1
+EQUB HI(256 * 8 / (n+1))
+NEXT
+
+.scale_table
+FOR n,0,255,1
+;EQUB 128
+EQUB 7 + 100 + 100 * SIN(2 * PI * n / 256)
+NEXT
+
+.y_table
+FOR n,0,255,1
+EQUB 22 + 20 * SIN(4 * PI * n / 256)
+NEXT
 
 ALIGN &100
 .glyph_data
