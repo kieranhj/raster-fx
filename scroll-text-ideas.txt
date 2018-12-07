@@ -1,0 +1,28 @@
+Scrolltext Jam
+~~~
+December 2018
+
+1) Billboard LEDs - DONE (again)
+2) Multiple single character row scrollers at different speeds (STARTED)
+3) Sinewave scroller at 16x16 or such - full screen using vrup/wrap
+4) Vertical zoom scroller (8x8 glyph VRup in MODE 1)
+5) Tile scroller (32x32 tiles panning around a larger map)
+6) Large glyph scroller (assembled from 256 possible 8x8 tiles)
+7) Single character scroller (sprites)
+8) Vertical scroller 
+9) Any 3D text, esp filled even if just a couple of glyphs
+
+
+Vertical Zoom Scroller
+
+8 character rows - each 160 columns
+Column offset 0-7 pixels (begin just 0 and 4 pixels)
+Fill rhs and lhs of each character row with bytes depending on pixels from glyph column
+Use vrup to repeat rows (start with 8 times)
+
+Extras:
+- Use lookup tables for vrup to stretch, rotate, ripple
+- Dither by using 2x scanlines for each char row
+- Potentially add colour palette changes as well
+- Use 4x sets of character rows for single pixel offsets
+- Add mirror effect back
