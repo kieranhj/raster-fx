@@ -5,7 +5,7 @@ December 2018
 1) Billboard LEDs - DONE (again)
 2) Multiple single character row scrollers at different speeds (STARTED)
 3) Sinewave scroller at 16x16 or such - full screen using vrup/wrap
-4) Vertical zoom scroller (8x8 glyph VRup in MODE 1)
+4) Vertical zoom scroller (8x8 glyph VRup in MODE 1) - DONE (v1)
 5) Tile scroller (32x32 tiles panning around a larger map)
 6) Large glyph scroller (assembled from 256 possible 8x8 tiles)
 7) Single character scroller (sprites)

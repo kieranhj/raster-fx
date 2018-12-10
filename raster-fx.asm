@@ -2,6 +2,8 @@
 \ *	RASTER FX FRAMEWORK
 \ ******************************************************************
 
+_DEBUG_RASTERS = FALSE
+
 \ ******************************************************************
 \ *	OS defines
 \ ******************************************************************
@@ -38,6 +40,14 @@ MODE1_COL3=&A0
 \ *	MACROS
 \ ******************************************************************
 
+MACRO SET_PAL col, pal
+	LDA #col + pal
+	STA &FE21
+	EOR #&10: STA &FE21
+	EOR #&40: STA &FE21
+	EOR #&10: STA &FE21
+ENDMACRO
+
 \ ******************************************************************
 \ *	GLOBAL constants
 \ ******************************************************************
@@ -59,11 +69,18 @@ TimerValue = 32*64 - 2*64 - 2 - 22 - 9
 \\ XX us to fire the timer before the start of the scanline so first colour set on column -1
 \\ YY us for code that executes after timer interupt fires
 
-BILLB_NUM_ROWS = 8
-BILLB_NUM_CHARS = 80		; in a row
-BILLB_ROW_BYTES = BILLB_NUM_CHARS * 2 * 8	; 80 columns * 2 rows * 8 bytes per char = 1280b
+WAVE_NUM_CHARS = 80
+WAVE_NUM_ROWS = 3
+WAVE_SCREEN_BYTES = WAVE_NUM_ROWS * WAVE_NUM_CHARS * 8
 
-STAR_ROW_ADDR = screen_addr - BILLB_ROW_BYTES		; row '-1'
+WAVE_NUM_GLYPHS = 60
+WAVE_GLYPH_WIDTH = 8
+WAVE_GLYPH_HEIGHT = 24
+WAVE_GLYPH_STRIDE = WAVE_GLYPH_HEIGHT*2
+WAVE_GLYPH_BYTES = WAVE_GLYPH_WIDTH * WAVE_GLYPH_STRIDE
+WAVE_TOTAL_BYTES = WAVE_GLYPH_BYTES * WAVE_NUM_GLYPHS
+
+glyph_base_addr = &8000 - WAVE_TOTAL_BYTES
 
 \ ******************************************************************
 \ *	ZERO PAGE
@@ -89,23 +106,25 @@ GUARD &9F
 .billb_mask				SKIP 1
 
 .billb_message_ptr		SKIP 2
-.billb_glyph			SKIP 1
 .billb_glyph_col		SKIP 1
-.billb_glyph_byte		SKIP 1
 
-.table_index			SKIP 1
-.billb_y				SKIP 1
-.billb_scale			SKIP 1
+.wave_scr_char			SKIP 1
+.wave_scr_glyph			SKIP 1
+.wave_start_off			SKIP 1
+.wave_sine_idx			SKIP 1
+.wave_sine_tmp			SKIP 1
 
-.billb_inc				SKIP 3
-.billb_row				SKIP 3
+.wave_double_buffer		SKIP 1
+
+.glyph_buf
+SKIP 11
 
 \ ******************************************************************
 \ *	CODE START
 \ ******************************************************************
 
-ORG &1900	      			; code origin (like P%=&2000)
-GUARD screen_addr			; ensure code size doesn't hit start of screen memory
+ORG &E00	      				; code origin (like P%=&2000)
+GUARD glyph_base_addr			; ensure code size doesn't hit start of screen memory
 
 .start
 
@@ -150,11 +169,8 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	\\ Set Colour 2 to White - MODE 1 requires 4x writes to ULA Palette Register
 
-	LDA #MODE1_COL2 + PAL_blue
-	STA &FE21
-	EOR #&10: STA &FE21
-	EOR #&40: STA &FE21
-	EOR #&10: STA &FE21
+	SET_PAL MODE1_COL1, PAL_blue
+	SET_PAL MODE1_COL2, PAL_cyan
 
 	\\ Initialise system modules here!
 
@@ -239,11 +255,13 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ But don't forget that the loop also takes time!!
 
 	{
-		LDX #245
-		.loop
-		JSR cycles_wait_128
-		DEX
-		BNE loop
+		LDX #255
+		JSR cycles_wait_scanlines
+	;	LDX #245
+	;	.loop
+	;	JSR cycles_wait_128
+	;	DEX
+	;	BNE loop
 	}
 
 	\ ******************************************************************
@@ -344,6 +362,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 \ *	HELPER FUNCTIONS
 \ ******************************************************************
 
+IF 0
 .cycles_wait_128		; JSR to get here takes 6c
 {
 	FOR n,1,58,1		; 58x
@@ -351,6 +370,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	NEXT				; = 116c
 	RTS					; 6c
 }						; = 128c
+ENDIF
 
 .cycles_wait_scanlines	; 6c
 {
@@ -398,9 +418,10 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 {
 	LDA #0
 	STA billb_offset
-	STA table_index
+	STA wave_sine_idx
+	STA wave_double_buffer
 
-	LDA #60
+	LDA #7
 	STA billb_glyph_col
 
 	LDA #LO(message_text)
@@ -408,6 +429,10 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #HI(message_text)
 	STA billb_message_ptr+1
 
+	LDX #LO(osfile_params)
+	LDY #HI(osfile_params)
+	LDA #&FF
+    JSR osfile
 	RTS
 }
 
@@ -426,15 +451,8 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 \ be late and your raster timings will be wrong!
 \ ******************************************************************
 
-.fx_update_function
+.get_next_msg_char
 {
-	LDY billb_glyph_col
-	INY:INY:INY:INY			; will just be one INY when doing single pixel
-	CPY #8*8
-	BCC col_ok
-
-	\\ Next char
-	LDY #0
 	.try_again
 	LDA (billb_message_ptr), Y
 	BNE char_ok
@@ -451,177 +469,83 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	INC billb_message_ptr+1
 	.no_carry
 
-	SEC
-	SBC #32
-	STA billb_glyph
+	RTS
+}
+
+.fx_update_function
+{
+	LDY billb_glyph_col
+	INY
+	CPY #WAVE_GLYPH_WIDTH
+	BCC col_ok
+
+	\\ Next char
+	LDY #0
+	JSR get_next_msg_char
 
 	.col_ok
 	STY billb_glyph_col
 
-	\\ Get byte for column of glyph - don't need to calc this every time
-
-	LDA #0
-	STA readptr+1
-
-	LDA billb_glyph
-	STA readptr
-
-	ASL readptr
-	ROL readptr+1
-	ASL readptr
-	ROL readptr+1
-	ASL readptr
-	ROL readptr+1
-
-	CLC
-	LDA readptr
-	ADC #LO(glyph_data)
-	STA readptr
-	LDA readptr+1
-	ADC #HI(glyph_data)
-	STA readptr+1
-
-	\\ Get glyph byte
-
-	TYA:LSR A:LSR A:LSR A:TAY
-	LDA (readptr), Y
-	STA billb_glyph_byte
-
-	\\ Scroll row left...
-
-	LDX billb_offset
-	STX billb_left_off
-
-	INX
-	CPX #BILLB_NUM_CHARS
-	BCC offset_ok
-	LDX #0
-	.offset_ok
-	STX billb_offset
-
-	\\ Calc right offset
-
-	TXA
-	CLC
-	ADC #BILLB_NUM_CHARS
-	STA billb_right_off
-
-	\\ Which bit?
-
-	LDA #1
-	STA billb_mask
-
-	\\ Draw row 0-7
-
-	LDX #0
+	\\ Copy chars to buf
+	LDY #0
 	.loop
-
-	LDY billb_right_off			; 3c
-	JSR billb_set_writeptr
-
-	LDA billb_glyph_byte
-	AND billb_mask
-	JSR billb_plot_led
-
-	LDY billb_left_off			; 3c
-	JSR billb_set_writeptr
-
-	LDA billb_glyph_byte
-	AND billb_mask
-	JSR billb_plot_led
-
-	CLC
-	ROL billb_mask	; next row
-
-	INX
-	CPX #8
+	LDA (billb_message_ptr), Y
+	BEQ ok
+	SEC
+	SBC #32
+	.ok
+	STA glyph_buf, Y
+	INY
+	CPY #11
 	BCC loop
 
-	\\ Update top row & scale
+	INC wave_sine_idx
+	INC wave_sine_idx
+	INC wave_sine_idx
+	INC wave_sine_idx
+	INC wave_sine_idx
+	INC wave_sine_idx
 
-	INC table_index
+	LDA wave_sine_idx
+	STA wave_sine_tmp
 
-	LDX table_index
-	LDA y_table, X
-	STA billb_y
+	LDA wave_double_buffer
+	EOR #&FF
+	STA wave_double_buffer
+	BEQ set_A
 
-	LDA scale_table, X
-	STA billb_scale
+	\\ Set screen address
+	LDA #12:STA &FE00
+	LDA #HI(wave_scr_addr1/8):STA &FE01
 
-	\\ Set vars
+	LDA #13:STA &FE00
+	LDA #LO(wave_scr_addr1/8):STA &FE01
 
-	LDX billb_scale
-	LDA scale_to_inc_FRAC, X
-	STA billb_inc
-	LDA scale_to_inc_LO, X
-	STA billb_inc+1
-	LDA scale_to_inc_HI, X
-	STA billb_inc+2
+	LDA #LO(plot_glyph_col0_B):STA plot_glyph_ex_jsr0+1
+	LDA #HI(plot_glyph_col0_B):STA plot_glyph_ex_jsr0+2
+	LDA #LO(plot_glyph_col1_B):STA plot_glyph_ex_jsr1+1
+	LDA #HI(plot_glyph_col1_B):STA plot_glyph_ex_jsr1+2
+	LDA #LO(plot_glyph_col2_B):STA plot_glyph_ex_jsr2+1
+	LDA #HI(plot_glyph_col2_B):STA plot_glyph_ex_jsr2+2
+	RTS
 
-	LDA #0
-	STA billb_row
-	STA billb_row+1
-	STA billb_row+2
+	.set_A
+	\\ Set screen address
+	LDA #12:STA &FE00
+	LDA #HI(wave_scr_addr2/8):STA &FE01
 
-	\\ Set CRTC address for row 0
+	LDA #13:STA &FE00
+	LDA #LO(wave_scr_addr2/8):STA &FE01
 
-	LDX #BILLB_NUM_ROWS
-	JSR billb_set_crtc_addr
+	LDA #LO(plot_glyph_col0_A):STA plot_glyph_ex_jsr0+1
+	LDA #HI(plot_glyph_col0_A):STA plot_glyph_ex_jsr0+2
+	LDA #LO(plot_glyph_col1_A):STA plot_glyph_ex_jsr1+1
+	LDA #HI(plot_glyph_col1_A):STA plot_glyph_ex_jsr1+2
+	LDA #LO(plot_glyph_col2_A):STA plot_glyph_ex_jsr2+1
+	LDA #HI(plot_glyph_col2_A):STA plot_glyph_ex_jsr2+2
 
 	RTS
 }
-
-.billb_set_crtc_addr		; row X
-{
-	LDA #13:STA &FE00			; 6c screen HI
-
-	CLC							; 2c
-	LDA billb_offset			; 3c
-	ADC billb_crtc_base_LO, X	; 4c
-	STA &FE01					; 4c
-
-	LDA #12:STA &FE00			; 6c screen HI
-
-	LDA billb_crtc_base_HI, X	; 4c
-	ADC #0						; 2c
-	STA &FE01					; 4c
-	RTS							; 12c
-}	; 49c
-
-.billb_set_writeptr			; row X
-{
-	CLC							; 2c
-	LDA mult8_LO, Y			; 4c
-	ADC billb_scr_base_LO, X	; 4c
-	STA writeptr				; 3c
-
-	LDA mult8_HI, Y			; 4c
-	ADC billb_scr_base_HI, X	; 4c
-	STA writeptr+1				; 3c
-	RTS							; 12c
-}	; 39c
-
-.billb_plot_led					; 6c
-{
-	\\ Needs to be fixed cost (ideally)
-	CMP #0						; 2c
-	BEQ is_zero
-	; 2c
-	LDA #&0F
-	BNE continue				; 3c
-
-	.is_zero					; 3c
-
-	.continue
-
-	LDY #0
-	STA (writeptr), Y			; 6c
-
-	\\ Maybe a second one
-
-	RTS							; 6c
-}
-\\ 74c
 
 \ ******************************************************************
 \ Draw FX
@@ -643,99 +567,234 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 {
 	\\ Raster is displaying row 0
 
+	IF _DEBUG_RASTERS
+	SET_PAL MODE1_COL0, PAL_red
+	ENDIF
+
 	\\ CRTC setup for rupture
 
 	LDA #4:STA &FE00			; vertical total
-	LDA #0:STA &FE01			; R4 = 1 - 1 = 0
+	LDA #2:STA &FE01			; R4 = 3 - 1 = 2
 
 	LDA #6:STA &FE00			; vertical displayed
-	LDA #1:STA &FE01			; R6 = 1
-
-	LDA #9:STA &FE00			; scanlines per row
-	LDA #0:STA &FE01			; R9 = 1 - 1 = 0
+	LDA #3:STA &FE01			; R6 = 3
 
 	LDA #7:STA &FE00			; vsync
 	LDA #&FF:STA &FE01			; R7 = &FF (no vsync)
 
-	FOR n,1,27,1
-	NOP
-	NEXT
+	\\ Plot first glyph from col offset
 
-	\\ Skip first Y lines
+	LDA glyph_buf
+	TAY
+	LDX billb_glyph_col
 
-	{
-		LDX billb_y
-		DEX
-		BEQ no_skip ; 2c/3c
-		JSR cycles_wait_scanlines
-		JMP here	; 3c
-		.no_skip
-		NOP			; 2c
-		.here
-	}
+	LDA glyph_addr_LO, Y
+	ADC glyph_off_LO, X
+	STA readptr
 
-	\\ Set scanline 1
+	LDA glyph_addr_HI, Y
+	ADC glyph_off_HI, X
+	STA readptr+1
 
-	LDY billb_y
-	LDX billb_row+2
+	SEC
+	LDA #WAVE_GLYPH_WIDTH
+	SBC billb_glyph_col
+	STA wave_start_off
 
-	.line_loop
-	JSR billb_set_crtc_addr		; 49c
+	\\ Plot first glyph special
+
+	LDX #0
+	JSR plot_glyph_ex
+
+	\\ Continue from second glyph
+
+	LDY #1
+	.loop
+	STY wave_scr_glyph
+
+	LDA glyph_buf, Y
+	TAY
+	JSR plot_glyph
+
+	LDY wave_scr_glyph
 	INY
 
-	FOR n,1,16,1
-	NOP
-	NEXT
-	BIT 0
+	CPX #WAVE_NUM_CHARS
+	BCC loop
 
-	CLC
-	LDA billb_row
-	ADC billb_inc
-	STA billb_row
-	LDA billb_row+1
-	ADC billb_inc+1
-	STA billb_row+1
-	LDA billb_row+2
-	ADC billb_inc+2
-	STA billb_row+2
+	IF _DEBUG_RASTERS
+	SET_PAL MODE1_COL0, PAL_black
+	ENDIF
 
-	TAX
-	CPX #BILLB_NUM_ROWS
-	BCC line_loop
+	.done
+	LDX #4: JSR cycles_wait_scanlines
+	.reset
 
-	\\ Wait remaining rows
-
-	TYA
-	EOR #255
-	TAX
-	BEQ no_wait
-	JSR cycles_wait_scanlines
-	.no_wait
-
-	\\ Very start of row 31, i.e. displayed 31 so far
+	\\ Should be somewhere after character row 29
 	\\ Need 39 total so 8 left to go
 
-	\\ Reset for vsync
-
-	\\ R9=7 - character row = 8 scanlines
-	LDA #9: STA &FE00
-	LDA #1-1:	STA &FE01		; 1 scanline
-
-	\\ R4=6 - CRTC cycle is 32 + 7 more rows = 312 scanlines
+	\\ R4=vertical total = 39
 	LDA #4: STA &FE00
-	LDA #56-1+1: STA &FE01		; 312 - 256 = 56 scanlines
+	LDA #8: STA &FE01		; 9 - 1
 
-	\\ R7=3 - vsync is at row 35 = 280 scanlines
+	\\ R7=vsync at row 35
 	LDA #7:	STA &FE00
-	LDA #24+1: STA &FE01		; 280 - 256 = 24 scanlines
+	LDA #5: STA &FE01
 
-	\\ R6=1 - got to display just one row
+	\\ R6=displayed
 	LDA #6: STA &FE00
-	LDA #1: STA &FE01
+	LDA #2: STA &FE01
 
 	\\ Cross fingers
 
     RTS
+}
+
+.plot_glyph
+{
+	LDA glyph_addr_LO, Y
+	STA readptr
+	LDA glyph_addr_HI, Y
+	STA readptr+1
+
+	LDA #WAVE_GLYPH_WIDTH
+	STA wave_start_off
+}
+\\
+.plot_glyph_ex
+
+	\\ Add col for scroll
+	\\ X = screen column
+
+	.plot_glyph_ex_loop
+	\\ X = screen character
+	STX wave_scr_char
+
+	\\ Y = index into glyph data
+	LDY wave_sine_tmp
+	LDA sine_wave, Y	;#0
+	INY:INY:INY
+	STY wave_sine_tmp
+	TAY
+
+	\\ Lookup memory offset for character column
+	LDA plot_offset, X
+
+	\\ Swtch which unrolled fn to use to plot a column
+	CPX #32
+	BCS plot_glyph_ex_col1
+	TAX
+	.plot_glyph_ex_jsr0
+	JSR plot_glyph_col0_A
+	JMP plot_glyph_ex_done_plot
+
+	.plot_glyph_ex_col1
+	CPX #64
+	BCS plot_glyph_ex_col2
+	TAX
+	.plot_glyph_ex_jsr1
+	JSR plot_glyph_col1_A
+	JMP plot_glyph_ex_done_plot
+
+	.plot_glyph_ex_col2
+	TAX
+	.plot_glyph_ex_jsr2
+	JSR plot_glyph_col2_A
+
+	\\ Increment screen character X
+	.plot_glyph_ex_done_plot
+	LDX wave_scr_char
+	INX
+	CPX #WAVE_NUM_CHARS
+	BCS plot_glyph_ex_done
+
+	\\ Update read pointer for glyph
+	LDA readptr
+	ADC #WAVE_GLYPH_STRIDE
+	STA readptr
+	LDA readptr+1
+	ADC #0
+	STA readptr+1
+
+	\\ How many columns of glyph?
+	DEC wave_start_off
+	BNE plot_glyph_ex_loop
+
+	\\ Remember which screen character we're on
+	.plot_glyph_ex_done
+	STX wave_scr_char
+	RTS
+
+.plot_glyph_col0_A
+{
+	FOR row,0,WAVE_GLYPH_HEIGHT-1,1
+	{
+	LDA (readptr), Y
+	STA wave_scr_addr1 + (row DIV 8) * 640 + (row MOD 8), X
+	INY
+	}
+	NEXT
+	RTS
+}
+
+.plot_glyph_col1_A
+{
+	FOR row,0,WAVE_GLYPH_HEIGHT-1,1
+	{
+	LDA (readptr), Y
+	STA wave_scr_addr1 + &100 + (row DIV 8) * 640 + (row MOD 8), X
+	INY
+	}
+	NEXT
+	RTS
+}
+
+.plot_glyph_col2_A
+{
+	FOR row,0,WAVE_GLYPH_HEIGHT-1,1
+	{
+	LDA (readptr), Y
+	STA wave_scr_addr1 + &200 + (row DIV 8) * 640 + (row MOD 8), X
+	INY
+	}
+	NEXT
+	RTS
+}
+
+.plot_glyph_col0_B
+{
+	FOR row,0,WAVE_GLYPH_HEIGHT-1,1
+	{
+	LDA (readptr), Y
+	STA wave_scr_addr2 + (row DIV 8) * 640 + (row MOD 8), X
+	INY
+	}
+	NEXT
+	RTS
+}
+
+.plot_glyph_col1_B
+{
+	FOR row,0,WAVE_GLYPH_HEIGHT-1,1
+	{
+	LDA (readptr), Y
+	STA wave_scr_addr2 + &100 + (row DIV 8) * 640 + (row MOD 8), X
+	INY
+	}
+	NEXT
+	RTS
+}
+
+.plot_glyph_col2_B
+{
+	FOR row,0,WAVE_GLYPH_HEIGHT-1,1
+	{
+	LDA (readptr), Y
+	STA wave_scr_addr2 + &200 + (row DIV 8) * 640 + (row MOD 8), X
+	INY
+	}
+	NEXT
+	RTS
 }
 
 \ ******************************************************************
@@ -781,6 +840,25 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .data_start
 
+.osfile_filename
+EQUS "Font2", 13
+
+.osfile_params
+.osfile_nameaddr
+EQUW osfile_filename
+; file load address
+.osfile_loadaddr
+EQUD glyph_base_addr
+; file exec address
+.osfile_execaddr
+EQUD 0
+; start address or length
+.osfile_length
+EQUD 0
+; end address of attributes
+.osfile_endaddr
+EQUD 0
+
 .crtc_regs_default
 {
 	EQUB 127				; R0  horizontal total
@@ -795,92 +873,54 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	EQUB 7					; R9  scanlines per row
 	EQUB 32					; R10 cursor start
 	EQUB 8					; R11 cursor end
-	EQUB HI(screen_addr/8)	; R12 screen start address, high
-	EQUB LO(screen_addr/8)	; R13 screen start address, low
+	EQUB HI(wave_scr_addr1/8)	; R12 screen start address, high
+	EQUB LO(wave_scr_addr1/8)	; R13 screen start address, low
 }
 
 \ ******************************************************************
 \ *	FX DATA
 \ ******************************************************************
 
-.billb_crtc_base_LO
-{
-	FOR n,0,BILLB_NUM_ROWS-1,1
-	EQUB LO((screen_addr + n * BILLB_ROW_BYTES)/8)
-	NEXT
-	EQUB LO(STAR_ROW_ADDR/8)
-}
-
-.billb_crtc_base_HI
-{
-	FOR n,0,BILLB_NUM_ROWS-1,1
-	EQUB HI((screen_addr + n * BILLB_ROW_BYTES)/8)
-	NEXT
-	EQUB HI(STAR_ROW_ADDR/8)
-}
-
-.billb_scr_base_LO
-{
-	FOR n,0,BILLB_NUM_ROWS-1,1
-	EQUB LO(screen_addr + n * BILLB_ROW_BYTES)
-	NEXT
-}
-
-.billb_scr_base_HI
-{
-	FOR n,0,BILLB_NUM_ROWS-1,1
-	EQUB HI(screen_addr + n * BILLB_ROW_BYTES)
-	NEXT
-}
-
-.pixels
-EQUB &88,&44,&22,&11
-
+; hack wrap
 .message_text
-EQUS "HELLO WORLD! BITSHIFTERS SCROLLTEXT PROTOTYPE CHALLENGE... VERTICAL ZOOM!      ",0
+EQUS "          HELLO WORLD! BITSHIFTERS SCROLLTEXT PROTOTYPE CHALLENGE... FULL SCREEN WIBBLE!",0,"          "
 
-ALIGN &100
-.mult8_LO
-FOR n,0,BILLB_NUM_CHARS*2-1,1
-EQUB LO(n * 8)
+.glyph_off_LO
+FOR n,0,WAVE_GLYPH_WIDTH,1
+EQUB LO(n * WAVE_GLYPH_STRIDE)
+NEXT
+
+.glyph_off_HI
+FOR n,0,WAVE_GLYPH_WIDTH,1
+EQUB HI(n * WAVE_GLYPH_STRIDE)
+NEXT
+
+.plot_offset
+FOR col,0,79,1
+IF col < 32
+EQUB col * 8
+ELIF col < 64
+EQUB (col-32) * 8
+ELSE
+EQUB (col-64) * 8
+ENDIF
+NEXT
+
+.glyph_addr_LO
+FOR n,0,WAVE_NUM_GLYPHS
+EQUB LO(glyph_base_addr + n * WAVE_GLYPH_BYTES)
+NEXT
+
+.glyph_addr_HI
+FOR n,0,WAVE_NUM_GLYPHS
+EQUB HI(glyph_base_addr + n * WAVE_GLYPH_BYTES)
 NEXT
 
 ALIGN &100
-.mult8_HI
-FOR n,0,BILLB_NUM_CHARS*2-1,1
-EQUB HI(n * 8)
-NEXT
-
-ALIGN &100
-.scale_to_inc_FRAC
+.sine_wave
 FOR n,0,255,1
-EQUB LO(256*256 * 8 / (n+1))
+EQUB 12 + 12 * SIN(4 * PI * n / 256)
 NEXT
-
-.scale_to_inc_LO
-FOR n,0,255,1
-EQUB HI(256*256 * 8 / (n+1))
-NEXT
-
-.scale_to_inc_HI
-FOR n,0,255,1
-EQUB HI(256 * 8 / (n+1))
-NEXT
-
-.scale_table
-FOR n,0,255,1
-;EQUB 128
-EQUB 7 + 100 + 100 * SIN(2 * PI * n / 256)
-NEXT
-
-.y_table
-FOR n,0,255,1
-EQUB 22 + 20 * SIN(4 * PI * n / 256)
-NEXT
-
-ALIGN &100
-.glyph_data
-INCBIN "square_font_90_deg_cw.bin"
 
 .data_end
 
@@ -901,6 +941,14 @@ SAVE "MyFX", start, end
 \ ******************************************************************
 
 .bss_start
+
+ALIGN &8
+.wave_scr_addr1
+skip WAVE_SCREEN_BYTES
+
+.wave_scr_addr2
+skip WAVE_SCREEN_BYTES
+
 .bss_end
 
 \ ******************************************************************
@@ -916,7 +964,7 @@ PRINT "DATA size =",~data_end-data_start
 PRINT "BSS size =",~bss_end-bss_start
 PRINT "------"
 PRINT "HIGH WATERMARK =", ~P%
-PRINT "FREE =", ~screen_addr-P%
+PRINT "FREE =", ~glyph_base_addr-P%
 PRINT "------"
 
 \ ******************************************************************
@@ -925,3 +973,6 @@ PRINT "------"
 
 PUTBASIC "circle.bas", "Circle"
 PUTFILE "screen.bin", "Screen", &3000
+PUTFILE "knight.mode1.bin", "Knight", &3000
+PUTFILE "knight.font2.bin", "Font2", &3000
+PUTBASIC "makfont2.bas", "makfont"
