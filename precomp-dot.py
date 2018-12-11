@@ -3,6 +3,9 @@
 # Pre-compiled dot code
 #
 
+DISPLAY_DOT_WIDTH = 40
+DISPLAY_DOT_HEIGHT = 8
+
 PIXEL_DATA_ROW_0 = 0b01110000
 PIXEL_DATA_ROW_1 = 0b11111000
 
@@ -26,7 +29,10 @@ class Dot():
         self.__y = y
 
     def set_label(self, label):
-        self.__label = label 
+        self.__label = label
+
+    def get_label(self):
+        return self.__label
     
     def write_code(self, output_file):
 
@@ -75,28 +81,27 @@ def main():
 
     output_name = sys.argv[1]
     
-    a = Dot()
-    b = Dot()
-    c = Dot()
-    d = Dot()
+    dot_list = []
 
-    a.set_xy(0,0)
-    a.set_label('test1')
+    for x in range(0,DISPLAY_DOT_WIDTH):
+        for y in range(0,DISPLAY_DOT_HEIGHT):
+            d = Dot()
+            d.set_label('dot_'+'{:02d}{:02d}'.format(x,y))
+            d.set_xy(x * 7, y * 5)
 
-    b.set_xy(1,5)
-    b.set_label('test2')
+            dot_list.append(d)
 
-    c.set_xy(2,6)
-    c.set_label('test3')
-
-    d.set_xy(3,7)
-    d.set_label('test4')
 
     output_file = open(output_name, 'wt')
-    a.write_code(output_file)
-    b.write_code(output_file)
-    c.write_code(output_file)
-    d.write_code(output_file)
+
+    output_file.write('.dot_table\n')
+
+    for d in dot_list:
+        output_file.write('EQUW ' + d.get_label() + '\n')
+
+    for d in dot_list:
+        d.write_code(output_file)
+
     output_file.close()
 
 

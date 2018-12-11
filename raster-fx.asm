@@ -86,6 +86,8 @@ glyph_base_addr = &8000 - WAVE_TOTAL_BYTES
 \ *	ZERO PAGE
 \ ******************************************************************
 
+dot_fb = &00
+
 ORG &70
 GUARD &9F
 
@@ -99,34 +101,28 @@ GUARD &9F
 .readptr				SKIP 2
 .writeptr				SKIP 2
 
-.billb_offset			SKIP 1		; 0-79 character offset in screen row buffer
-
-.billb_left_off			SKIP 1		; = offset - 1
-.billb_right_off		SKIP 1		; = offset + 40
-.billb_mask				SKIP 1
-
 .billb_message_ptr		SKIP 2
 .billb_glyph_col		SKIP 1
 
 .wave_scr_char			SKIP 1
-.wave_scr_glyph			SKIP 1
-.wave_start_off			SKIP 1
-.wave_sine_idx			SKIP 1
-.wave_sine_tmp			SKIP 1
 
-.wave_double_buffer		SKIP 1
+.temp_col				SKIP 1
+.temp_idx				SKIP 1
 
-.glyph_buf
-SKIP 11
+.dot_ptr				SKIP 2
+
+.glyph_byte				SKIP 1
 
 \ ******************************************************************
 \ *	CODE START
 \ ******************************************************************
 
 ORG &E00	      				; code origin (like P%=&2000)
-GUARD glyph_base_addr			; ensure code size doesn't hit start of screen memory
+GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .start
+
+INCLUDE "lib/disksys.asm"
 
 .main_start
 
@@ -309,7 +305,7 @@ GUARD glyph_base_addr			; ensure code size doesn't hit start of screen memory
 
 		\\ Observed values $FA (early) - $F7 (late) so map these from 7 - 0
 		\\ then branch into NOPs to even this out.
-
+	IF 0
 		AND #15
 		SEC
 		SBC #7
@@ -326,6 +322,7 @@ GUARD glyph_base_addr			; ensure code size doesn't hit start of screen memory
 		NOP
 		.stable
 		BIT 0
+	ENDIF
 	}
 
 	\\ Check if Escape pressed
@@ -416,11 +413,6 @@ ENDIF
 
 .fx_init_function
 {
-	LDA #0
-	STA billb_offset
-	STA wave_sine_idx
-	STA wave_double_buffer
-
 	LDA #7
 	STA billb_glyph_col
 
@@ -429,10 +421,22 @@ ENDIF
 	LDA #HI(message_text)
 	STA billb_message_ptr+1
 
-	LDX #LO(osfile_params)
-	LDY #HI(osfile_params)
-	LDA #&FF
-    JSR osfile
+	LDX #DISPLAY_DOTS_WIDTH-1
+	LDA #0
+	.loop
+	STA dot_fb, X
+	DEX
+	BPL loop
+
+	LDA #4
+	STA &F4
+	STA &FE30
+
+	LDX #LO(filename)
+	LDY #HI(filename)
+	LDA #HI(bank_start)
+	JSR disksys_load_file
+
 	RTS
 }
 
@@ -485,64 +489,72 @@ ENDIF
 
 	.col_ok
 	STY billb_glyph_col
+	STY temp_col
 
 	\\ Copy chars to buf
 	LDY #0
-	.loop
+	LDX #0
+
+	.glyph_loop
+	STY temp_idx
+
+	LDA #0
+	STA readptr+1
+
 	LDA (billb_message_ptr), Y
 	BEQ ok
 	SEC
 	SBC #32
 	.ok
-	STA glyph_buf, Y
+
+	\\ Get byte for column of glyph - don't need to calc this every time
+
+	STA readptr
+	ASL readptr
+	ROL readptr+1
+	ASL readptr
+	ROL readptr+1
+	ASL readptr
+	ROL readptr+1
+
+	CLC
+	LDA readptr
+	ADC #LO(glyph_data)
+	STA readptr
+	LDA readptr+1
+	ADC #HI(glyph_data)
+	STA readptr+1
+
+	\\ Get glyph byte
+	LDY temp_col
+	.col_loop
+	STY temp_col
+	LDA (readptr), Y
+
+	TAY
+	EOR dot_fb, X
+	STY dot_fb, X
+	
+	STX wave_scr_char
+	JSR plot_dot_col
+	LDX wave_scr_char
+
+	INX
+	CPX #DISPLAY_DOTS_WIDTH
+	BCS done_loop
+
+	LDY temp_col
 	INY
-	CPY #11
-	BCC loop
+	CPY #8
+	BCC col_loop
 
-	INC wave_sine_idx
-	INC wave_sine_idx
-	INC wave_sine_idx
-	INC wave_sine_idx
-	INC wave_sine_idx
-	INC wave_sine_idx
+	LDY #0
+	STY temp_col
 
-	LDA wave_sine_idx
-	STA wave_sine_tmp
-
-	LDA wave_double_buffer
-	EOR #&FF
-	STA wave_double_buffer
-	BEQ set_A
-
-	\\ Set screen address
-	LDA #12:STA &FE00
-	LDA #HI(wave_scr_addr1/8):STA &FE01
-
-	LDA #13:STA &FE00
-	LDA #LO(wave_scr_addr1/8):STA &FE01
-
-	LDA #LO(plot_glyph_col0_B):STA plot_glyph_ex_jsr0+1
-	LDA #HI(plot_glyph_col0_B):STA plot_glyph_ex_jsr0+2
-	LDA #LO(plot_glyph_col1_B):STA plot_glyph_ex_jsr1+1
-	LDA #HI(plot_glyph_col1_B):STA plot_glyph_ex_jsr1+2
-	LDA #LO(plot_glyph_col2_B):STA plot_glyph_ex_jsr2+1
-	LDA #HI(plot_glyph_col2_B):STA plot_glyph_ex_jsr2+2
-	RTS
-
-	.set_A
-	\\ Set screen address
-	LDA #12:STA &FE00
-	LDA #HI(wave_scr_addr2/8):STA &FE01
-
-	LDA #13:STA &FE00
-	LDA #LO(wave_scr_addr2/8):STA &FE01
-
-	LDA #LO(plot_glyph_col0_A):STA plot_glyph_ex_jsr0+1
-	LDA #HI(plot_glyph_col0_A):STA plot_glyph_ex_jsr0+2
-	LDA #LO(plot_glyph_col1_A):STA plot_glyph_ex_jsr1+1
-	LDA #HI(plot_glyph_col1_A):STA plot_glyph_ex_jsr1+2
-	LDA #LO(plot_glyph_col2_A):STA plot_glyph_ex_jsr2+1
-	LDA #HI(plot_glyph_col2_A):STA plot_glyph_ex_jsr2+2
+	LDY temp_idx
+	INY
+	BNE glyph_loop
+	.done_loop
 
 	RTS
 }
@@ -573,6 +585,7 @@ ENDIF
 
 	\\ CRTC setup for rupture
 
+IF 0
 	LDA #4:STA &FE00			; vertical total
 	LDA #2:STA &FE01			; R4 = 3 - 1 = 2
 
@@ -581,58 +594,9 @@ ENDIF
 
 	LDA #7:STA &FE00			; vsync
 	LDA #&FF:STA &FE01			; R7 = &FF (no vsync)
+ENDIF
 
-	\\ Plot first glyph from col offset
-
-	LDA glyph_buf
-	TAY
-	LDX billb_glyph_col
-
-	LDA glyph_addr_LO, Y
-	ADC glyph_off_LO, X
-	STA readptr
-
-	LDA glyph_addr_HI, Y
-	ADC glyph_off_HI, X
-	STA readptr+1
-
-	SEC
-	LDA #WAVE_GLYPH_WIDTH
-	SBC billb_glyph_col
-	STA wave_start_off
-
-	\\ Plot first glyph special
-
-	LDX #0
-	JSR plot_glyph_ex
-
-	\\ Continue from second glyph
-
-	LDY #1
-	.loop
-	STY wave_scr_glyph
-
-	LDA glyph_buf, Y
-	TAY
-	JSR plot_glyph
-
-	LDY wave_scr_glyph
-	INY
-
-	CPX #WAVE_NUM_CHARS
-	BCC loop
-
-	IF _DEBUG_RASTERS
-	SET_PAL MODE1_COL0, PAL_black
-	ENDIF
-
-	.done
-	LDX #4: JSR cycles_wait_scanlines
-	.reset
-
-	\\ Should be somewhere after character row 29
-	\\ Need 39 total so 8 left to go
-
+IF 0
 	\\ R4=vertical total = 39
 	LDA #4: STA &FE00
 	LDA #8: STA &FE01		; 9 - 1
@@ -644,156 +608,52 @@ ENDIF
 	\\ R6=displayed
 	LDA #6: STA &FE00
 	LDA #2: STA &FE01
+ENDIF
 
 	\\ Cross fingers
 
     RTS
 }
 
-.plot_glyph
+DISPLAY_DOTS_WIDTH = 40
+DISPLAY_DOTS_HEIGHT = 8
+
+.plot_dot_col		; A = byte, X = col
 {
-	LDA glyph_addr_LO, Y
-	STA readptr
-	LDA glyph_addr_HI, Y
-	STA readptr+1
+	STA glyph_data
 
-	LDA #WAVE_GLYPH_WIDTH
-	STA wave_start_off
-}
-\\
-.plot_glyph_ex
-
-	\\ Add col for scroll
-	\\ X = screen column
-
-	.plot_glyph_ex_loop
-	\\ X = screen character
-	STX wave_scr_char
-
-	\\ Y = index into glyph data
-	LDY wave_sine_tmp
-	LDA sine_wave, Y	;#0
-	INY:INY:INY
-	STY wave_sine_tmp
-	TAY
-
-	\\ Lookup memory offset for character column
-	LDA plot_offset, X
-
-	\\ Swtch which unrolled fn to use to plot a column
-	CPX #32
-	BCS plot_glyph_ex_col1
+	TXA
+	ASL A
 	TAX
-	.plot_glyph_ex_jsr0
-	JSR plot_glyph_col0_A
-	JMP plot_glyph_ex_done_plot
 
-	.plot_glyph_ex_col1
-	CPX #64
-	BCS plot_glyph_ex_col2
-	TAX
-	.plot_glyph_ex_jsr1
-	JSR plot_glyph_col1_A
-	JMP plot_glyph_ex_done_plot
+	LDA dot_table_lookup, X
+	STA dot_ptr
+	LDA dot_table_lookup+1, X
+	STA dot_ptr+1
 
-	.plot_glyph_ex_col2
-	TAX
-	.plot_glyph_ex_jsr2
-	JSR plot_glyph_col2_A
+	LDY #0
+	.loop
 
-	\\ Increment screen character X
-	.plot_glyph_ex_done_plot
-	LDX wave_scr_char
-	INX
-	CPX #WAVE_NUM_CHARS
-	BCS plot_glyph_ex_done
-
-	\\ Update read pointer for glyph
-	LDA readptr
-	ADC #WAVE_GLYPH_STRIDE
-	STA readptr
-	LDA readptr+1
-	ADC #0
-	STA readptr+1
-
-	\\ How many columns of glyph?
-	DEC wave_start_off
-	BNE plot_glyph_ex_loop
-
-	\\ Remember which screen character we're on
-	.plot_glyph_ex_done
-	STX wave_scr_char
-	RTS
-
-.plot_glyph_col0_A
-{
-	FOR row,0,WAVE_GLYPH_HEIGHT-1,1
-	{
-	LDA (readptr), Y
-	STA wave_scr_addr1 + (row DIV 8) * 640 + (row MOD 8), X
+	LDA (dot_ptr), Y
 	INY
-	}
-	NEXT
-	RTS
-}
-
-.plot_glyph_col1_A
-{
-	FOR row,0,WAVE_GLYPH_HEIGHT-1,1
-	{
-	LDA (readptr), Y
-	STA wave_scr_addr1 + &100 + (row DIV 8) * 640 + (row MOD 8), X
+	STA jsr_addr+1
+	LDA (dot_ptr), Y
+	BMI ok
+	BRK
+	.ok
+	STA jsr_addr+2
 	INY
-	}
-	NEXT
-	RTS
-}
 
-.plot_glyph_col2_A
-{
-	FOR row,0,WAVE_GLYPH_HEIGHT-1,1
-	{
-	LDA (readptr), Y
-	STA wave_scr_addr1 + &200 + (row DIV 8) * 640 + (row MOD 8), X
-	INY
-	}
-	NEXT
-	RTS
-}
+	ROR glyph_data
+	BCC skip_dot
 
-.plot_glyph_col0_B
-{
-	FOR row,0,WAVE_GLYPH_HEIGHT-1,1
-	{
-	LDA (readptr), Y
-	STA wave_scr_addr2 + (row DIV 8) * 640 + (row MOD 8), X
-	INY
-	}
-	NEXT
-	RTS
-}
+	.jsr_addr
+	JSR &FFFF
 
-.plot_glyph_col1_B
-{
-	FOR row,0,WAVE_GLYPH_HEIGHT-1,1
-	{
-	LDA (readptr), Y
-	STA wave_scr_addr2 + &100 + (row DIV 8) * 640 + (row MOD 8), X
-	INY
-	}
-	NEXT
-	RTS
-}
+	.skip_dot
+	CPY #DISPLAY_DOTS_HEIGHT*2
+	BCC loop
 
-.plot_glyph_col2_B
-{
-	FOR row,0,WAVE_GLYPH_HEIGHT-1,1
-	{
-	LDA (readptr), Y
-	STA wave_scr_addr2 + &200 + (row DIV 8) * 640 + (row MOD 8), X
-	INY
-	}
-	NEXT
 	RTS
 }
 
@@ -840,24 +700,8 @@ ENDIF
 
 .data_start
 
-.osfile_filename
-EQUS "Font2", 13
-
-.osfile_params
-.osfile_nameaddr
-EQUW osfile_filename
-; file load address
-.osfile_loadaddr
-EQUD glyph_base_addr
-; file exec address
-.osfile_execaddr
-EQUD 0
-; start address or length
-.osfile_length
-EQUD 0
-; end address of attributes
-.osfile_endaddr
-EQUD 0
+.filename
+EQUS "Bank",13
 
 .crtc_regs_default
 {
@@ -873,8 +717,8 @@ EQUD 0
 	EQUB 7					; R9  scanlines per row
 	EQUB 32					; R10 cursor start
 	EQUB 8					; R11 cursor end
-	EQUB HI(wave_scr_addr1/8)	; R12 screen start address, high
-	EQUB LO(wave_scr_addr1/8)	; R13 screen start address, low
+	EQUB HI(screen_addr/8)	; R12 screen start address, high
+	EQUB LO(screen_addr/8)	; R13 screen start address, low
 }
 
 \ ******************************************************************
@@ -883,44 +727,17 @@ EQUD 0
 
 ; hack wrap
 .message_text
-EQUS "          HELLO WORLD! BITSHIFTERS SCROLLTEXT PROTOTYPE CHALLENGE... FULL SCREEN WIBBLE!",0,"          "
+EQUS "HELLO WORLD! BITSHIFTERS SCROLLTEXT PROTOTYPE CHALLENGE... FULL SCREEN WIBBLE!",0,"          "
 
-.glyph_off_LO
-FOR n,0,WAVE_GLYPH_WIDTH,1
-EQUB LO(n * WAVE_GLYPH_STRIDE)
-NEXT
-
-.glyph_off_HI
-FOR n,0,WAVE_GLYPH_WIDTH,1
-EQUB HI(n * WAVE_GLYPH_STRIDE)
-NEXT
-
-.plot_offset
-FOR col,0,79,1
-IF col < 32
-EQUB col * 8
-ELIF col < 64
-EQUB (col-32) * 8
-ELSE
-EQUB (col-64) * 8
-ENDIF
-NEXT
-
-.glyph_addr_LO
-FOR n,0,WAVE_NUM_GLYPHS
-EQUB LO(glyph_base_addr + n * WAVE_GLYPH_BYTES)
-NEXT
-
-.glyph_addr_HI
-FOR n,0,WAVE_NUM_GLYPHS
-EQUB HI(glyph_base_addr + n * WAVE_GLYPH_BYTES)
+ALIGN &100
+.dot_table_lookup	; convert X to address in dot_table for column
+FOR x,0,DISPLAY_DOTS_WIDTH-1,1
+	EQUW dot_table + x * DISPLAY_DOTS_HEIGHT * 2
 NEXT
 
 ALIGN &100
-.sine_wave
-FOR n,0,255,1
-EQUB 12 + 12 * SIN(4 * PI * n / 256)
-NEXT
+.glyph_data
+INCBIN "square_font_90_deg_cw.bin"
 
 .data_end
 
@@ -934,20 +751,13 @@ NEXT
 \ *	Save the code
 \ ******************************************************************
 
-SAVE "MyFX", start, end
+SAVE "MyFX", start, end, main
 
 \ ******************************************************************
 \ *	Space reserved for runtime buffers not preinitialised
 \ ******************************************************************
 
 .bss_start
-
-ALIGN &8
-.wave_scr_addr1
-skip WAVE_SCREEN_BYTES
-
-.wave_scr_addr2
-skip WAVE_SCREEN_BYTES
 
 .bss_end
 
@@ -968,11 +778,19 @@ PRINT "FREE =", ~glyph_base_addr-P%
 PRINT "------"
 
 \ ******************************************************************
-\ *	Any other files for the disc
+\ SWRAM BANK
 \ ******************************************************************
 
-PUTBASIC "circle.bas", "Circle"
-PUTFILE "screen.bin", "Screen", &3000
-PUTFILE "knight.mode1.bin", "Knight", &3000
-PUTFILE "knight.font2.bin", "Font2", &3000
-PUTBASIC "makfont2.bas", "makfont"
+CLEAR 0,&FFFF
+ORG &8000
+GUARD &C000
+.bank_start
+INCLUDE "arse.txt"
+.bank_end
+
+SAVE "Bank", bank_start, bank_end, 0
+PRINT "BANK size =", ~bank_end-bank_start
+
+\ ******************************************************************
+\ *	Any other files for the disc
+\ ******************************************************************
