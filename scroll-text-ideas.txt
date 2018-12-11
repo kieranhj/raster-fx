@@ -4,17 +4,18 @@ December 2018
 
 1) Billboard LEDs - DONE (again)
 2) Multiple single character row scrollers at different speeds (STARTED)
-3) Sinewave scroller at 16x16 or such - full screen using vrup/wrap
+3) Sinewave scroller at 16x16 or such - full screen using vrup/wrap - DONE (v1)
 4) Vertical zoom scroller (8x8 glyph VRup in MODE 1) - DONE (v1)
 5) Tile scroller (32x32 tiles panning around a larger map)
 6) Large glyph scroller (assembled from 256 possible 8x8 tiles)
 7) Single character scroller (sprites)
 8) Vertical scroller 
 9) Any 3D text, esp filled even if just a couple of glyphs
+10) Compiled dot scroller
 
 
 Vertical Zoom Scroller
-
+~~~
 8 character rows - each 160 columns
 Column offset 0-7 pixels (begin just 0 and 4 pixels)
 Fill rhs and lhs of each character row with bytes depending on pixels from glyph column
@@ -26,3 +27,44 @@ Extras:
 - Potentially add colour palette changes as well
 - Use 4x sets of character rows for single pixel offsets
 - Add mirror effect back
+- Up to 16x16 font using 16 character rows
+
+Compiled Dot Scroller
+~~~
+For each byte of dot:
+
+; JSR to get here       ; 6c
+LDA #pixel_data_imm     ; 2c 2b <- could be changed to a LDA pixel_data_zp
+EOR screen_addr_abs     ; 4c 3b
+STA screen_addr_abs     ; 4c 3b
+; x num_bytes
+RTS                     ; 6c 1b
+
+So 10c per byte; 12c overhead for JSR/RTS
+Say 30,000c max for plotting
+Guess 8x24 dots minimum = 192 total
+Gives ~156c per dot = (156-12)/10 ~= 14 bytes to plot
+  oooo
+ oooooo
+ oooooo
+  oooo
+2 + 3 + 3 + 2 = 10 bytes
+Which MODE? (Usually MODE 1)
+
+Small dot
+   ooo
+  ooooo
+   ooo
+Would be maximum 6 bytes to plot (hopefully more often 4 bytes)
+
+Cycles per dot = 6x10 + 12 = 72c
+Max dots = 30,000 / 72 ~= 416
+Assuming height of 8 could have 48 x 8 dots = 384 dots
+How much code?
+8 bytes code per byte plotted plus 1b RTS
+6 x 8 + 1 = 49b per dot
+Max bytes = 18,816 bytes - ouch!
+Could save cycles & bytes by utilising duplicated data
+E.g. sprite row 0 & 2 are the same
+Need a nice way to generate pre-compiled dots and patterns - Python?
+Start with 40 x 8 = 320 dots which comes in at <16K bytes code
