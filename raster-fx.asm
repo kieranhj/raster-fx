@@ -3,6 +3,7 @@
 \ ******************************************************************
 
 _DEBUG_RASTERS = FALSE
+_STABLE_RASTER = TRUE
 
 \ ******************************************************************
 \ *	OS defines
@@ -104,14 +105,11 @@ GUARD &9F
 .billb_message_ptr		SKIP 2
 .billb_glyph_col		SKIP 1
 
-.wave_scr_char			SKIP 1
-
 .temp_col				SKIP 1
 .temp_idx				SKIP 1
 
 .dot_ptr				SKIP 2
-
-.glyph_byte				SKIP 1
+.data_byte				SKIP 1
 
 \ ******************************************************************
 \ *	CODE START
@@ -305,7 +303,7 @@ INCLUDE "lib/disksys.asm"
 
 		\\ Observed values $FA (early) - $F7 (late) so map these from 7 - 0
 		\\ then branch into NOPs to even this out.
-	IF 0
+	IF _STABLE_RASTER
 		AND #15
 		SEC
 		SBC #7
@@ -421,7 +419,7 @@ ENDIF
 	LDA #HI(message_text)
 	STA billb_message_ptr+1
 
-	LDX #DISPLAY_DOTS_WIDTH-1
+	LDX #DISPLAY_DOT_WIDTH-1
 	LDA #0
 	.loop
 	STA dot_fb, X
@@ -436,6 +434,15 @@ ENDIF
 	LDY #HI(filename)
 	LDA #HI(bank_start)
 	JSR disksys_load_file
+
+	LDA #0
+	LDX #0
+	.clear_loop
+	STA &4000,X
+	INX
+	BNE clear_loop
+	INC clear_loop+2
+	BPL clear_loop
 
 	RTS
 }
@@ -491,7 +498,46 @@ ENDIF
 	STY billb_glyph_col
 	STY temp_col
 
-	\\ Copy chars to buf
+	RTS
+}
+
+\ ******************************************************************
+\ Draw FX
+\
+\ The draw function is the main body of the FX.
+\
+\ This function will be exactly at the start* of raster line 0 with
+\ a maximum jitter of up to +10 cycles.
+\
+\ This means that a new CRTC cycle has just started! If you didn't
+\ specify the registers from the previous frame then they will be
+\ the default MODE 0,1,2 values as per initialisation.
+\
+\ If messing with CRTC registers, THIS FUNCTION MUST ALWAYS PRODUCE
+\ A FULL AND VALID 312 line PAL signal before exiting!
+\ ******************************************************************
+
+.fx_draw_function
+{
+	\\ Raster is displaying row 0
+
+	IF _DEBUG_RASTERS
+	SET_PAL MODE1_COL0, PAL_red
+	ENDIF
+
+	\\ CRTC setup for rupture
+
+IF 0
+	LDA #4:STA &FE00			; vertical total
+	LDA #2:STA &FE01			; R4 = 3 - 1 = 2
+
+	LDA #6:STA &FE00			; vertical displayed
+	LDA #3:STA &FE01			; R6 = 3
+
+	LDA #7:STA &FE00			; vsync
+	LDA #&FF:STA &FE01			; R7 = &FF (no vsync)
+ENDIF
+
 	LDY #0
 	LDX #0
 
@@ -535,12 +581,10 @@ ENDIF
 	EOR dot_fb, X
 	STY dot_fb, X
 	
-	STX wave_scr_char
 	JSR plot_dot_col
-	LDX wave_scr_char
 
 	INX
-	CPX #DISPLAY_DOTS_WIDTH
+	CPX #DISPLAY_DOT_WIDTH
 	BCS done_loop
 
 	LDY temp_col
@@ -556,45 +600,9 @@ ENDIF
 	BNE glyph_loop
 	.done_loop
 
-	RTS
-}
-
-\ ******************************************************************
-\ Draw FX
-\
-\ The draw function is the main body of the FX.
-\
-\ This function will be exactly at the start* of raster line 0 with
-\ a maximum jitter of up to +10 cycles.
-\
-\ This means that a new CRTC cycle has just started! If you didn't
-\ specify the registers from the previous frame then they will be
-\ the default MODE 0,1,2 values as per initialisation.
-\
-\ If messing with CRTC registers, THIS FUNCTION MUST ALWAYS PRODUCE
-\ A FULL AND VALID 312 line PAL signal before exiting!
-\ ******************************************************************
-
-.fx_draw_function
-{
-	\\ Raster is displaying row 0
-
 	IF _DEBUG_RASTERS
-	SET_PAL MODE1_COL0, PAL_red
+	SET_PAL MODE1_COL0, PAL_black
 	ENDIF
-
-	\\ CRTC setup for rupture
-
-IF 0
-	LDA #4:STA &FE00			; vertical total
-	LDA #2:STA &FE01			; R4 = 3 - 1 = 2
-
-	LDA #6:STA &FE00			; vertical displayed
-	LDA #3:STA &FE01			; R6 = 3
-
-	LDA #7:STA &FE00			; vsync
-	LDA #&FF:STA &FE01			; R7 = &FF (no vsync)
-ENDIF
 
 IF 0
 	\\ R4=vertical total = 39
@@ -615,46 +623,16 @@ ENDIF
     RTS
 }
 
-DISPLAY_DOTS_WIDTH = 40
-DISPLAY_DOTS_HEIGHT = 8
-
 .plot_dot_col		; A = byte, X = col
 {
-	STA glyph_data
+	STA data_byte
 
-	TXA
-	ASL A
-	TAX
-
-	LDA dot_table_lookup, X
+	LDA dot_table_LO, X
 	STA dot_ptr
-	LDA dot_table_lookup+1, X
+	LDA dot_table_HI, X
 	STA dot_ptr+1
 
-	LDY #0
-	.loop
-
-	LDA (dot_ptr), Y
-	INY
-	STA jsr_addr+1
-	LDA (dot_ptr), Y
-	BMI ok
-	BRK
-	.ok
-	STA jsr_addr+2
-	INY
-
-	ROR glyph_data
-	BCC skip_dot
-
-	.jsr_addr
-	JSR &FFFF
-
-	.skip_dot
-	CPY #DISPLAY_DOTS_HEIGHT*2
-	BCC loop
-
-	RTS
+	JMP (dot_ptr)
 }
 
 \ ******************************************************************
@@ -727,13 +705,7 @@ EQUS "Bank",13
 
 ; hack wrap
 .message_text
-EQUS "HELLO WORLD! BITSHIFTERS SCROLLTEXT PROTOTYPE CHALLENGE... FULL SCREEN WIBBLE!",0,"          "
-
-ALIGN &100
-.dot_table_lookup	; convert X to address in dot_table for column
-FOR x,0,DISPLAY_DOTS_WIDTH-1,1
-	EQUW dot_table + x * DISPLAY_DOTS_HEIGHT * 2
-NEXT
+EQUS "     HELLO WORLD! BITSHIFTERS SCROLLTEXT PROTOTYPE CHALLENGE... PRECOMPILED DOTS!",0,"     "
 
 ALIGN &100
 .glyph_data
@@ -785,7 +757,7 @@ CLEAR 0,&FFFF
 ORG &8000
 GUARD &C000
 .bank_start
-INCLUDE "arse.txt"
+INCLUDE "dot_code.asm"
 .bank_end
 
 SAVE "Bank", bank_start, bank_end, 0

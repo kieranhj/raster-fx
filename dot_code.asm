@@ -1,0 +1,6668 @@
+DISPLAY_DOT_WIDTH=40
+DISPLAY_DOT_HEIGHT=8
+.dot_table_LO
+EQUB LO(dot_column_0)
+EQUB LO(dot_column_1)
+EQUB LO(dot_column_2)
+EQUB LO(dot_column_3)
+EQUB LO(dot_column_4)
+EQUB LO(dot_column_5)
+EQUB LO(dot_column_6)
+EQUB LO(dot_column_7)
+EQUB LO(dot_column_8)
+EQUB LO(dot_column_9)
+EQUB LO(dot_column_10)
+EQUB LO(dot_column_11)
+EQUB LO(dot_column_12)
+EQUB LO(dot_column_13)
+EQUB LO(dot_column_14)
+EQUB LO(dot_column_15)
+EQUB LO(dot_column_16)
+EQUB LO(dot_column_17)
+EQUB LO(dot_column_18)
+EQUB LO(dot_column_19)
+EQUB LO(dot_column_20)
+EQUB LO(dot_column_21)
+EQUB LO(dot_column_22)
+EQUB LO(dot_column_23)
+EQUB LO(dot_column_24)
+EQUB LO(dot_column_25)
+EQUB LO(dot_column_26)
+EQUB LO(dot_column_27)
+EQUB LO(dot_column_28)
+EQUB LO(dot_column_29)
+EQUB LO(dot_column_30)
+EQUB LO(dot_column_31)
+EQUB LO(dot_column_32)
+EQUB LO(dot_column_33)
+EQUB LO(dot_column_34)
+EQUB LO(dot_column_35)
+EQUB LO(dot_column_36)
+EQUB LO(dot_column_37)
+EQUB LO(dot_column_38)
+EQUB LO(dot_column_39)
+.dot_table_HI
+EQUB HI(dot_column_0)
+EQUB HI(dot_column_1)
+EQUB HI(dot_column_2)
+EQUB HI(dot_column_3)
+EQUB HI(dot_column_4)
+EQUB HI(dot_column_5)
+EQUB HI(dot_column_6)
+EQUB HI(dot_column_7)
+EQUB HI(dot_column_8)
+EQUB HI(dot_column_9)
+EQUB HI(dot_column_10)
+EQUB HI(dot_column_11)
+EQUB HI(dot_column_12)
+EQUB HI(dot_column_13)
+EQUB HI(dot_column_14)
+EQUB HI(dot_column_15)
+EQUB HI(dot_column_16)
+EQUB HI(dot_column_17)
+EQUB HI(dot_column_18)
+EQUB HI(dot_column_19)
+EQUB HI(dot_column_20)
+EQUB HI(dot_column_21)
+EQUB HI(dot_column_22)
+EQUB HI(dot_column_23)
+EQUB HI(dot_column_24)
+EQUB HI(dot_column_25)
+EQUB HI(dot_column_26)
+EQUB HI(dot_column_27)
+EQUB HI(dot_column_28)
+EQUB HI(dot_column_29)
+EQUB HI(dot_column_30)
+EQUB HI(dot_column_31)
+EQUB HI(dot_column_32)
+EQUB HI(dot_column_33)
+EQUB HI(dot_column_34)
+EQUB HI(dot_column_35)
+EQUB HI(dot_column_36)
+EQUB HI(dot_column_37)
+EQUB HI(dot_column_38)
+EQUB HI(dot_column_39)
+.dot_column_0
+{
+ROR data_byte
+BCC skip_dot
+.dot_0000	;x=000 y=096
+LDA #&77
+EOR &4E00
+STA &4E00
+STA &4E03
+LDA #&FF
+EOR &4E01
+STA &4E01
+STA &4E02
+LDA #&88
+EOR &4E09
+STA &4E09
+STA &4E0A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0001	;x=000 y=100
+LDA #&77
+EOR &4E04
+STA &4E04
+STA &4E07
+LDA #&FF
+EOR &4E05
+STA &4E05
+STA &4E06
+LDA #&88
+EOR &4E0D
+STA &4E0D
+STA &4E0E
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0002	;x=000 y=105
+LDA #&77
+EOR &5081
+STA &5081
+STA &5084
+LDA #&FF
+EOR &5082
+STA &5082
+STA &5083
+LDA #&88
+EOR &508A
+STA &508A
+STA &508B
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0003	;x=000 y=109
+LDA #&77
+EOR &5085
+STA &5085
+STA &5300
+LDA #&FF
+EOR &5086
+STA &5086
+STA &5087
+LDA #&88
+EOR &508E
+STA &508E
+STA &508F
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0004	;x=000 y=114
+LDA #&77
+EOR &5302
+STA &5302
+STA &5305
+LDA #&FF
+EOR &5303
+STA &5303
+STA &5304
+LDA #&88
+EOR &530B
+STA &530B
+STA &530C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0005	;x=000 y=118
+LDA #&77
+EOR &5306
+STA &5306
+STA &5581
+LDA #&FF
+EOR &5307
+STA &5307
+STA &5580
+LDA #&88
+EOR &530F
+STA &530F
+STA &5588
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0006	;x=000 y=123
+LDA #&77
+EOR &5583
+STA &5583
+STA &5586
+LDA #&FF
+EOR &5584
+STA &5584
+STA &5585
+LDA #&88
+EOR &558C
+STA &558C
+STA &558D
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0007	;x=000 y=128
+LDA #&77
+EOR &5800
+STA &5800
+STA &5803
+LDA #&FF
+EOR &5801
+STA &5801
+STA &5802
+LDA #&88
+EOR &5809
+STA &5809
+STA &580A
+.skip_dot
+}
+RTS
+.dot_column_1
+{
+ROR data_byte
+BCC skip_dot
+.dot_0100	;x=008 y=106
+LDA #&77
+EOR &5092
+STA &5092
+STA &5095
+LDA #&FF
+EOR &5093
+STA &5093
+STA &5094
+LDA #&88
+EOR &509B
+STA &509B
+STA &509C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0101	;x=008 y=111
+LDA #&77
+EOR &5097
+STA &5097
+STA &5312
+LDA #&FF
+EOR &5310
+STA &5310
+STA &5311
+LDA #&88
+EOR &5318
+STA &5318
+STA &5319
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0102	;x=008 y=115
+LDA #&77
+EOR &5313
+STA &5313
+STA &5316
+LDA #&FF
+EOR &5314
+STA &5314
+STA &5315
+LDA #&88
+EOR &531C
+STA &531C
+STA &531D
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0103	;x=008 y=120
+LDA #&77
+EOR &5590
+STA &5590
+STA &5593
+LDA #&FF
+EOR &5591
+STA &5591
+STA &5592
+LDA #&88
+EOR &5599
+STA &5599
+STA &559A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0104	;x=008 y=125
+LDA #&77
+EOR &5595
+STA &5595
+STA &5810
+LDA #&FF
+EOR &5596
+STA &5596
+STA &5597
+LDA #&88
+EOR &559E
+STA &559E
+STA &559F
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0105	;x=008 y=130
+LDA #&77
+EOR &5812
+STA &5812
+STA &5815
+LDA #&FF
+EOR &5813
+STA &5813
+STA &5814
+LDA #&88
+EOR &581B
+STA &581B
+STA &581C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0106	;x=008 y=135
+LDA #&77
+EOR &5817
+STA &5817
+STA &5A92
+LDA #&FF
+EOR &5A90
+STA &5A90
+STA &5A91
+LDA #&88
+EOR &5A98
+STA &5A98
+STA &5A99
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0107	;x=008 y=139
+LDA #&77
+EOR &5A93
+STA &5A93
+STA &5A96
+LDA #&FF
+EOR &5A94
+STA &5A94
+STA &5A95
+LDA #&88
+EOR &5A9C
+STA &5A9C
+STA &5A9D
+.skip_dot
+}
+RTS
+.dot_column_2
+{
+ROR data_byte
+BCC skip_dot
+.dot_0200	;x=016 y=116
+LDA #&77
+EOR &5324
+STA &5324
+STA &5327
+LDA #&FF
+EOR &5325
+STA &5325
+STA &5326
+LDA #&88
+EOR &532D
+STA &532D
+STA &532E
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0201	;x=016 y=121
+LDA #&77
+EOR &55A1
+STA &55A1
+STA &55A4
+LDA #&FF
+EOR &55A2
+STA &55A2
+STA &55A3
+LDA #&88
+EOR &55AA
+STA &55AA
+STA &55AB
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0202	;x=016 y=126
+LDA #&77
+EOR &55A6
+STA &55A6
+STA &5821
+LDA #&FF
+EOR &55A7
+STA &55A7
+STA &5820
+LDA #&88
+EOR &55AF
+STA &55AF
+STA &5828
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0203	;x=016 y=131
+LDA #&77
+EOR &5823
+STA &5823
+STA &5826
+LDA #&FF
+EOR &5824
+STA &5824
+STA &5825
+LDA #&88
+EOR &582C
+STA &582C
+STA &582D
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0204	;x=016 y=136
+LDA #&77
+EOR &5AA0
+STA &5AA0
+STA &5AA3
+LDA #&FF
+EOR &5AA1
+STA &5AA1
+STA &5AA2
+LDA #&88
+EOR &5AA9
+STA &5AA9
+STA &5AAA
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0205	;x=016 y=141
+LDA #&77
+EOR &5AA5
+STA &5AA5
+STA &5D20
+LDA #&FF
+EOR &5AA6
+STA &5AA6
+STA &5AA7
+LDA #&88
+EOR &5AAE
+STA &5AAE
+STA &5AAF
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0206	;x=016 y=146
+LDA #&77
+EOR &5D22
+STA &5D22
+STA &5D25
+LDA #&FF
+EOR &5D23
+STA &5D23
+STA &5D24
+LDA #&88
+EOR &5D2B
+STA &5D2B
+STA &5D2C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0207	;x=016 y=151
+LDA #&77
+EOR &5D27
+STA &5D27
+STA &5FA2
+LDA #&FF
+EOR &5FA0
+STA &5FA0
+STA &5FA1
+LDA #&88
+EOR &5FA8
+STA &5FA8
+STA &5FA9
+.skip_dot
+}
+RTS
+.dot_column_3
+{
+ROR data_byte
+BCC skip_dot
+.dot_0300	;x=024 y=125
+LDA #&77
+EOR &55B5
+STA &55B5
+STA &5830
+LDA #&FF
+EOR &55B6
+STA &55B6
+STA &55B7
+LDA #&88
+EOR &55BE
+STA &55BE
+STA &55BF
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0301	;x=024 y=131
+LDA #&77
+EOR &5833
+STA &5833
+STA &5836
+LDA #&FF
+EOR &5834
+STA &5834
+STA &5835
+LDA #&88
+EOR &583C
+STA &583C
+STA &583D
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0302	;x=024 y=136
+LDA #&77
+EOR &5AB0
+STA &5AB0
+STA &5AB3
+LDA #&FF
+EOR &5AB1
+STA &5AB1
+STA &5AB2
+LDA #&88
+EOR &5AB9
+STA &5AB9
+STA &5ABA
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0303	;x=024 y=141
+LDA #&77
+EOR &5AB5
+STA &5AB5
+STA &5D30
+LDA #&FF
+EOR &5AB6
+STA &5AB6
+STA &5AB7
+LDA #&88
+EOR &5ABE
+STA &5ABE
+STA &5ABF
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0304	;x=024 y=146
+LDA #&77
+EOR &5D32
+STA &5D32
+STA &5D35
+LDA #&FF
+EOR &5D33
+STA &5D33
+STA &5D34
+LDA #&88
+EOR &5D3B
+STA &5D3B
+STA &5D3C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0305	;x=024 y=152
+LDA #&77
+EOR &5FB0
+STA &5FB0
+STA &5FB3
+LDA #&FF
+EOR &5FB1
+STA &5FB1
+STA &5FB2
+LDA #&88
+EOR &5FB9
+STA &5FB9
+STA &5FBA
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0306	;x=024 y=157
+LDA #&77
+EOR &5FB5
+STA &5FB5
+STA &6230
+LDA #&FF
+EOR &5FB6
+STA &5FB6
+STA &5FB7
+LDA #&88
+EOR &5FBE
+STA &5FBE
+STA &5FBF
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0307	;x=024 y=162
+LDA #&77
+EOR &6232
+STA &6232
+STA &6235
+LDA #&FF
+EOR &6233
+STA &6233
+STA &6234
+LDA #&88
+EOR &623B
+STA &623B
+STA &623C
+.skip_dot
+}
+RTS
+.dot_column_4
+{
+ROR data_byte
+BCC skip_dot
+.dot_0400	;x=032 y=134
+LDA #&77
+EOR &5846
+STA &5846
+STA &5AC1
+LDA #&FF
+EOR &5847
+STA &5847
+STA &5AC0
+LDA #&88
+EOR &584F
+STA &584F
+STA &5AC8
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0401	;x=032 y=139
+LDA #&77
+EOR &5AC3
+STA &5AC3
+STA &5AC6
+LDA #&FF
+EOR &5AC4
+STA &5AC4
+STA &5AC5
+LDA #&88
+EOR &5ACC
+STA &5ACC
+STA &5ACD
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0402	;x=032 y=145
+LDA #&77
+EOR &5D41
+STA &5D41
+STA &5D44
+LDA #&FF
+EOR &5D42
+STA &5D42
+STA &5D43
+LDA #&88
+EOR &5D4A
+STA &5D4A
+STA &5D4B
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0403	;x=032 y=150
+LDA #&77
+EOR &5D46
+STA &5D46
+STA &5FC1
+LDA #&FF
+EOR &5D47
+STA &5D47
+STA &5FC0
+LDA #&88
+EOR &5D4F
+STA &5D4F
+STA &5FC8
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0404	;x=032 y=156
+LDA #&77
+EOR &5FC4
+STA &5FC4
+STA &5FC7
+LDA #&FF
+EOR &5FC5
+STA &5FC5
+STA &5FC6
+LDA #&88
+EOR &5FCD
+STA &5FCD
+STA &5FCE
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0405	;x=032 y=161
+LDA #&77
+EOR &6241
+STA &6241
+STA &6244
+LDA #&FF
+EOR &6242
+STA &6242
+STA &6243
+LDA #&88
+EOR &624A
+STA &624A
+STA &624B
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0406	;x=032 y=167
+LDA #&77
+EOR &6247
+STA &6247
+STA &64C2
+LDA #&FF
+EOR &64C0
+STA &64C0
+STA &64C1
+LDA #&88
+EOR &64C8
+STA &64C8
+STA &64C9
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0407	;x=032 y=173
+LDA #&77
+EOR &64C5
+STA &64C5
+STA &6740
+LDA #&FF
+EOR &64C6
+STA &64C6
+STA &64C7
+LDA #&88
+EOR &64CE
+STA &64CE
+STA &64CF
+.skip_dot
+}
+RTS
+.dot_column_5
+{
+ROR data_byte
+BCC skip_dot
+.dot_0500	;x=040 y=142
+LDA #&77
+EOR &5AD6
+STA &5AD6
+STA &5D51
+LDA #&FF
+EOR &5AD7
+STA &5AD7
+STA &5D50
+LDA #&88
+EOR &5ADF
+STA &5ADF
+STA &5D58
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0501	;x=040 y=147
+LDA #&77
+EOR &5D53
+STA &5D53
+STA &5D56
+LDA #&FF
+EOR &5D54
+STA &5D54
+STA &5D55
+LDA #&88
+EOR &5D5C
+STA &5D5C
+STA &5D5D
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0502	;x=040 y=153
+LDA #&77
+EOR &5FD1
+STA &5FD1
+STA &5FD4
+LDA #&FF
+EOR &5FD2
+STA &5FD2
+STA &5FD3
+LDA #&88
+EOR &5FDA
+STA &5FDA
+STA &5FDB
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0503	;x=040 y=159
+LDA #&77
+EOR &5FD7
+STA &5FD7
+STA &6252
+LDA #&FF
+EOR &6250
+STA &6250
+STA &6251
+LDA #&88
+EOR &6258
+STA &6258
+STA &6259
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0504	;x=040 y=165
+LDA #&77
+EOR &6255
+STA &6255
+STA &64D0
+LDA #&FF
+EOR &6256
+STA &6256
+STA &6257
+LDA #&88
+EOR &625E
+STA &625E
+STA &625F
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0505	;x=040 y=170
+LDA #&77
+EOR &64D2
+STA &64D2
+STA &64D5
+LDA #&FF
+EOR &64D3
+STA &64D3
+STA &64D4
+LDA #&88
+EOR &64DB
+STA &64DB
+STA &64DC
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0506	;x=040 y=176
+LDA #&77
+EOR &6750
+STA &6750
+STA &6753
+LDA #&FF
+EOR &6751
+STA &6751
+STA &6752
+LDA #&88
+EOR &6759
+STA &6759
+STA &675A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0507	;x=040 y=182
+LDA #&77
+EOR &6756
+STA &6756
+STA &69D1
+LDA #&FF
+EOR &6757
+STA &6757
+STA &69D0
+LDA #&88
+EOR &675F
+STA &675F
+STA &69D8
+.skip_dot
+}
+RTS
+.dot_column_6
+{
+ROR data_byte
+BCC skip_dot
+.dot_0600	;x=048 y=148
+LDA #&77
+EOR &5D64
+STA &5D64
+STA &5D67
+LDA #&FF
+EOR &5D65
+STA &5D65
+STA &5D66
+LDA #&88
+EOR &5D6D
+STA &5D6D
+STA &5D6E
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0601	;x=048 y=154
+LDA #&77
+EOR &5FE2
+STA &5FE2
+STA &5FE5
+LDA #&FF
+EOR &5FE3
+STA &5FE3
+STA &5FE4
+LDA #&88
+EOR &5FEB
+STA &5FEB
+STA &5FEC
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0602	;x=048 y=160
+LDA #&77
+EOR &6260
+STA &6260
+STA &6263
+LDA #&FF
+EOR &6261
+STA &6261
+STA &6262
+LDA #&88
+EOR &6269
+STA &6269
+STA &626A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0603	;x=048 y=166
+LDA #&77
+EOR &6266
+STA &6266
+STA &64E1
+LDA #&FF
+EOR &6267
+STA &6267
+STA &64E0
+LDA #&88
+EOR &626F
+STA &626F
+STA &64E8
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0604	;x=048 y=172
+LDA #&77
+EOR &64E4
+STA &64E4
+STA &64E7
+LDA #&FF
+EOR &64E5
+STA &64E5
+STA &64E6
+LDA #&88
+EOR &64ED
+STA &64ED
+STA &64EE
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0605	;x=048 y=178
+LDA #&77
+EOR &6762
+STA &6762
+STA &6765
+LDA #&FF
+EOR &6763
+STA &6763
+STA &6764
+LDA #&88
+EOR &676B
+STA &676B
+STA &676C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0606	;x=048 y=184
+LDA #&77
+EOR &69E0
+STA &69E0
+STA &69E3
+LDA #&FF
+EOR &69E1
+STA &69E1
+STA &69E2
+LDA #&88
+EOR &69E9
+STA &69E9
+STA &69EA
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0607	;x=048 y=190
+LDA #&77
+EOR &69E6
+STA &69E6
+STA &6C61
+LDA #&FF
+EOR &69E7
+STA &69E7
+STA &6C60
+LDA #&88
+EOR &69EF
+STA &69EF
+STA &6C68
+.skip_dot
+}
+RTS
+.dot_column_7
+{
+ROR data_byte
+BCC skip_dot
+.dot_0700	;x=056 y=153
+LDA #&77
+EOR &5FF1
+STA &5FF1
+STA &5FF4
+LDA #&FF
+EOR &5FF2
+STA &5FF2
+STA &5FF3
+LDA #&88
+EOR &5FFA
+STA &5FFA
+STA &5FFB
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0701	;x=056 y=160
+LDA #&77
+EOR &6270
+STA &6270
+STA &6273
+LDA #&FF
+EOR &6271
+STA &6271
+STA &6272
+LDA #&88
+EOR &6279
+STA &6279
+STA &627A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0702	;x=056 y=166
+LDA #&77
+EOR &6276
+STA &6276
+STA &64F1
+LDA #&FF
+EOR &6277
+STA &6277
+STA &64F0
+LDA #&88
+EOR &627F
+STA &627F
+STA &64F8
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0703	;x=056 y=172
+LDA #&77
+EOR &64F4
+STA &64F4
+STA &64F7
+LDA #&FF
+EOR &64F5
+STA &64F5
+STA &64F6
+LDA #&88
+EOR &64FD
+STA &64FD
+STA &64FE
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0704	;x=056 y=178
+LDA #&77
+EOR &6772
+STA &6772
+STA &6775
+LDA #&FF
+EOR &6773
+STA &6773
+STA &6774
+LDA #&88
+EOR &677B
+STA &677B
+STA &677C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0705	;x=056 y=184
+LDA #&77
+EOR &69F0
+STA &69F0
+STA &69F3
+LDA #&FF
+EOR &69F1
+STA &69F1
+STA &69F2
+LDA #&88
+EOR &69F9
+STA &69F9
+STA &69FA
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0706	;x=056 y=191
+LDA #&77
+EOR &69F7
+STA &69F7
+STA &6C72
+LDA #&FF
+EOR &6C70
+STA &6C70
+STA &6C71
+LDA #&88
+EOR &6C78
+STA &6C78
+STA &6C79
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0707	;x=056 y=197
+LDA #&77
+EOR &6C75
+STA &6C75
+STA &6EF0
+LDA #&FF
+EOR &6C76
+STA &6C76
+STA &6C77
+LDA #&88
+EOR &6C7E
+STA &6C7E
+STA &6C7F
+.skip_dot
+}
+RTS
+.dot_column_8
+{
+ROR data_byte
+BCC skip_dot
+.dot_0800	;x=064 y=157
+LDA #&77
+EOR &6005
+STA &6005
+STA &6280
+LDA #&FF
+EOR &6006
+STA &6006
+STA &6007
+LDA #&88
+EOR &600E
+STA &600E
+STA &600F
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0801	;x=064 y=163
+LDA #&77
+EOR &6283
+STA &6283
+STA &6286
+LDA #&FF
+EOR &6284
+STA &6284
+STA &6285
+LDA #&88
+EOR &628C
+STA &628C
+STA &628D
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0802	;x=064 y=170
+LDA #&77
+EOR &6502
+STA &6502
+STA &6505
+LDA #&FF
+EOR &6503
+STA &6503
+STA &6504
+LDA #&88
+EOR &650B
+STA &650B
+STA &650C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0803	;x=064 y=176
+LDA #&77
+EOR &6780
+STA &6780
+STA &6783
+LDA #&FF
+EOR &6781
+STA &6781
+STA &6782
+LDA #&88
+EOR &6789
+STA &6789
+STA &678A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0804	;x=064 y=183
+LDA #&77
+EOR &6787
+STA &6787
+STA &6A02
+LDA #&FF
+EOR &6A00
+STA &6A00
+STA &6A01
+LDA #&88
+EOR &6A08
+STA &6A08
+STA &6A09
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0805	;x=064 y=189
+LDA #&77
+EOR &6A05
+STA &6A05
+STA &6C80
+LDA #&FF
+EOR &6A06
+STA &6A06
+STA &6A07
+LDA #&88
+EOR &6A0E
+STA &6A0E
+STA &6A0F
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0806	;x=064 y=196
+LDA #&77
+EOR &6C84
+STA &6C84
+STA &6C87
+LDA #&FF
+EOR &6C85
+STA &6C85
+STA &6C86
+LDA #&88
+EOR &6C8D
+STA &6C8D
+STA &6C8E
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0807	;x=064 y=202
+LDA #&77
+EOR &6F02
+STA &6F02
+STA &6F05
+LDA #&FF
+EOR &6F03
+STA &6F03
+STA &6F04
+LDA #&88
+EOR &6F0B
+STA &6F0B
+STA &6F0C
+.skip_dot
+}
+RTS
+.dot_column_9
+{
+ROR data_byte
+BCC skip_dot
+.dot_0900	;x=072 y=159
+LDA #&77
+EOR &6017
+STA &6017
+STA &6292
+LDA #&FF
+EOR &6290
+STA &6290
+STA &6291
+LDA #&88
+EOR &6298
+STA &6298
+STA &6299
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0901	;x=072 y=166
+LDA #&77
+EOR &6296
+STA &6296
+STA &6511
+LDA #&FF
+EOR &6297
+STA &6297
+STA &6510
+LDA #&88
+EOR &629F
+STA &629F
+STA &6518
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0902	;x=072 y=172
+LDA #&77
+EOR &6514
+STA &6514
+STA &6517
+LDA #&FF
+EOR &6515
+STA &6515
+STA &6516
+LDA #&88
+EOR &651D
+STA &651D
+STA &651E
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0903	;x=072 y=179
+LDA #&77
+EOR &6793
+STA &6793
+STA &6796
+LDA #&FF
+EOR &6794
+STA &6794
+STA &6795
+LDA #&88
+EOR &679C
+STA &679C
+STA &679D
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0904	;x=072 y=186
+LDA #&77
+EOR &6A12
+STA &6A12
+STA &6A15
+LDA #&FF
+EOR &6A13
+STA &6A13
+STA &6A14
+LDA #&88
+EOR &6A1B
+STA &6A1B
+STA &6A1C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0905	;x=072 y=192
+LDA #&77
+EOR &6C90
+STA &6C90
+STA &6C93
+LDA #&FF
+EOR &6C91
+STA &6C91
+STA &6C92
+LDA #&88
+EOR &6C99
+STA &6C99
+STA &6C9A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0906	;x=072 y=199
+LDA #&77
+EOR &6C97
+STA &6C97
+STA &6F12
+LDA #&FF
+EOR &6F10
+STA &6F10
+STA &6F11
+LDA #&88
+EOR &6F18
+STA &6F18
+STA &6F19
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_0907	;x=072 y=206
+LDA #&77
+EOR &6F16
+STA &6F16
+STA &7191
+LDA #&FF
+EOR &6F17
+STA &6F17
+STA &7190
+LDA #&88
+EOR &6F1F
+STA &6F1F
+STA &7198
+.skip_dot
+}
+RTS
+.dot_column_10
+{
+ROR data_byte
+BCC skip_dot
+.dot_1000	;x=080 y=159
+LDA #&77
+EOR &6027
+STA &6027
+STA &62A2
+LDA #&FF
+EOR &62A0
+STA &62A0
+STA &62A1
+LDA #&88
+EOR &62A8
+STA &62A8
+STA &62A9
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1001	;x=080 y=166
+LDA #&77
+EOR &62A6
+STA &62A6
+STA &6521
+LDA #&FF
+EOR &62A7
+STA &62A7
+STA &6520
+LDA #&88
+EOR &62AF
+STA &62AF
+STA &6528
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1002	;x=080 y=173
+LDA #&77
+EOR &6525
+STA &6525
+STA &67A0
+LDA #&FF
+EOR &6526
+STA &6526
+STA &6527
+LDA #&88
+EOR &652E
+STA &652E
+STA &652F
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1003	;x=080 y=180
+LDA #&77
+EOR &67A4
+STA &67A4
+STA &67A7
+LDA #&FF
+EOR &67A5
+STA &67A5
+STA &67A6
+LDA #&88
+EOR &67AD
+STA &67AD
+STA &67AE
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1004	;x=080 y=187
+LDA #&77
+EOR &6A23
+STA &6A23
+STA &6A26
+LDA #&FF
+EOR &6A24
+STA &6A24
+STA &6A25
+LDA #&88
+EOR &6A2C
+STA &6A2C
+STA &6A2D
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1005	;x=080 y=194
+LDA #&77
+EOR &6CA2
+STA &6CA2
+STA &6CA5
+LDA #&FF
+EOR &6CA3
+STA &6CA3
+STA &6CA4
+LDA #&88
+EOR &6CAB
+STA &6CAB
+STA &6CAC
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1006	;x=080 y=201
+LDA #&77
+EOR &6F21
+STA &6F21
+STA &6F24
+LDA #&FF
+EOR &6F22
+STA &6F22
+STA &6F23
+LDA #&88
+EOR &6F2A
+STA &6F2A
+STA &6F2B
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1007	;x=080 y=208
+LDA #&77
+EOR &71A0
+STA &71A0
+STA &71A3
+LDA #&FF
+EOR &71A1
+STA &71A1
+STA &71A2
+LDA #&88
+EOR &71A9
+STA &71A9
+STA &71AA
+.skip_dot
+}
+RTS
+.dot_column_11
+{
+ROR data_byte
+BCC skip_dot
+.dot_1100	;x=088 y=158
+LDA #&77
+EOR &6036
+STA &6036
+STA &62B1
+LDA #&FF
+EOR &6037
+STA &6037
+STA &62B0
+LDA #&88
+EOR &603F
+STA &603F
+STA &62B8
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1101	;x=088 y=165
+LDA #&77
+EOR &62B5
+STA &62B5
+STA &6530
+LDA #&FF
+EOR &62B6
+STA &62B6
+STA &62B7
+LDA #&88
+EOR &62BE
+STA &62BE
+STA &62BF
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1102	;x=088 y=173
+LDA #&77
+EOR &6535
+STA &6535
+STA &67B0
+LDA #&FF
+EOR &6536
+STA &6536
+STA &6537
+LDA #&88
+EOR &653E
+STA &653E
+STA &653F
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1103	;x=088 y=180
+LDA #&77
+EOR &67B4
+STA &67B4
+STA &67B7
+LDA #&FF
+EOR &67B5
+STA &67B5
+STA &67B6
+LDA #&88
+EOR &67BD
+STA &67BD
+STA &67BE
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1104	;x=088 y=187
+LDA #&77
+EOR &6A33
+STA &6A33
+STA &6A36
+LDA #&FF
+EOR &6A34
+STA &6A34
+STA &6A35
+LDA #&88
+EOR &6A3C
+STA &6A3C
+STA &6A3D
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1105	;x=088 y=194
+LDA #&77
+EOR &6CB2
+STA &6CB2
+STA &6CB5
+LDA #&FF
+EOR &6CB3
+STA &6CB3
+STA &6CB4
+LDA #&88
+EOR &6CBB
+STA &6CBB
+STA &6CBC
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1106	;x=088 y=201
+LDA #&77
+EOR &6F31
+STA &6F31
+STA &6F34
+LDA #&FF
+EOR &6F32
+STA &6F32
+STA &6F33
+LDA #&88
+EOR &6F3A
+STA &6F3A
+STA &6F3B
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1107	;x=088 y=208
+LDA #&77
+EOR &71B0
+STA &71B0
+STA &71B3
+LDA #&FF
+EOR &71B1
+STA &71B1
+STA &71B2
+LDA #&88
+EOR &71B9
+STA &71B9
+STA &71BA
+.skip_dot
+}
+RTS
+.dot_column_12
+{
+ROR data_byte
+BCC skip_dot
+.dot_1200	;x=096 y=155
+LDA #&77
+EOR &6043
+STA &6043
+STA &6046
+LDA #&FF
+EOR &6044
+STA &6044
+STA &6045
+LDA #&88
+EOR &604C
+STA &604C
+STA &604D
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1201	;x=096 y=163
+LDA #&77
+EOR &62C3
+STA &62C3
+STA &62C6
+LDA #&FF
+EOR &62C4
+STA &62C4
+STA &62C5
+LDA #&88
+EOR &62CC
+STA &62CC
+STA &62CD
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1202	;x=096 y=170
+LDA #&77
+EOR &6542
+STA &6542
+STA &6545
+LDA #&FF
+EOR &6543
+STA &6543
+STA &6544
+LDA #&88
+EOR &654B
+STA &654B
+STA &654C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1203	;x=096 y=177
+LDA #&77
+EOR &67C1
+STA &67C1
+STA &67C4
+LDA #&FF
+EOR &67C2
+STA &67C2
+STA &67C3
+LDA #&88
+EOR &67CA
+STA &67CA
+STA &67CB
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1204	;x=096 y=185
+LDA #&77
+EOR &6A41
+STA &6A41
+STA &6A44
+LDA #&FF
+EOR &6A42
+STA &6A42
+STA &6A43
+LDA #&88
+EOR &6A4A
+STA &6A4A
+STA &6A4B
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1205	;x=096 y=192
+LDA #&77
+EOR &6CC0
+STA &6CC0
+STA &6CC3
+LDA #&FF
+EOR &6CC1
+STA &6CC1
+STA &6CC2
+LDA #&88
+EOR &6CC9
+STA &6CC9
+STA &6CCA
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1206	;x=096 y=200
+LDA #&77
+EOR &6F40
+STA &6F40
+STA &6F43
+LDA #&FF
+EOR &6F41
+STA &6F41
+STA &6F42
+LDA #&88
+EOR &6F49
+STA &6F49
+STA &6F4A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1207	;x=096 y=207
+LDA #&77
+EOR &6F47
+STA &6F47
+STA &71C2
+LDA #&FF
+EOR &71C0
+STA &71C0
+STA &71C1
+LDA #&88
+EOR &71C8
+STA &71C8
+STA &71C9
+.skip_dot
+}
+RTS
+.dot_column_13
+{
+ROR data_byte
+BCC skip_dot
+.dot_1300	;x=105 y=151
+LDA #&33
+EOR &5DD7
+STA &5DD7
+STA &6052
+LDA #&88
+EOR &5DDF
+STA &5DDF
+STA &605A
+LDA #&77
+EOR &6050
+STA &6050
+STA &6051
+LDA #&CC
+EOR &6058
+STA &6058
+STA &6059
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1301	;x=105 y=159
+LDA #&33
+EOR &6057
+STA &6057
+STA &62D2
+LDA #&88
+EOR &605F
+STA &605F
+STA &62DA
+LDA #&77
+EOR &62D0
+STA &62D0
+STA &62D1
+LDA #&CC
+EOR &62D8
+STA &62D8
+STA &62D9
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1302	;x=105 y=166
+LDA #&33
+EOR &62D6
+STA &62D6
+STA &6551
+LDA #&88
+EOR &62DE
+STA &62DE
+STA &6559
+LDA #&77
+EOR &62D7
+STA &62D7
+STA &6550
+LDA #&CC
+EOR &62DF
+STA &62DF
+STA &6558
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1303	;x=105 y=174
+LDA #&33
+EOR &6556
+STA &6556
+STA &67D1
+LDA #&88
+EOR &655E
+STA &655E
+STA &67D9
+LDA #&77
+EOR &6557
+STA &6557
+STA &67D0
+LDA #&CC
+EOR &655F
+STA &655F
+STA &67D8
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1304	;x=105 y=181
+LDA #&33
+EOR &67D5
+STA &67D5
+STA &6A50
+LDA #&88
+EOR &67DD
+STA &67DD
+STA &6A58
+LDA #&77
+EOR &67D6
+STA &67D6
+STA &67D7
+LDA #&CC
+EOR &67DE
+STA &67DE
+STA &67DF
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1305	;x=105 y=189
+LDA #&33
+EOR &6A55
+STA &6A55
+STA &6CD0
+LDA #&88
+EOR &6A5D
+STA &6A5D
+STA &6CD8
+LDA #&77
+EOR &6A56
+STA &6A56
+STA &6A57
+LDA #&CC
+EOR &6A5E
+STA &6A5E
+STA &6A5F
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1306	;x=105 y=197
+LDA #&33
+EOR &6CD5
+STA &6CD5
+STA &6F50
+LDA #&88
+EOR &6CDD
+STA &6CDD
+STA &6F58
+LDA #&77
+EOR &6CD6
+STA &6CD6
+STA &6CD7
+LDA #&CC
+EOR &6CDE
+STA &6CDE
+STA &6CDF
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1307	;x=105 y=204
+LDA #&33
+EOR &6F54
+STA &6F54
+STA &6F57
+LDA #&88
+EOR &6F5C
+STA &6F5C
+STA &6F5F
+LDA #&77
+EOR &6F55
+STA &6F55
+STA &6F56
+LDA #&CC
+EOR &6F5D
+STA &6F5D
+STA &6F5E
+.skip_dot
+}
+RTS
+.dot_column_14
+{
+ROR data_byte
+BCC skip_dot
+.dot_1400	;x=113 y=145
+LDA #&33
+EOR &5DE1
+STA &5DE1
+STA &5DE4
+LDA #&88
+EOR &5DE9
+STA &5DE9
+STA &5DEC
+LDA #&77
+EOR &5DE2
+STA &5DE2
+STA &5DE3
+LDA #&CC
+EOR &5DEA
+STA &5DEA
+STA &5DEB
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1401	;x=113 y=153
+LDA #&33
+EOR &6061
+STA &6061
+STA &6064
+LDA #&88
+EOR &6069
+STA &6069
+STA &606C
+LDA #&77
+EOR &6062
+STA &6062
+STA &6063
+LDA #&CC
+EOR &606A
+STA &606A
+STA &606B
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1402	;x=113 y=161
+LDA #&33
+EOR &62E1
+STA &62E1
+STA &62E4
+LDA #&88
+EOR &62E9
+STA &62E9
+STA &62EC
+LDA #&77
+EOR &62E2
+STA &62E2
+STA &62E3
+LDA #&CC
+EOR &62EA
+STA &62EA
+STA &62EB
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1403	;x=113 y=169
+LDA #&33
+EOR &6561
+STA &6561
+STA &6564
+LDA #&88
+EOR &6569
+STA &6569
+STA &656C
+LDA #&77
+EOR &6562
+STA &6562
+STA &6563
+LDA #&CC
+EOR &656A
+STA &656A
+STA &656B
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1404	;x=113 y=176
+LDA #&33
+EOR &67E0
+STA &67E0
+STA &67E3
+LDA #&88
+EOR &67E8
+STA &67E8
+STA &67EB
+LDA #&77
+EOR &67E1
+STA &67E1
+STA &67E2
+LDA #&CC
+EOR &67E9
+STA &67E9
+STA &67EA
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1405	;x=113 y=184
+LDA #&33
+EOR &6A60
+STA &6A60
+STA &6A63
+LDA #&88
+EOR &6A68
+STA &6A68
+STA &6A6B
+LDA #&77
+EOR &6A61
+STA &6A61
+STA &6A62
+LDA #&CC
+EOR &6A69
+STA &6A69
+STA &6A6A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1406	;x=113 y=192
+LDA #&33
+EOR &6CE0
+STA &6CE0
+STA &6CE3
+LDA #&88
+EOR &6CE8
+STA &6CE8
+STA &6CEB
+LDA #&77
+EOR &6CE1
+STA &6CE1
+STA &6CE2
+LDA #&CC
+EOR &6CE9
+STA &6CE9
+STA &6CEA
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1407	;x=113 y=200
+LDA #&33
+EOR &6F60
+STA &6F60
+STA &6F63
+LDA #&88
+EOR &6F68
+STA &6F68
+STA &6F6B
+LDA #&77
+EOR &6F61
+STA &6F61
+STA &6F62
+LDA #&CC
+EOR &6F69
+STA &6F69
+STA &6F6A
+.skip_dot
+}
+RTS
+.dot_column_15
+{
+ROR data_byte
+BCC skip_dot
+.dot_1500	;x=121 y=138
+LDA #&33
+EOR &5B72
+STA &5B72
+STA &5B75
+LDA #&88
+EOR &5B7A
+STA &5B7A
+STA &5B7D
+LDA #&77
+EOR &5B73
+STA &5B73
+STA &5B74
+LDA #&CC
+EOR &5B7B
+STA &5B7B
+STA &5B7C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1501	;x=121 y=146
+LDA #&33
+EOR &5DF2
+STA &5DF2
+STA &5DF5
+LDA #&88
+EOR &5DFA
+STA &5DFA
+STA &5DFD
+LDA #&77
+EOR &5DF3
+STA &5DF3
+STA &5DF4
+LDA #&CC
+EOR &5DFB
+STA &5DFB
+STA &5DFC
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1502	;x=121 y=154
+LDA #&33
+EOR &6072
+STA &6072
+STA &6075
+LDA #&88
+EOR &607A
+STA &607A
+STA &607D
+LDA #&77
+EOR &6073
+STA &6073
+STA &6074
+LDA #&CC
+EOR &607B
+STA &607B
+STA &607C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1503	;x=121 y=162
+LDA #&33
+EOR &62F2
+STA &62F2
+STA &62F5
+LDA #&88
+EOR &62FA
+STA &62FA
+STA &62FD
+LDA #&77
+EOR &62F3
+STA &62F3
+STA &62F4
+LDA #&CC
+EOR &62FB
+STA &62FB
+STA &62FC
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1504	;x=121 y=170
+LDA #&33
+EOR &6572
+STA &6572
+STA &6575
+LDA #&88
+EOR &657A
+STA &657A
+STA &657D
+LDA #&77
+EOR &6573
+STA &6573
+STA &6574
+LDA #&CC
+EOR &657B
+STA &657B
+STA &657C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1505	;x=121 y=178
+LDA #&33
+EOR &67F2
+STA &67F2
+STA &67F5
+LDA #&88
+EOR &67FA
+STA &67FA
+STA &67FD
+LDA #&77
+EOR &67F3
+STA &67F3
+STA &67F4
+LDA #&CC
+EOR &67FB
+STA &67FB
+STA &67FC
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1506	;x=121 y=186
+LDA #&33
+EOR &6A72
+STA &6A72
+STA &6A75
+LDA #&88
+EOR &6A7A
+STA &6A7A
+STA &6A7D
+LDA #&77
+EOR &6A73
+STA &6A73
+STA &6A74
+LDA #&CC
+EOR &6A7B
+STA &6A7B
+STA &6A7C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1507	;x=121 y=195
+LDA #&33
+EOR &6CF3
+STA &6CF3
+STA &6CF6
+LDA #&88
+EOR &6CFB
+STA &6CFB
+STA &6CFE
+LDA #&77
+EOR &6CF4
+STA &6CF4
+STA &6CF5
+LDA #&CC
+EOR &6CFC
+STA &6CFC
+STA &6CFD
+.skip_dot
+}
+RTS
+.dot_column_16
+{
+ROR data_byte
+BCC skip_dot
+.dot_1600	;x=129 y=130
+LDA #&33
+EOR &5902
+STA &5902
+STA &5905
+LDA #&88
+EOR &590A
+STA &590A
+STA &590D
+LDA #&77
+EOR &5903
+STA &5903
+STA &5904
+LDA #&CC
+EOR &590B
+STA &590B
+STA &590C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1601	;x=129 y=138
+LDA #&33
+EOR &5B82
+STA &5B82
+STA &5B85
+LDA #&88
+EOR &5B8A
+STA &5B8A
+STA &5B8D
+LDA #&77
+EOR &5B83
+STA &5B83
+STA &5B84
+LDA #&CC
+EOR &5B8B
+STA &5B8B
+STA &5B8C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1602	;x=129 y=146
+LDA #&33
+EOR &5E02
+STA &5E02
+STA &5E05
+LDA #&88
+EOR &5E0A
+STA &5E0A
+STA &5E0D
+LDA #&77
+EOR &5E03
+STA &5E03
+STA &5E04
+LDA #&CC
+EOR &5E0B
+STA &5E0B
+STA &5E0C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1603	;x=129 y=155
+LDA #&33
+EOR &6083
+STA &6083
+STA &6086
+LDA #&88
+EOR &608B
+STA &608B
+STA &608E
+LDA #&77
+EOR &6084
+STA &6084
+STA &6085
+LDA #&CC
+EOR &608C
+STA &608C
+STA &608D
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1604	;x=129 y=163
+LDA #&33
+EOR &6303
+STA &6303
+STA &6306
+LDA #&88
+EOR &630B
+STA &630B
+STA &630E
+LDA #&77
+EOR &6304
+STA &6304
+STA &6305
+LDA #&CC
+EOR &630C
+STA &630C
+STA &630D
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1605	;x=129 y=171
+LDA #&33
+EOR &6583
+STA &6583
+STA &6586
+LDA #&88
+EOR &658B
+STA &658B
+STA &658E
+LDA #&77
+EOR &6584
+STA &6584
+STA &6585
+LDA #&CC
+EOR &658C
+STA &658C
+STA &658D
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1606	;x=129 y=180
+LDA #&33
+EOR &6804
+STA &6804
+STA &6807
+LDA #&88
+EOR &680C
+STA &680C
+STA &680F
+LDA #&77
+EOR &6805
+STA &6805
+STA &6806
+LDA #&CC
+EOR &680D
+STA &680D
+STA &680E
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1607	;x=129 y=188
+LDA #&33
+EOR &6A84
+STA &6A84
+STA &6A87
+LDA #&88
+EOR &6A8C
+STA &6A8C
+STA &6A8F
+LDA #&77
+EOR &6A85
+STA &6A85
+STA &6A86
+LDA #&CC
+EOR &6A8D
+STA &6A8D
+STA &6A8E
+.skip_dot
+}
+RTS
+.dot_column_17
+{
+ROR data_byte
+BCC skip_dot
+.dot_1700	;x=137 y=121
+LDA #&33
+EOR &5691
+STA &5691
+STA &5694
+LDA #&88
+EOR &5699
+STA &5699
+STA &569C
+LDA #&77
+EOR &5692
+STA &5692
+STA &5693
+LDA #&CC
+EOR &569A
+STA &569A
+STA &569B
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1701	;x=137 y=129
+LDA #&33
+EOR &5911
+STA &5911
+STA &5914
+LDA #&88
+EOR &5919
+STA &5919
+STA &591C
+LDA #&77
+EOR &5912
+STA &5912
+STA &5913
+LDA #&CC
+EOR &591A
+STA &591A
+STA &591B
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1702	;x=137 y=138
+LDA #&33
+EOR &5B92
+STA &5B92
+STA &5B95
+LDA #&88
+EOR &5B9A
+STA &5B9A
+STA &5B9D
+LDA #&77
+EOR &5B93
+STA &5B93
+STA &5B94
+LDA #&CC
+EOR &5B9B
+STA &5B9B
+STA &5B9C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1703	;x=137 y=146
+LDA #&33
+EOR &5E12
+STA &5E12
+STA &5E15
+LDA #&88
+EOR &5E1A
+STA &5E1A
+STA &5E1D
+LDA #&77
+EOR &5E13
+STA &5E13
+STA &5E14
+LDA #&CC
+EOR &5E1B
+STA &5E1B
+STA &5E1C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1704	;x=137 y=155
+LDA #&33
+EOR &6093
+STA &6093
+STA &6096
+LDA #&88
+EOR &609B
+STA &609B
+STA &609E
+LDA #&77
+EOR &6094
+STA &6094
+STA &6095
+LDA #&CC
+EOR &609C
+STA &609C
+STA &609D
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1705	;x=137 y=163
+LDA #&33
+EOR &6313
+STA &6313
+STA &6316
+LDA #&88
+EOR &631B
+STA &631B
+STA &631E
+LDA #&77
+EOR &6314
+STA &6314
+STA &6315
+LDA #&CC
+EOR &631C
+STA &631C
+STA &631D
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1706	;x=137 y=172
+LDA #&33
+EOR &6594
+STA &6594
+STA &6597
+LDA #&88
+EOR &659C
+STA &659C
+STA &659F
+LDA #&77
+EOR &6595
+STA &6595
+STA &6596
+LDA #&CC
+EOR &659D
+STA &659D
+STA &659E
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1707	;x=137 y=180
+LDA #&33
+EOR &6814
+STA &6814
+STA &6817
+LDA #&88
+EOR &681C
+STA &681C
+STA &681F
+LDA #&77
+EOR &6815
+STA &6815
+STA &6816
+LDA #&CC
+EOR &681D
+STA &681D
+STA &681E
+.skip_dot
+}
+RTS
+.dot_column_18
+{
+ROR data_byte
+BCC skip_dot
+.dot_1800	;x=145 y=111
+LDA #&33
+EOR &51A7
+STA &51A7
+STA &5422
+LDA #&88
+EOR &51AF
+STA &51AF
+STA &542A
+LDA #&77
+EOR &5420
+STA &5420
+STA &5421
+LDA #&CC
+EOR &5428
+STA &5428
+STA &5429
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1801	;x=145 y=120
+LDA #&33
+EOR &56A0
+STA &56A0
+STA &56A3
+LDA #&88
+EOR &56A8
+STA &56A8
+STA &56AB
+LDA #&77
+EOR &56A1
+STA &56A1
+STA &56A2
+LDA #&CC
+EOR &56A9
+STA &56A9
+STA &56AA
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1802	;x=145 y=128
+LDA #&33
+EOR &5920
+STA &5920
+STA &5923
+LDA #&88
+EOR &5928
+STA &5928
+STA &592B
+LDA #&77
+EOR &5921
+STA &5921
+STA &5922
+LDA #&CC
+EOR &5929
+STA &5929
+STA &592A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1803	;x=145 y=137
+LDA #&33
+EOR &5BA1
+STA &5BA1
+STA &5BA4
+LDA #&88
+EOR &5BA9
+STA &5BA9
+STA &5BAC
+LDA #&77
+EOR &5BA2
+STA &5BA2
+STA &5BA3
+LDA #&CC
+EOR &5BAA
+STA &5BAA
+STA &5BAB
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1804	;x=145 y=146
+LDA #&33
+EOR &5E22
+STA &5E22
+STA &5E25
+LDA #&88
+EOR &5E2A
+STA &5E2A
+STA &5E2D
+LDA #&77
+EOR &5E23
+STA &5E23
+STA &5E24
+LDA #&CC
+EOR &5E2B
+STA &5E2B
+STA &5E2C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1805	;x=145 y=155
+LDA #&33
+EOR &60A3
+STA &60A3
+STA &60A6
+LDA #&88
+EOR &60AB
+STA &60AB
+STA &60AE
+LDA #&77
+EOR &60A4
+STA &60A4
+STA &60A5
+LDA #&CC
+EOR &60AC
+STA &60AC
+STA &60AD
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1806	;x=145 y=164
+LDA #&33
+EOR &6324
+STA &6324
+STA &6327
+LDA #&88
+EOR &632C
+STA &632C
+STA &632F
+LDA #&77
+EOR &6325
+STA &6325
+STA &6326
+LDA #&CC
+EOR &632D
+STA &632D
+STA &632E
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1807	;x=145 y=172
+LDA #&33
+EOR &65A4
+STA &65A4
+STA &65A7
+LDA #&88
+EOR &65AC
+STA &65AC
+STA &65AF
+LDA #&77
+EOR &65A5
+STA &65A5
+STA &65A6
+LDA #&CC
+EOR &65AD
+STA &65AD
+STA &65AE
+.skip_dot
+}
+RTS
+.dot_column_19
+{
+ROR data_byte
+BCC skip_dot
+.dot_1900	;x=153 y=101
+LDA #&33
+EOR &4F35
+STA &4F35
+STA &51B0
+LDA #&88
+EOR &4F3D
+STA &4F3D
+STA &51B8
+LDA #&77
+EOR &4F36
+STA &4F36
+STA &4F37
+LDA #&CC
+EOR &4F3E
+STA &4F3E
+STA &4F3F
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1901	;x=153 y=110
+LDA #&33
+EOR &51B6
+STA &51B6
+STA &5431
+LDA #&88
+EOR &51BE
+STA &51BE
+STA &5439
+LDA #&77
+EOR &51B7
+STA &51B7
+STA &5430
+LDA #&CC
+EOR &51BF
+STA &51BF
+STA &5438
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1902	;x=153 y=119
+LDA #&33
+EOR &5437
+STA &5437
+STA &56B2
+LDA #&88
+EOR &543F
+STA &543F
+STA &56BA
+LDA #&77
+EOR &56B0
+STA &56B0
+STA &56B1
+LDA #&CC
+EOR &56B8
+STA &56B8
+STA &56B9
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1903	;x=153 y=128
+LDA #&33
+EOR &5930
+STA &5930
+STA &5933
+LDA #&88
+EOR &5938
+STA &5938
+STA &593B
+LDA #&77
+EOR &5931
+STA &5931
+STA &5932
+LDA #&CC
+EOR &5939
+STA &5939
+STA &593A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1904	;x=153 y=137
+LDA #&33
+EOR &5BB1
+STA &5BB1
+STA &5BB4
+LDA #&88
+EOR &5BB9
+STA &5BB9
+STA &5BBC
+LDA #&77
+EOR &5BB2
+STA &5BB2
+STA &5BB3
+LDA #&CC
+EOR &5BBA
+STA &5BBA
+STA &5BBB
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1905	;x=153 y=146
+LDA #&33
+EOR &5E32
+STA &5E32
+STA &5E35
+LDA #&88
+EOR &5E3A
+STA &5E3A
+STA &5E3D
+LDA #&77
+EOR &5E33
+STA &5E33
+STA &5E34
+LDA #&CC
+EOR &5E3B
+STA &5E3B
+STA &5E3C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1906	;x=153 y=155
+LDA #&33
+EOR &60B3
+STA &60B3
+STA &60B6
+LDA #&88
+EOR &60BB
+STA &60BB
+STA &60BE
+LDA #&77
+EOR &60B4
+STA &60B4
+STA &60B5
+LDA #&CC
+EOR &60BC
+STA &60BC
+STA &60BD
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_1907	;x=153 y=164
+LDA #&33
+EOR &6334
+STA &6334
+STA &6337
+LDA #&88
+EOR &633C
+STA &633C
+STA &633F
+LDA #&77
+EOR &6335
+STA &6335
+STA &6336
+LDA #&CC
+EOR &633D
+STA &633D
+STA &633E
+.skip_dot
+}
+RTS
+.dot_column_20
+{
+ROR data_byte
+BCC skip_dot
+.dot_2000	;x=161 y=090
+LDA #&33
+EOR &4CC2
+STA &4CC2
+STA &4CC5
+LDA #&88
+EOR &4CCA
+STA &4CCA
+STA &4CCD
+LDA #&77
+EOR &4CC3
+STA &4CC3
+STA &4CC4
+LDA #&CC
+EOR &4CCB
+STA &4CCB
+STA &4CCC
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2001	;x=161 y=100
+LDA #&33
+EOR &4F44
+STA &4F44
+STA &4F47
+LDA #&88
+EOR &4F4C
+STA &4F4C
+STA &4F4F
+LDA #&77
+EOR &4F45
+STA &4F45
+STA &4F46
+LDA #&CC
+EOR &4F4D
+STA &4F4D
+STA &4F4E
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2002	;x=161 y=109
+LDA #&33
+EOR &51C5
+STA &51C5
+STA &5440
+LDA #&88
+EOR &51CD
+STA &51CD
+STA &5448
+LDA #&77
+EOR &51C6
+STA &51C6
+STA &51C7
+LDA #&CC
+EOR &51CE
+STA &51CE
+STA &51CF
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2003	;x=161 y=118
+LDA #&33
+EOR &5446
+STA &5446
+STA &56C1
+LDA #&88
+EOR &544E
+STA &544E
+STA &56C9
+LDA #&77
+EOR &5447
+STA &5447
+STA &56C0
+LDA #&CC
+EOR &544F
+STA &544F
+STA &56C8
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2004	;x=161 y=127
+LDA #&33
+EOR &56C7
+STA &56C7
+STA &5942
+LDA #&88
+EOR &56CF
+STA &56CF
+STA &594A
+LDA #&77
+EOR &5940
+STA &5940
+STA &5941
+LDA #&CC
+EOR &5948
+STA &5948
+STA &5949
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2005	;x=161 y=137
+LDA #&33
+EOR &5BC1
+STA &5BC1
+STA &5BC4
+LDA #&88
+EOR &5BC9
+STA &5BC9
+STA &5BCC
+LDA #&77
+EOR &5BC2
+STA &5BC2
+STA &5BC3
+LDA #&CC
+EOR &5BCA
+STA &5BCA
+STA &5BCB
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2006	;x=161 y=146
+LDA #&33
+EOR &5E42
+STA &5E42
+STA &5E45
+LDA #&88
+EOR &5E4A
+STA &5E4A
+STA &5E4D
+LDA #&77
+EOR &5E43
+STA &5E43
+STA &5E44
+LDA #&CC
+EOR &5E4B
+STA &5E4B
+STA &5E4C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2007	;x=161 y=155
+LDA #&33
+EOR &60C3
+STA &60C3
+STA &60C6
+LDA #&88
+EOR &60CB
+STA &60CB
+STA &60CE
+LDA #&77
+EOR &60C4
+STA &60C4
+STA &60C5
+LDA #&CC
+EOR &60CC
+STA &60CC
+STA &60CD
+.skip_dot
+}
+RTS
+.dot_column_21
+{
+ROR data_byte
+BCC skip_dot
+.dot_2100	;x=169 y=080
+LDA #&33
+EOR &4A50
+STA &4A50
+STA &4A53
+LDA #&88
+EOR &4A58
+STA &4A58
+STA &4A5B
+LDA #&77
+EOR &4A51
+STA &4A51
+STA &4A52
+LDA #&CC
+EOR &4A59
+STA &4A59
+STA &4A5A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2101	;x=169 y=090
+LDA #&33
+EOR &4CD2
+STA &4CD2
+STA &4CD5
+LDA #&88
+EOR &4CDA
+STA &4CDA
+STA &4CDD
+LDA #&77
+EOR &4CD3
+STA &4CD3
+STA &4CD4
+LDA #&CC
+EOR &4CDB
+STA &4CDB
+STA &4CDC
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2102	;x=169 y=099
+LDA #&33
+EOR &4F53
+STA &4F53
+STA &4F56
+LDA #&88
+EOR &4F5B
+STA &4F5B
+STA &4F5E
+LDA #&77
+EOR &4F54
+STA &4F54
+STA &4F55
+LDA #&CC
+EOR &4F5C
+STA &4F5C
+STA &4F5D
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2103	;x=169 y=109
+LDA #&33
+EOR &51D5
+STA &51D5
+STA &5450
+LDA #&88
+EOR &51DD
+STA &51DD
+STA &5458
+LDA #&77
+EOR &51D6
+STA &51D6
+STA &51D7
+LDA #&CC
+EOR &51DE
+STA &51DE
+STA &51DF
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2104	;x=169 y=118
+LDA #&33
+EOR &5456
+STA &5456
+STA &56D1
+LDA #&88
+EOR &545E
+STA &545E
+STA &56D9
+LDA #&77
+EOR &5457
+STA &5457
+STA &56D0
+LDA #&CC
+EOR &545F
+STA &545F
+STA &56D8
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2105	;x=169 y=128
+LDA #&33
+EOR &5950
+STA &5950
+STA &5953
+LDA #&88
+EOR &5958
+STA &5958
+STA &595B
+LDA #&77
+EOR &5951
+STA &5951
+STA &5952
+LDA #&CC
+EOR &5959
+STA &5959
+STA &595A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2106	;x=169 y=137
+LDA #&33
+EOR &5BD1
+STA &5BD1
+STA &5BD4
+LDA #&88
+EOR &5BD9
+STA &5BD9
+STA &5BDC
+LDA #&77
+EOR &5BD2
+STA &5BD2
+STA &5BD3
+LDA #&CC
+EOR &5BDA
+STA &5BDA
+STA &5BDB
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2107	;x=169 y=147
+LDA #&33
+EOR &5E53
+STA &5E53
+STA &5E56
+LDA #&88
+EOR &5E5B
+STA &5E5B
+STA &5E5E
+LDA #&77
+EOR &5E54
+STA &5E54
+STA &5E55
+LDA #&CC
+EOR &5E5C
+STA &5E5C
+STA &5E5D
+.skip_dot
+}
+RTS
+.dot_column_22
+{
+ROR data_byte
+BCC skip_dot
+.dot_2200	;x=177 y=070
+LDA #&33
+EOR &4566
+STA &4566
+STA &47E1
+LDA #&88
+EOR &456E
+STA &456E
+STA &47E9
+LDA #&77
+EOR &4567
+STA &4567
+STA &47E0
+LDA #&CC
+EOR &456F
+STA &456F
+STA &47E8
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2201	;x=177 y=080
+LDA #&33
+EOR &4A60
+STA &4A60
+STA &4A63
+LDA #&88
+EOR &4A68
+STA &4A68
+STA &4A6B
+LDA #&77
+EOR &4A61
+STA &4A61
+STA &4A62
+LDA #&CC
+EOR &4A69
+STA &4A69
+STA &4A6A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2202	;x=177 y=090
+LDA #&33
+EOR &4CE2
+STA &4CE2
+STA &4CE5
+LDA #&88
+EOR &4CEA
+STA &4CEA
+STA &4CED
+LDA #&77
+EOR &4CE3
+STA &4CE3
+STA &4CE4
+LDA #&CC
+EOR &4CEB
+STA &4CEB
+STA &4CEC
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2203	;x=177 y=100
+LDA #&33
+EOR &4F64
+STA &4F64
+STA &4F67
+LDA #&88
+EOR &4F6C
+STA &4F6C
+STA &4F6F
+LDA #&77
+EOR &4F65
+STA &4F65
+STA &4F66
+LDA #&CC
+EOR &4F6D
+STA &4F6D
+STA &4F6E
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2204	;x=177 y=109
+LDA #&33
+EOR &51E5
+STA &51E5
+STA &5460
+LDA #&88
+EOR &51ED
+STA &51ED
+STA &5468
+LDA #&77
+EOR &51E6
+STA &51E6
+STA &51E7
+LDA #&CC
+EOR &51EE
+STA &51EE
+STA &51EF
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2205	;x=177 y=119
+LDA #&33
+EOR &5467
+STA &5467
+STA &56E2
+LDA #&88
+EOR &546F
+STA &546F
+STA &56EA
+LDA #&77
+EOR &56E0
+STA &56E0
+STA &56E1
+LDA #&CC
+EOR &56E8
+STA &56E8
+STA &56E9
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2206	;x=177 y=129
+LDA #&33
+EOR &5961
+STA &5961
+STA &5964
+LDA #&88
+EOR &5969
+STA &5969
+STA &596C
+LDA #&77
+EOR &5962
+STA &5962
+STA &5963
+LDA #&CC
+EOR &596A
+STA &596A
+STA &596B
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2207	;x=177 y=139
+LDA #&33
+EOR &5BE3
+STA &5BE3
+STA &5BE6
+LDA #&88
+EOR &5BEB
+STA &5BEB
+STA &5BEE
+LDA #&77
+EOR &5BE4
+STA &5BE4
+STA &5BE5
+LDA #&CC
+EOR &5BEC
+STA &5BEC
+STA &5BED
+.skip_dot
+}
+RTS
+.dot_column_23
+{
+ROR data_byte
+BCC skip_dot
+.dot_2300	;x=185 y=061
+LDA #&33
+EOR &42F5
+STA &42F5
+STA &4570
+LDA #&88
+EOR &42FD
+STA &42FD
+STA &4578
+LDA #&77
+EOR &42F6
+STA &42F6
+STA &42F7
+LDA #&CC
+EOR &42FE
+STA &42FE
+STA &42FF
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2301	;x=185 y=071
+LDA #&33
+EOR &4577
+STA &4577
+STA &47F2
+LDA #&88
+EOR &457F
+STA &457F
+STA &47FA
+LDA #&77
+EOR &47F0
+STA &47F0
+STA &47F1
+LDA #&CC
+EOR &47F8
+STA &47F8
+STA &47F9
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2302	;x=185 y=081
+LDA #&33
+EOR &4A71
+STA &4A71
+STA &4A74
+LDA #&88
+EOR &4A79
+STA &4A79
+STA &4A7C
+LDA #&77
+EOR &4A72
+STA &4A72
+STA &4A73
+LDA #&CC
+EOR &4A7A
+STA &4A7A
+STA &4A7B
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2303	;x=185 y=091
+LDA #&33
+EOR &4CF3
+STA &4CF3
+STA &4CF6
+LDA #&88
+EOR &4CFB
+STA &4CFB
+STA &4CFE
+LDA #&77
+EOR &4CF4
+STA &4CF4
+STA &4CF5
+LDA #&CC
+EOR &4CFC
+STA &4CFC
+STA &4CFD
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2304	;x=185 y=101
+LDA #&33
+EOR &4F75
+STA &4F75
+STA &51F0
+LDA #&88
+EOR &4F7D
+STA &4F7D
+STA &51F8
+LDA #&77
+EOR &4F76
+STA &4F76
+STA &4F77
+LDA #&CC
+EOR &4F7E
+STA &4F7E
+STA &4F7F
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2305	;x=185 y=111
+LDA #&33
+EOR &51F7
+STA &51F7
+STA &5472
+LDA #&88
+EOR &51FF
+STA &51FF
+STA &547A
+LDA #&77
+EOR &5470
+STA &5470
+STA &5471
+LDA #&CC
+EOR &5478
+STA &5478
+STA &5479
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2306	;x=185 y=121
+LDA #&33
+EOR &56F1
+STA &56F1
+STA &56F4
+LDA #&88
+EOR &56F9
+STA &56F9
+STA &56FC
+LDA #&77
+EOR &56F2
+STA &56F2
+STA &56F3
+LDA #&CC
+EOR &56FA
+STA &56FA
+STA &56FB
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2307	;x=185 y=131
+LDA #&33
+EOR &5973
+STA &5973
+STA &5976
+LDA #&88
+EOR &597B
+STA &597B
+STA &597E
+LDA #&77
+EOR &5974
+STA &5974
+STA &5975
+LDA #&CC
+EOR &597C
+STA &597C
+STA &597D
+.skip_dot
+}
+RTS
+.dot_column_24
+{
+ROR data_byte
+BCC skip_dot
+.dot_2400	;x=193 y=053
+LDA #&33
+EOR &4085
+STA &4085
+STA &4300
+LDA #&88
+EOR &408D
+STA &408D
+STA &4308
+LDA #&77
+EOR &4086
+STA &4086
+STA &4087
+LDA #&CC
+EOR &408E
+STA &408E
+STA &408F
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2401	;x=193 y=063
+LDA #&33
+EOR &4307
+STA &4307
+STA &4582
+LDA #&88
+EOR &430F
+STA &430F
+STA &458A
+LDA #&77
+EOR &4580
+STA &4580
+STA &4581
+LDA #&CC
+EOR &4588
+STA &4588
+STA &4589
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2402	;x=193 y=073
+LDA #&33
+EOR &4801
+STA &4801
+STA &4804
+LDA #&88
+EOR &4809
+STA &4809
+STA &480C
+LDA #&77
+EOR &4802
+STA &4802
+STA &4803
+LDA #&CC
+EOR &480A
+STA &480A
+STA &480B
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2403	;x=193 y=084
+LDA #&33
+EOR &4A84
+STA &4A84
+STA &4A87
+LDA #&88
+EOR &4A8C
+STA &4A8C
+STA &4A8F
+LDA #&77
+EOR &4A85
+STA &4A85
+STA &4A86
+LDA #&CC
+EOR &4A8D
+STA &4A8D
+STA &4A8E
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2404	;x=193 y=094
+LDA #&33
+EOR &4D06
+STA &4D06
+STA &4F81
+LDA #&88
+EOR &4D0E
+STA &4D0E
+STA &4F89
+LDA #&77
+EOR &4D07
+STA &4D07
+STA &4F80
+LDA #&CC
+EOR &4D0F
+STA &4D0F
+STA &4F88
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2405	;x=193 y=104
+LDA #&33
+EOR &5200
+STA &5200
+STA &5203
+LDA #&88
+EOR &5208
+STA &5208
+STA &520B
+LDA #&77
+EOR &5201
+STA &5201
+STA &5202
+LDA #&CC
+EOR &5209
+STA &5209
+STA &520A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2406	;x=193 y=114
+LDA #&33
+EOR &5482
+STA &5482
+STA &5485
+LDA #&88
+EOR &548A
+STA &548A
+STA &548D
+LDA #&77
+EOR &5483
+STA &5483
+STA &5484
+LDA #&CC
+EOR &548B
+STA &548B
+STA &548C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2407	;x=193 y=124
+LDA #&33
+EOR &5704
+STA &5704
+STA &5707
+LDA #&88
+EOR &570C
+STA &570C
+STA &570F
+LDA #&77
+EOR &5705
+STA &5705
+STA &5706
+LDA #&CC
+EOR &570D
+STA &570D
+STA &570E
+.skip_dot
+}
+RTS
+.dot_column_25
+{
+ROR data_byte
+BCC skip_dot
+.dot_2500	;x=201 y=046
+LDA #&33
+EOR &3E16
+STA &3E16
+STA &4091
+LDA #&88
+EOR &3E1E
+STA &3E1E
+STA &4099
+LDA #&77
+EOR &3E17
+STA &3E17
+STA &4090
+LDA #&CC
+EOR &3E1F
+STA &3E1F
+STA &4098
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2501	;x=201 y=056
+LDA #&33
+EOR &4310
+STA &4310
+STA &4313
+LDA #&88
+EOR &4318
+STA &4318
+STA &431B
+LDA #&77
+EOR &4311
+STA &4311
+STA &4312
+LDA #&CC
+EOR &4319
+STA &4319
+STA &431A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2502	;x=201 y=067
+LDA #&33
+EOR &4593
+STA &4593
+STA &4596
+LDA #&88
+EOR &459B
+STA &459B
+STA &459E
+LDA #&77
+EOR &4594
+STA &4594
+STA &4595
+LDA #&CC
+EOR &459C
+STA &459C
+STA &459D
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2503	;x=201 y=077
+LDA #&33
+EOR &4815
+STA &4815
+STA &4A90
+LDA #&88
+EOR &481D
+STA &481D
+STA &4A98
+LDA #&77
+EOR &4816
+STA &4816
+STA &4817
+LDA #&CC
+EOR &481E
+STA &481E
+STA &481F
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2504	;x=201 y=088
+LDA #&33
+EOR &4D10
+STA &4D10
+STA &4D13
+LDA #&88
+EOR &4D18
+STA &4D18
+STA &4D1B
+LDA #&77
+EOR &4D11
+STA &4D11
+STA &4D12
+LDA #&CC
+EOR &4D19
+STA &4D19
+STA &4D1A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2505	;x=201 y=098
+LDA #&33
+EOR &4F92
+STA &4F92
+STA &4F95
+LDA #&88
+EOR &4F9A
+STA &4F9A
+STA &4F9D
+LDA #&77
+EOR &4F93
+STA &4F93
+STA &4F94
+LDA #&CC
+EOR &4F9B
+STA &4F9B
+STA &4F9C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2506	;x=201 y=109
+LDA #&33
+EOR &5215
+STA &5215
+STA &5490
+LDA #&88
+EOR &521D
+STA &521D
+STA &5498
+LDA #&77
+EOR &5216
+STA &5216
+STA &5217
+LDA #&CC
+EOR &521E
+STA &521E
+STA &521F
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2507	;x=201 y=119
+LDA #&33
+EOR &5497
+STA &5497
+STA &5712
+LDA #&88
+EOR &549F
+STA &549F
+STA &571A
+LDA #&77
+EOR &5710
+STA &5710
+STA &5711
+LDA #&CC
+EOR &5718
+STA &5718
+STA &5719
+.skip_dot
+}
+RTS
+.dot_column_26
+{
+ROR data_byte
+BCC skip_dot
+.dot_2600	;x=210 y=040
+LDA #&11
+EOR &3E20
+STA &3E20
+STA &3E23
+LDA #&CC
+EOR &3E28
+STA &3E28
+STA &3E2B
+LDA #&33
+EOR &3E21
+STA &3E21
+STA &3E22
+LDA #&EE
+EOR &3E29
+STA &3E29
+STA &3E2A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2601	;x=210 y=051
+LDA #&11
+EOR &40A3
+STA &40A3
+STA &40A6
+LDA #&CC
+EOR &40AB
+STA &40AB
+STA &40AE
+LDA #&33
+EOR &40A4
+STA &40A4
+STA &40A5
+LDA #&EE
+EOR &40AC
+STA &40AC
+STA &40AD
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2602	;x=210 y=061
+LDA #&11
+EOR &4325
+STA &4325
+STA &45A0
+LDA #&CC
+EOR &432D
+STA &432D
+STA &45A8
+LDA #&33
+EOR &4326
+STA &4326
+STA &4327
+LDA #&EE
+EOR &432E
+STA &432E
+STA &432F
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2603	;x=210 y=072
+LDA #&11
+EOR &4820
+STA &4820
+STA &4823
+LDA #&CC
+EOR &4828
+STA &4828
+STA &482B
+LDA #&33
+EOR &4821
+STA &4821
+STA &4822
+LDA #&EE
+EOR &4829
+STA &4829
+STA &482A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2604	;x=210 y=083
+LDA #&11
+EOR &4AA3
+STA &4AA3
+STA &4AA6
+LDA #&CC
+EOR &4AAB
+STA &4AAB
+STA &4AAE
+LDA #&33
+EOR &4AA4
+STA &4AA4
+STA &4AA5
+LDA #&EE
+EOR &4AAC
+STA &4AAC
+STA &4AAD
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2605	;x=210 y=093
+LDA #&11
+EOR &4D25
+STA &4D25
+STA &4FA0
+LDA #&CC
+EOR &4D2D
+STA &4D2D
+STA &4FA8
+LDA #&33
+EOR &4D26
+STA &4D26
+STA &4D27
+LDA #&EE
+EOR &4D2E
+STA &4D2E
+STA &4D2F
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2606	;x=210 y=104
+LDA #&11
+EOR &5220
+STA &5220
+STA &5223
+LDA #&CC
+EOR &5228
+STA &5228
+STA &522B
+LDA #&33
+EOR &5221
+STA &5221
+STA &5222
+LDA #&EE
+EOR &5229
+STA &5229
+STA &522A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2607	;x=210 y=115
+LDA #&11
+EOR &54A3
+STA &54A3
+STA &54A6
+LDA #&CC
+EOR &54AB
+STA &54AB
+STA &54AE
+LDA #&33
+EOR &54A4
+STA &54A4
+STA &54A5
+LDA #&EE
+EOR &54AC
+STA &54AC
+STA &54AD
+.skip_dot
+}
+RTS
+.dot_column_27
+{
+ROR data_byte
+BCC skip_dot
+.dot_2700	;x=218 y=036
+LDA #&11
+EOR &3BB4
+STA &3BB4
+STA &3BB7
+LDA #&CC
+EOR &3BBC
+STA &3BBC
+STA &3BBF
+LDA #&33
+EOR &3BB5
+STA &3BB5
+STA &3BB6
+LDA #&EE
+EOR &3BBD
+STA &3BBD
+STA &3BBE
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2701	;x=218 y=047
+LDA #&11
+EOR &3E37
+STA &3E37
+STA &40B2
+LDA #&CC
+EOR &3E3F
+STA &3E3F
+STA &40BA
+LDA #&33
+EOR &40B0
+STA &40B0
+STA &40B1
+LDA #&EE
+EOR &40B8
+STA &40B8
+STA &40B9
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2702	;x=218 y=057
+LDA #&11
+EOR &4331
+STA &4331
+STA &4334
+LDA #&CC
+EOR &4339
+STA &4339
+STA &433C
+LDA #&33
+EOR &4332
+STA &4332
+STA &4333
+LDA #&EE
+EOR &433A
+STA &433A
+STA &433B
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2703	;x=218 y=068
+LDA #&11
+EOR &45B4
+STA &45B4
+STA &45B7
+LDA #&CC
+EOR &45BC
+STA &45BC
+STA &45BF
+LDA #&33
+EOR &45B5
+STA &45B5
+STA &45B6
+LDA #&EE
+EOR &45BD
+STA &45BD
+STA &45BE
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2704	;x=218 y=079
+LDA #&11
+EOR &4837
+STA &4837
+STA &4AB2
+LDA #&CC
+EOR &483F
+STA &483F
+STA &4ABA
+LDA #&33
+EOR &4AB0
+STA &4AB0
+STA &4AB1
+LDA #&EE
+EOR &4AB8
+STA &4AB8
+STA &4AB9
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2705	;x=218 y=090
+LDA #&11
+EOR &4D32
+STA &4D32
+STA &4D35
+LDA #&CC
+EOR &4D3A
+STA &4D3A
+STA &4D3D
+LDA #&33
+EOR &4D33
+STA &4D33
+STA &4D34
+LDA #&EE
+EOR &4D3B
+STA &4D3B
+STA &4D3C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2706	;x=218 y=101
+LDA #&11
+EOR &4FB5
+STA &4FB5
+STA &5230
+LDA #&CC
+EOR &4FBD
+STA &4FBD
+STA &5238
+LDA #&33
+EOR &4FB6
+STA &4FB6
+STA &4FB7
+LDA #&EE
+EOR &4FBE
+STA &4FBE
+STA &4FBF
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2707	;x=218 y=112
+LDA #&11
+EOR &54B0
+STA &54B0
+STA &54B3
+LDA #&CC
+EOR &54B8
+STA &54B8
+STA &54BB
+LDA #&33
+EOR &54B1
+STA &54B1
+STA &54B2
+LDA #&EE
+EOR &54B9
+STA &54B9
+STA &54BA
+.skip_dot
+}
+RTS
+.dot_column_28
+{
+ROR data_byte
+BCC skip_dot
+.dot_2800	;x=226 y=033
+LDA #&11
+EOR &3BC1
+STA &3BC1
+STA &3BC4
+LDA #&CC
+EOR &3BC9
+STA &3BC9
+STA &3BCC
+LDA #&33
+EOR &3BC2
+STA &3BC2
+STA &3BC3
+LDA #&EE
+EOR &3BCA
+STA &3BCA
+STA &3BCB
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2801	;x=226 y=044
+LDA #&11
+EOR &3E44
+STA &3E44
+STA &3E47
+LDA #&CC
+EOR &3E4C
+STA &3E4C
+STA &3E4F
+LDA #&33
+EOR &3E45
+STA &3E45
+STA &3E46
+LDA #&EE
+EOR &3E4D
+STA &3E4D
+STA &3E4E
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2802	;x=226 y=055
+LDA #&11
+EOR &40C7
+STA &40C7
+STA &4342
+LDA #&CC
+EOR &40CF
+STA &40CF
+STA &434A
+LDA #&33
+EOR &4340
+STA &4340
+STA &4341
+LDA #&EE
+EOR &4348
+STA &4348
+STA &4349
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2803	;x=226 y=066
+LDA #&11
+EOR &45C2
+STA &45C2
+STA &45C5
+LDA #&CC
+EOR &45CA
+STA &45CA
+STA &45CD
+LDA #&33
+EOR &45C3
+STA &45C3
+STA &45C4
+LDA #&EE
+EOR &45CB
+STA &45CB
+STA &45CC
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2804	;x=226 y=077
+LDA #&11
+EOR &4845
+STA &4845
+STA &4AC0
+LDA #&CC
+EOR &484D
+STA &484D
+STA &4AC8
+LDA #&33
+EOR &4846
+STA &4846
+STA &4847
+LDA #&EE
+EOR &484E
+STA &484E
+STA &484F
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2805	;x=226 y=088
+LDA #&11
+EOR &4D40
+STA &4D40
+STA &4D43
+LDA #&CC
+EOR &4D48
+STA &4D48
+STA &4D4B
+LDA #&33
+EOR &4D41
+STA &4D41
+STA &4D42
+LDA #&EE
+EOR &4D49
+STA &4D49
+STA &4D4A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2806	;x=226 y=100
+LDA #&11
+EOR &4FC4
+STA &4FC4
+STA &4FC7
+LDA #&CC
+EOR &4FCC
+STA &4FCC
+STA &4FCF
+LDA #&33
+EOR &4FC5
+STA &4FC5
+STA &4FC6
+LDA #&EE
+EOR &4FCD
+STA &4FCD
+STA &4FCE
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2807	;x=226 y=111
+LDA #&11
+EOR &5247
+STA &5247
+STA &54C2
+LDA #&CC
+EOR &524F
+STA &524F
+STA &54CA
+LDA #&33
+EOR &54C0
+STA &54C0
+STA &54C1
+LDA #&EE
+EOR &54C8
+STA &54C8
+STA &54C9
+.skip_dot
+}
+RTS
+.dot_column_29
+{
+ROR data_byte
+BCC skip_dot
+.dot_2900	;x=234 y=032
+LDA #&11
+EOR &3BD0
+STA &3BD0
+STA &3BD3
+LDA #&CC
+EOR &3BD8
+STA &3BD8
+STA &3BDB
+LDA #&33
+EOR &3BD1
+STA &3BD1
+STA &3BD2
+LDA #&EE
+EOR &3BD9
+STA &3BD9
+STA &3BDA
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2901	;x=234 y=043
+LDA #&11
+EOR &3E53
+STA &3E53
+STA &3E56
+LDA #&CC
+EOR &3E5B
+STA &3E5B
+STA &3E5E
+LDA #&33
+EOR &3E54
+STA &3E54
+STA &3E55
+LDA #&EE
+EOR &3E5C
+STA &3E5C
+STA &3E5D
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2902	;x=234 y=054
+LDA #&11
+EOR &40D6
+STA &40D6
+STA &4351
+LDA #&CC
+EOR &40DE
+STA &40DE
+STA &4359
+LDA #&33
+EOR &40D7
+STA &40D7
+STA &4350
+LDA #&EE
+EOR &40DF
+STA &40DF
+STA &4358
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2903	;x=234 y=066
+LDA #&11
+EOR &45D2
+STA &45D2
+STA &45D5
+LDA #&CC
+EOR &45DA
+STA &45DA
+STA &45DD
+LDA #&33
+EOR &45D3
+STA &45D3
+STA &45D4
+LDA #&EE
+EOR &45DB
+STA &45DB
+STA &45DC
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2904	;x=234 y=077
+LDA #&11
+EOR &4855
+STA &4855
+STA &4AD0
+LDA #&CC
+EOR &485D
+STA &485D
+STA &4AD8
+LDA #&33
+EOR &4856
+STA &4856
+STA &4857
+LDA #&EE
+EOR &485E
+STA &485E
+STA &485F
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2905	;x=234 y=088
+LDA #&11
+EOR &4D50
+STA &4D50
+STA &4D53
+LDA #&CC
+EOR &4D58
+STA &4D58
+STA &4D5B
+LDA #&33
+EOR &4D51
+STA &4D51
+STA &4D52
+LDA #&EE
+EOR &4D59
+STA &4D59
+STA &4D5A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2906	;x=234 y=100
+LDA #&11
+EOR &4FD4
+STA &4FD4
+STA &4FD7
+LDA #&CC
+EOR &4FDC
+STA &4FDC
+STA &4FDF
+LDA #&33
+EOR &4FD5
+STA &4FD5
+STA &4FD6
+LDA #&EE
+EOR &4FDD
+STA &4FDD
+STA &4FDE
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_2907	;x=234 y=111
+LDA #&11
+EOR &5257
+STA &5257
+STA &54D2
+LDA #&CC
+EOR &525F
+STA &525F
+STA &54DA
+LDA #&33
+EOR &54D0
+STA &54D0
+STA &54D1
+LDA #&EE
+EOR &54D8
+STA &54D8
+STA &54D9
+.skip_dot
+}
+RTS
+.dot_column_30
+{
+ROR data_byte
+BCC skip_dot
+.dot_3000	;x=242 y=032
+LDA #&11
+EOR &3BE0
+STA &3BE0
+STA &3BE3
+LDA #&CC
+EOR &3BE8
+STA &3BE8
+STA &3BEB
+LDA #&33
+EOR &3BE1
+STA &3BE1
+STA &3BE2
+LDA #&EE
+EOR &3BE9
+STA &3BE9
+STA &3BEA
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3001	;x=242 y=044
+LDA #&11
+EOR &3E64
+STA &3E64
+STA &3E67
+LDA #&CC
+EOR &3E6C
+STA &3E6C
+STA &3E6F
+LDA #&33
+EOR &3E65
+STA &3E65
+STA &3E66
+LDA #&EE
+EOR &3E6D
+STA &3E6D
+STA &3E6E
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3002	;x=242 y=055
+LDA #&11
+EOR &40E7
+STA &40E7
+STA &4362
+LDA #&CC
+EOR &40EF
+STA &40EF
+STA &436A
+LDA #&33
+EOR &4360
+STA &4360
+STA &4361
+LDA #&EE
+EOR &4368
+STA &4368
+STA &4369
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3003	;x=242 y=067
+LDA #&11
+EOR &45E3
+STA &45E3
+STA &45E6
+LDA #&CC
+EOR &45EB
+STA &45EB
+STA &45EE
+LDA #&33
+EOR &45E4
+STA &45E4
+STA &45E5
+LDA #&EE
+EOR &45EC
+STA &45EC
+STA &45ED
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3004	;x=242 y=078
+LDA #&11
+EOR &4866
+STA &4866
+STA &4AE1
+LDA #&CC
+EOR &486E
+STA &486E
+STA &4AE9
+LDA #&33
+EOR &4867
+STA &4867
+STA &4AE0
+LDA #&EE
+EOR &486F
+STA &486F
+STA &4AE8
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3005	;x=242 y=090
+LDA #&11
+EOR &4D62
+STA &4D62
+STA &4D65
+LDA #&CC
+EOR &4D6A
+STA &4D6A
+STA &4D6D
+LDA #&33
+EOR &4D63
+STA &4D63
+STA &4D64
+LDA #&EE
+EOR &4D6B
+STA &4D6B
+STA &4D6C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3006	;x=242 y=102
+LDA #&11
+EOR &4FE6
+STA &4FE6
+STA &5261
+LDA #&CC
+EOR &4FEE
+STA &4FEE
+STA &5269
+LDA #&33
+EOR &4FE7
+STA &4FE7
+STA &5260
+LDA #&EE
+EOR &4FEF
+STA &4FEF
+STA &5268
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3007	;x=242 y=113
+LDA #&11
+EOR &54E1
+STA &54E1
+STA &54E4
+LDA #&CC
+EOR &54E9
+STA &54E9
+STA &54EC
+LDA #&33
+EOR &54E2
+STA &54E2
+STA &54E3
+LDA #&EE
+EOR &54EA
+STA &54EA
+STA &54EB
+.skip_dot
+}
+RTS
+.dot_column_31
+{
+ROR data_byte
+BCC skip_dot
+.dot_3100	;x=250 y=034
+LDA #&11
+EOR &3BF2
+STA &3BF2
+STA &3BF5
+LDA #&CC
+EOR &3BFA
+STA &3BFA
+STA &3BFD
+LDA #&33
+EOR &3BF3
+STA &3BF3
+STA &3BF4
+LDA #&EE
+EOR &3BFB
+STA &3BFB
+STA &3BFC
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3101	;x=250 y=046
+LDA #&11
+EOR &3E76
+STA &3E76
+STA &40F1
+LDA #&CC
+EOR &3E7E
+STA &3E7E
+STA &40F9
+LDA #&33
+EOR &3E77
+STA &3E77
+STA &40F0
+LDA #&EE
+EOR &3E7F
+STA &3E7F
+STA &40F8
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3102	;x=250 y=058
+LDA #&11
+EOR &4372
+STA &4372
+STA &4375
+LDA #&CC
+EOR &437A
+STA &437A
+STA &437D
+LDA #&33
+EOR &4373
+STA &4373
+STA &4374
+LDA #&EE
+EOR &437B
+STA &437B
+STA &437C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3103	;x=250 y=070
+LDA #&11
+EOR &45F6
+STA &45F6
+STA &4871
+LDA #&CC
+EOR &45FE
+STA &45FE
+STA &4879
+LDA #&33
+EOR &45F7
+STA &45F7
+STA &4870
+LDA #&EE
+EOR &45FF
+STA &45FF
+STA &4878
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3104	;x=250 y=081
+LDA #&11
+EOR &4AF1
+STA &4AF1
+STA &4AF4
+LDA #&CC
+EOR &4AF9
+STA &4AF9
+STA &4AFC
+LDA #&33
+EOR &4AF2
+STA &4AF2
+STA &4AF3
+LDA #&EE
+EOR &4AFA
+STA &4AFA
+STA &4AFB
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3105	;x=250 y=093
+LDA #&11
+EOR &4D75
+STA &4D75
+STA &4FF0
+LDA #&CC
+EOR &4D7D
+STA &4D7D
+STA &4FF8
+LDA #&33
+EOR &4D76
+STA &4D76
+STA &4D77
+LDA #&EE
+EOR &4D7E
+STA &4D7E
+STA &4D7F
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3106	;x=250 y=105
+LDA #&11
+EOR &5271
+STA &5271
+STA &5274
+LDA #&CC
+EOR &5279
+STA &5279
+STA &527C
+LDA #&33
+EOR &5272
+STA &5272
+STA &5273
+LDA #&EE
+EOR &527A
+STA &527A
+STA &527B
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3107	;x=250 y=117
+LDA #&11
+EOR &54F5
+STA &54F5
+STA &5770
+LDA #&CC
+EOR &54FD
+STA &54FD
+STA &5778
+LDA #&33
+EOR &54F6
+STA &54F6
+STA &54F7
+LDA #&EE
+EOR &54FE
+STA &54FE
+STA &54FF
+.skip_dot
+}
+RTS
+.dot_column_32
+{
+ROR data_byte
+BCC skip_dot
+.dot_3200	;x=258 y=038
+LDA #&11
+EOR &3C06
+STA &3C06
+STA &3E81
+LDA #&CC
+EOR &3C0E
+STA &3C0E
+STA &3E89
+LDA #&33
+EOR &3C07
+STA &3C07
+STA &3E80
+LDA #&EE
+EOR &3C0F
+STA &3C0F
+STA &3E88
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3201	;x=258 y=050
+LDA #&11
+EOR &4102
+STA &4102
+STA &4105
+LDA #&CC
+EOR &410A
+STA &410A
+STA &410D
+LDA #&33
+EOR &4103
+STA &4103
+STA &4104
+LDA #&EE
+EOR &410B
+STA &410B
+STA &410C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3202	;x=258 y=062
+LDA #&11
+EOR &4386
+STA &4386
+STA &4601
+LDA #&CC
+EOR &438E
+STA &438E
+STA &4609
+LDA #&33
+EOR &4387
+STA &4387
+STA &4600
+LDA #&EE
+EOR &438F
+STA &438F
+STA &4608
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3203	;x=258 y=074
+LDA #&11
+EOR &4882
+STA &4882
+STA &4885
+LDA #&CC
+EOR &488A
+STA &488A
+STA &488D
+LDA #&33
+EOR &4883
+STA &4883
+STA &4884
+LDA #&EE
+EOR &488B
+STA &488B
+STA &488C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3204	;x=258 y=086
+LDA #&11
+EOR &4B06
+STA &4B06
+STA &4D81
+LDA #&CC
+EOR &4B0E
+STA &4B0E
+STA &4D89
+LDA #&33
+EOR &4B07
+STA &4B07
+STA &4D80
+LDA #&EE
+EOR &4B0F
+STA &4B0F
+STA &4D88
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3205	;x=258 y=098
+LDA #&11
+EOR &5002
+STA &5002
+STA &5005
+LDA #&CC
+EOR &500A
+STA &500A
+STA &500D
+LDA #&33
+EOR &5003
+STA &5003
+STA &5004
+LDA #&EE
+EOR &500B
+STA &500B
+STA &500C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3206	;x=258 y=110
+LDA #&11
+EOR &5286
+STA &5286
+STA &5501
+LDA #&CC
+EOR &528E
+STA &528E
+STA &5509
+LDA #&33
+EOR &5287
+STA &5287
+STA &5500
+LDA #&EE
+EOR &528F
+STA &528F
+STA &5508
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3207	;x=258 y=122
+LDA #&11
+EOR &5782
+STA &5782
+STA &5785
+LDA #&CC
+EOR &578A
+STA &578A
+STA &578D
+LDA #&33
+EOR &5783
+STA &5783
+STA &5784
+LDA #&EE
+EOR &578B
+STA &578B
+STA &578C
+.skip_dot
+}
+RTS
+.dot_column_33
+{
+ROR data_byte
+BCC skip_dot
+.dot_3300	;x=266 y=043
+LDA #&11
+EOR &3E93
+STA &3E93
+STA &3E96
+LDA #&CC
+EOR &3E9B
+STA &3E9B
+STA &3E9E
+LDA #&33
+EOR &3E94
+STA &3E94
+STA &3E95
+LDA #&EE
+EOR &3E9C
+STA &3E9C
+STA &3E9D
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3301	;x=266 y=055
+LDA #&11
+EOR &4117
+STA &4117
+STA &4392
+LDA #&CC
+EOR &411F
+STA &411F
+STA &439A
+LDA #&33
+EOR &4390
+STA &4390
+STA &4391
+LDA #&EE
+EOR &4398
+STA &4398
+STA &4399
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3302	;x=266 y=067
+LDA #&11
+EOR &4613
+STA &4613
+STA &4616
+LDA #&CC
+EOR &461B
+STA &461B
+STA &461E
+LDA #&33
+EOR &4614
+STA &4614
+STA &4615
+LDA #&EE
+EOR &461C
+STA &461C
+STA &461D
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3303	;x=266 y=080
+LDA #&11
+EOR &4B10
+STA &4B10
+STA &4B13
+LDA #&CC
+EOR &4B18
+STA &4B18
+STA &4B1B
+LDA #&33
+EOR &4B11
+STA &4B11
+STA &4B12
+LDA #&EE
+EOR &4B19
+STA &4B19
+STA &4B1A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3304	;x=266 y=092
+LDA #&11
+EOR &4D94
+STA &4D94
+STA &4D97
+LDA #&CC
+EOR &4D9C
+STA &4D9C
+STA &4D9F
+LDA #&33
+EOR &4D95
+STA &4D95
+STA &4D96
+LDA #&EE
+EOR &4D9D
+STA &4D9D
+STA &4D9E
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3305	;x=266 y=104
+LDA #&11
+EOR &5290
+STA &5290
+STA &5293
+LDA #&CC
+EOR &5298
+STA &5298
+STA &529B
+LDA #&33
+EOR &5291
+STA &5291
+STA &5292
+LDA #&EE
+EOR &5299
+STA &5299
+STA &529A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3306	;x=266 y=117
+LDA #&11
+EOR &5515
+STA &5515
+STA &5790
+LDA #&CC
+EOR &551D
+STA &551D
+STA &5798
+LDA #&33
+EOR &5516
+STA &5516
+STA &5517
+LDA #&EE
+EOR &551E
+STA &551E
+STA &551F
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3307	;x=266 y=129
+LDA #&11
+EOR &5A11
+STA &5A11
+STA &5A14
+LDA #&CC
+EOR &5A19
+STA &5A19
+STA &5A1C
+LDA #&33
+EOR &5A12
+STA &5A12
+STA &5A13
+LDA #&EE
+EOR &5A1A
+STA &5A1A
+STA &5A1B
+.skip_dot
+}
+RTS
+.dot_column_34
+{
+ROR data_byte
+BCC skip_dot
+.dot_3400	;x=274 y=049
+LDA #&11
+EOR &4121
+STA &4121
+STA &4124
+LDA #&CC
+EOR &4129
+STA &4129
+STA &412C
+LDA #&33
+EOR &4122
+STA &4122
+STA &4123
+LDA #&EE
+EOR &412A
+STA &412A
+STA &412B
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3401	;x=274 y=062
+LDA #&11
+EOR &43A6
+STA &43A6
+STA &4621
+LDA #&CC
+EOR &43AE
+STA &43AE
+STA &4629
+LDA #&33
+EOR &43A7
+STA &43A7
+STA &4620
+LDA #&EE
+EOR &43AF
+STA &43AF
+STA &4628
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3402	;x=274 y=074
+LDA #&11
+EOR &48A2
+STA &48A2
+STA &48A5
+LDA #&CC
+EOR &48AA
+STA &48AA
+STA &48AD
+LDA #&33
+EOR &48A3
+STA &48A3
+STA &48A4
+LDA #&EE
+EOR &48AB
+STA &48AB
+STA &48AC
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3403	;x=274 y=087
+LDA #&11
+EOR &4B27
+STA &4B27
+STA &4DA2
+LDA #&CC
+EOR &4B2F
+STA &4B2F
+STA &4DAA
+LDA #&33
+EOR &4DA0
+STA &4DA0
+STA &4DA1
+LDA #&EE
+EOR &4DA8
+STA &4DA8
+STA &4DA9
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3404	;x=274 y=100
+LDA #&11
+EOR &5024
+STA &5024
+STA &5027
+LDA #&CC
+EOR &502C
+STA &502C
+STA &502F
+LDA #&33
+EOR &5025
+STA &5025
+STA &5026
+LDA #&EE
+EOR &502D
+STA &502D
+STA &502E
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3405	;x=274 y=112
+LDA #&11
+EOR &5520
+STA &5520
+STA &5523
+LDA #&CC
+EOR &5528
+STA &5528
+STA &552B
+LDA #&33
+EOR &5521
+STA &5521
+STA &5522
+LDA #&EE
+EOR &5529
+STA &5529
+STA &552A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3406	;x=274 y=125
+LDA #&11
+EOR &57A5
+STA &57A5
+STA &5A20
+LDA #&CC
+EOR &57AD
+STA &57AD
+STA &5A28
+LDA #&33
+EOR &57A6
+STA &57A6
+STA &57A7
+LDA #&EE
+EOR &57AE
+STA &57AE
+STA &57AF
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3407	;x=274 y=137
+LDA #&11
+EOR &5CA1
+STA &5CA1
+STA &5CA4
+LDA #&CC
+EOR &5CA9
+STA &5CA9
+STA &5CAC
+LDA #&33
+EOR &5CA2
+STA &5CA2
+STA &5CA3
+LDA #&EE
+EOR &5CAA
+STA &5CAA
+STA &5CAB
+.skip_dot
+}
+RTS
+.dot_column_35
+{
+ROR data_byte
+BCC skip_dot
+.dot_3500	;x=282 y=057
+LDA #&11
+EOR &43B1
+STA &43B1
+STA &43B4
+LDA #&CC
+EOR &43B9
+STA &43B9
+STA &43BC
+LDA #&33
+EOR &43B2
+STA &43B2
+STA &43B3
+LDA #&EE
+EOR &43BA
+STA &43BA
+STA &43BB
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3501	;x=282 y=070
+LDA #&11
+EOR &4636
+STA &4636
+STA &48B1
+LDA #&CC
+EOR &463E
+STA &463E
+STA &48B9
+LDA #&33
+EOR &4637
+STA &4637
+STA &48B0
+LDA #&EE
+EOR &463F
+STA &463F
+STA &48B8
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3502	;x=282 y=083
+LDA #&11
+EOR &4B33
+STA &4B33
+STA &4B36
+LDA #&CC
+EOR &4B3B
+STA &4B3B
+STA &4B3E
+LDA #&33
+EOR &4B34
+STA &4B34
+STA &4B35
+LDA #&EE
+EOR &4B3C
+STA &4B3C
+STA &4B3D
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3503	;x=282 y=095
+LDA #&11
+EOR &4DB7
+STA &4DB7
+STA &5032
+LDA #&CC
+EOR &4DBF
+STA &4DBF
+STA &503A
+LDA #&33
+EOR &5030
+STA &5030
+STA &5031
+LDA #&EE
+EOR &5038
+STA &5038
+STA &5039
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3504	;x=282 y=108
+LDA #&11
+EOR &52B4
+STA &52B4
+STA &52B7
+LDA #&CC
+EOR &52BC
+STA &52BC
+STA &52BF
+LDA #&33
+EOR &52B5
+STA &52B5
+STA &52B6
+LDA #&EE
+EOR &52BD
+STA &52BD
+STA &52BE
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3505	;x=282 y=121
+LDA #&11
+EOR &57B1
+STA &57B1
+STA &57B4
+LDA #&CC
+EOR &57B9
+STA &57B9
+STA &57BC
+LDA #&33
+EOR &57B2
+STA &57B2
+STA &57B3
+LDA #&EE
+EOR &57BA
+STA &57BA
+STA &57BB
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3506	;x=282 y=134
+LDA #&11
+EOR &5A36
+STA &5A36
+STA &5CB1
+LDA #&CC
+EOR &5A3E
+STA &5A3E
+STA &5CB9
+LDA #&33
+EOR &5A37
+STA &5A37
+STA &5CB0
+LDA #&EE
+EOR &5A3F
+STA &5A3F
+STA &5CB8
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3507	;x=282 y=146
+LDA #&11
+EOR &5F32
+STA &5F32
+STA &5F35
+LDA #&CC
+EOR &5F3A
+STA &5F3A
+STA &5F3D
+LDA #&33
+EOR &5F33
+STA &5F33
+STA &5F34
+LDA #&EE
+EOR &5F3B
+STA &5F3B
+STA &5F3C
+.skip_dot
+}
+RTS
+.dot_column_36
+{
+ROR data_byte
+BCC skip_dot
+.dot_3600	;x=290 y=066
+LDA #&11
+EOR &4642
+STA &4642
+STA &4645
+LDA #&CC
+EOR &464A
+STA &464A
+STA &464D
+LDA #&33
+EOR &4643
+STA &4643
+STA &4644
+LDA #&EE
+EOR &464B
+STA &464B
+STA &464C
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3601	;x=290 y=079
+LDA #&11
+EOR &48C7
+STA &48C7
+STA &4B42
+LDA #&CC
+EOR &48CF
+STA &48CF
+STA &4B4A
+LDA #&33
+EOR &4B40
+STA &4B40
+STA &4B41
+LDA #&EE
+EOR &4B48
+STA &4B48
+STA &4B49
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3602	;x=290 y=092
+LDA #&11
+EOR &4DC4
+STA &4DC4
+STA &4DC7
+LDA #&CC
+EOR &4DCC
+STA &4DCC
+STA &4DCF
+LDA #&33
+EOR &4DC5
+STA &4DC5
+STA &4DC6
+LDA #&EE
+EOR &4DCD
+STA &4DCD
+STA &4DCE
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3603	;x=290 y=105
+LDA #&11
+EOR &52C1
+STA &52C1
+STA &52C4
+LDA #&CC
+EOR &52C9
+STA &52C9
+STA &52CC
+LDA #&33
+EOR &52C2
+STA &52C2
+STA &52C3
+LDA #&EE
+EOR &52CA
+STA &52CA
+STA &52CB
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3604	;x=290 y=118
+LDA #&11
+EOR &5546
+STA &5546
+STA &57C1
+LDA #&CC
+EOR &554E
+STA &554E
+STA &57C9
+LDA #&33
+EOR &5547
+STA &5547
+STA &57C0
+LDA #&EE
+EOR &554F
+STA &554F
+STA &57C8
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3605	;x=290 y=131
+LDA #&11
+EOR &5A43
+STA &5A43
+STA &5A46
+LDA #&CC
+EOR &5A4B
+STA &5A4B
+STA &5A4E
+LDA #&33
+EOR &5A44
+STA &5A44
+STA &5A45
+LDA #&EE
+EOR &5A4C
+STA &5A4C
+STA &5A4D
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3606	;x=290 y=144
+LDA #&11
+EOR &5F40
+STA &5F40
+STA &5F43
+LDA #&CC
+EOR &5F48
+STA &5F48
+STA &5F4B
+LDA #&33
+EOR &5F41
+STA &5F41
+STA &5F42
+LDA #&EE
+EOR &5F49
+STA &5F49
+STA &5F4A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3607	;x=290 y=157
+LDA #&11
+EOR &61C5
+STA &61C5
+STA &6440
+LDA #&CC
+EOR &61CD
+STA &61CD
+STA &6448
+LDA #&33
+EOR &61C6
+STA &61C6
+STA &61C7
+LDA #&EE
+EOR &61CE
+STA &61CE
+STA &61CF
+.skip_dot
+}
+RTS
+.dot_column_37
+{
+ROR data_byte
+BCC skip_dot
+.dot_3700	;x=298 y=075
+LDA #&11
+EOR &48D3
+STA &48D3
+STA &48D6
+LDA #&CC
+EOR &48DB
+STA &48DB
+STA &48DE
+LDA #&33
+EOR &48D4
+STA &48D4
+STA &48D5
+LDA #&EE
+EOR &48DC
+STA &48DC
+STA &48DD
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3701	;x=298 y=088
+LDA #&11
+EOR &4DD0
+STA &4DD0
+STA &4DD3
+LDA #&CC
+EOR &4DD8
+STA &4DD8
+STA &4DDB
+LDA #&33
+EOR &4DD1
+STA &4DD1
+STA &4DD2
+LDA #&EE
+EOR &4DD9
+STA &4DD9
+STA &4DDA
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3702	;x=298 y=102
+LDA #&11
+EOR &5056
+STA &5056
+STA &52D1
+LDA #&CC
+EOR &505E
+STA &505E
+STA &52D9
+LDA #&33
+EOR &5057
+STA &5057
+STA &52D0
+LDA #&EE
+EOR &505F
+STA &505F
+STA &52D8
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3703	;x=298 y=115
+LDA #&11
+EOR &5553
+STA &5553
+STA &5556
+LDA #&CC
+EOR &555B
+STA &555B
+STA &555E
+LDA #&33
+EOR &5554
+STA &5554
+STA &5555
+LDA #&EE
+EOR &555C
+STA &555C
+STA &555D
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3704	;x=298 y=128
+LDA #&11
+EOR &5A50
+STA &5A50
+STA &5A53
+LDA #&CC
+EOR &5A58
+STA &5A58
+STA &5A5B
+LDA #&33
+EOR &5A51
+STA &5A51
+STA &5A52
+LDA #&EE
+EOR &5A59
+STA &5A59
+STA &5A5A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3705	;x=298 y=141
+LDA #&11
+EOR &5CD5
+STA &5CD5
+STA &5F50
+LDA #&CC
+EOR &5CDD
+STA &5CDD
+STA &5F58
+LDA #&33
+EOR &5CD6
+STA &5CD6
+STA &5CD7
+LDA #&EE
+EOR &5CDE
+STA &5CDE
+STA &5CDF
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3706	;x=298 y=155
+LDA #&11
+EOR &61D3
+STA &61D3
+STA &61D6
+LDA #&CC
+EOR &61DB
+STA &61DB
+STA &61DE
+LDA #&33
+EOR &61D4
+STA &61D4
+STA &61D5
+LDA #&EE
+EOR &61DC
+STA &61DC
+STA &61DD
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3707	;x=298 y=168
+LDA #&11
+EOR &66D0
+STA &66D0
+STA &66D3
+LDA #&CC
+EOR &66D8
+STA &66D8
+STA &66DB
+LDA #&33
+EOR &66D1
+STA &66D1
+STA &66D2
+LDA #&EE
+EOR &66D9
+STA &66D9
+STA &66DA
+.skip_dot
+}
+RTS
+.dot_column_38
+{
+ROR data_byte
+BCC skip_dot
+.dot_3800	;x=306 y=085
+LDA #&11
+EOR &4B65
+STA &4B65
+STA &4DE0
+LDA #&CC
+EOR &4B6D
+STA &4B6D
+STA &4DE8
+LDA #&33
+EOR &4B66
+STA &4B66
+STA &4B67
+LDA #&EE
+EOR &4B6E
+STA &4B6E
+STA &4B6F
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3801	;x=306 y=099
+LDA #&11
+EOR &5063
+STA &5063
+STA &5066
+LDA #&CC
+EOR &506B
+STA &506B
+STA &506E
+LDA #&33
+EOR &5064
+STA &5064
+STA &5065
+LDA #&EE
+EOR &506C
+STA &506C
+STA &506D
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3802	;x=306 y=112
+LDA #&11
+EOR &5560
+STA &5560
+STA &5563
+LDA #&CC
+EOR &5568
+STA &5568
+STA &556B
+LDA #&33
+EOR &5561
+STA &5561
+STA &5562
+LDA #&EE
+EOR &5569
+STA &5569
+STA &556A
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3803	;x=306 y=126
+LDA #&11
+EOR &57E6
+STA &57E6
+STA &5A61
+LDA #&CC
+EOR &57EE
+STA &57EE
+STA &5A69
+LDA #&33
+EOR &57E7
+STA &57E7
+STA &5A60
+LDA #&EE
+EOR &57EF
+STA &57EF
+STA &5A68
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3804	;x=306 y=139
+LDA #&11
+EOR &5CE3
+STA &5CE3
+STA &5CE6
+LDA #&CC
+EOR &5CEB
+STA &5CEB
+STA &5CEE
+LDA #&33
+EOR &5CE4
+STA &5CE4
+STA &5CE5
+LDA #&EE
+EOR &5CEC
+STA &5CEC
+STA &5CED
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3805	;x=306 y=153
+LDA #&11
+EOR &61E1
+STA &61E1
+STA &61E4
+LDA #&CC
+EOR &61E9
+STA &61E9
+STA &61EC
+LDA #&33
+EOR &61E2
+STA &61E2
+STA &61E3
+LDA #&EE
+EOR &61EA
+STA &61EA
+STA &61EB
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3806	;x=306 y=166
+LDA #&11
+EOR &6466
+STA &6466
+STA &66E1
+LDA #&CC
+EOR &646E
+STA &646E
+STA &66E9
+LDA #&33
+EOR &6467
+STA &6467
+STA &66E0
+LDA #&EE
+EOR &646F
+STA &646F
+STA &66E8
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3807	;x=306 y=180
+LDA #&11
+EOR &6964
+STA &6964
+STA &6967
+LDA #&CC
+EOR &696C
+STA &696C
+STA &696F
+LDA #&33
+EOR &6965
+STA &6965
+STA &6966
+LDA #&EE
+EOR &696D
+STA &696D
+STA &696E
+.skip_dot
+}
+RTS
+.dot_column_39
+{
+ROR data_byte
+BCC skip_dot
+.dot_3900	;x=315 y=095
+; x clip
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3901	;x=315 y=109
+; x clip
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3902	;x=315 y=123
+; x clip
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3903	;x=315 y=137
+; x clip
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3904	;x=315 y=150
+; x clip
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3905	;x=315 y=164
+; x clip
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3906	;x=315 y=178
+; x clip
+.skip_dot
+}
+{
+ROR data_byte
+BCC skip_dot
+.dot_3907	;x=315 y=192
+; x clip
+.skip_dot
+}
+RTS
