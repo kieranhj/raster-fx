@@ -6613,56 +6613,144 @@ RTS
 ROR data_byte
 BCC skip_dot
 .dot_3900	;x=315 y=095
-; x clip
+LDA #&EE
+EOR &4DFF
+STA &4DFF
+STA &507A
+LDA #&11
+EOR &5070
+STA &5070
+STA &5071
+LDA #&FF
+EOR &5078
+STA &5078
+STA &5079
 .skip_dot
 }
 {
 ROR data_byte
 BCC skip_dot
 .dot_3901	;x=315 y=109
-; x clip
+LDA #&EE
+EOR &52FD
+STA &52FD
+STA &5578
+LDA #&11
+EOR &52F6
+STA &52F6
+STA &52F7
+LDA #&FF
+EOR &52FE
+STA &52FE
+STA &52FF
 .skip_dot
 }
 {
 ROR data_byte
 BCC skip_dot
 .dot_3902	;x=315 y=123
-; x clip
+LDA #&EE
+EOR &57FB
+STA &57FB
+STA &57FE
+LDA #&11
+EOR &57F4
+STA &57F4
+STA &57F5
+LDA #&FF
+EOR &57FC
+STA &57FC
+STA &57FD
 .skip_dot
 }
 {
 ROR data_byte
 BCC skip_dot
 .dot_3903	;x=315 y=137
-; x clip
+LDA #&EE
+EOR &5CF9
+STA &5CF9
+STA &5CFC
+LDA #&11
+EOR &5CF2
+STA &5CF2
+STA &5CF3
+LDA #&FF
+EOR &5CFA
+STA &5CFA
+STA &5CFB
 .skip_dot
 }
 {
 ROR data_byte
 BCC skip_dot
 .dot_3904	;x=315 y=150
-; x clip
+LDA #&EE
+EOR &5F7E
+STA &5F7E
+STA &61F9
+LDA #&11
+EOR &5F77
+STA &5F77
+STA &61F0
+LDA #&FF
+EOR &5F7F
+STA &5F7F
+STA &61F8
 .skip_dot
 }
 {
 ROR data_byte
 BCC skip_dot
 .dot_3905	;x=315 y=164
-; x clip
+LDA #&EE
+EOR &647C
+STA &647C
+STA &647F
+LDA #&11
+EOR &6475
+STA &6475
+STA &6476
+LDA #&FF
+EOR &647D
+STA &647D
+STA &647E
 .skip_dot
 }
 {
 ROR data_byte
 BCC skip_dot
 .dot_3906	;x=315 y=178
-; x clip
+LDA #&EE
+EOR &697A
+STA &697A
+STA &697D
+LDA #&11
+EOR &6973
+STA &6973
+STA &6974
+LDA #&FF
+EOR &697B
+STA &697B
+STA &697C
 .skip_dot
 }
 {
 ROR data_byte
 BCC skip_dot
 .dot_3907	;x=315 y=192
-; x clip
+LDA #&EE
+EOR &6E78
+STA &6E78
+STA &6E7B
+LDA #&11
+EOR &6E71
+STA &6E71
+STA &6E72
+LDA #&FF
+EOR &6E79
+STA &6E79
+STA &6E7A
 .skip_dot
 }
 RTS

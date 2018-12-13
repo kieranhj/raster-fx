@@ -45,11 +45,11 @@ class Dot():
 
         output_file.write('.' + self.__label + '\t;x={:03d} y={:03d}\n'.format(self.__x,self.__y))
 
-        if self.__x < 0 or self.__x >= SCREEN_WIDTH-DOT_PIXEL_WIDTH:
+        if self.__x < 0 or self.__x > SCREEN_WIDTH-DOT_PIXEL_WIDTH:
             output_file.write('; x clip\n')
             return
 
-        if self.__y < 0 or self.__y >= SCREEN_HEIGHT-DOT_PIXEL_HEIGHT:
+        if self.__y < 0 or self.__y > SCREEN_HEIGHT-DOT_PIXEL_HEIGHT:
             output_file.write('; y clip\n')
             return
 
