@@ -102,14 +102,9 @@ GUARD &9F
 .readptr				SKIP 2
 .writeptr				SKIP 2
 
-.billb_message_ptr		SKIP 2
-.billb_glyph_col		SKIP 1
-
-.temp_col				SKIP 1
-.temp_idx				SKIP 1
-
-.data_byte				SKIP 1
 .screen_ptr				SKIP 2
+
+.tunnel_idx				SKIP 1
 
 \ ******************************************************************
 \ *	CODE START
@@ -411,15 +406,10 @@ ENDIF
 
 .fx_init_function
 {
-	LDA #7
-	STA billb_glyph_col
+	LDA #0
+	STA tunnel_idx
 
-	LDA #LO(message_text)
-	STA billb_message_ptr
-	LDA #HI(message_text)
-	STA billb_message_ptr+1
-
-	LDX #DISPLAY_DOT_WIDTH-1
+	LDX #TUNNEL_DOT_LENGTH-1
 	LDA #0
 	.loop
 	STA dot_fb, X
@@ -444,6 +434,9 @@ ENDIF
 	INC clear_loop+2
 	BPL clear_loop
 
+	LDX #1
+	JSR plot_dot_col
+
 	RTS
 }
 
@@ -462,42 +455,15 @@ ENDIF
 \ be late and your raster timings will be wrong!
 \ ******************************************************************
 
-.get_next_msg_char
-{
-	.try_again
-	LDA (billb_message_ptr), Y
-	BNE char_ok
-
-	LDA #LO(message_text)
-	STA billb_message_ptr
-	LDA #HI(message_text)
-	STA billb_message_ptr+1
-	BNE try_again
-
-	.char_ok
-	INC billb_message_ptr
-	BNE no_carry
-	INC billb_message_ptr+1
-	.no_carry
-
-	RTS
-}
-
 .fx_update_function
 {
-	LDY billb_glyph_col
-	INY
-	CPY #WAVE_GLYPH_WIDTH
-	BCC col_ok
-
-	\\ Next char
-	LDY #0
-	JSR get_next_msg_char
-
-	.col_ok
-	STY billb_glyph_col
-	STY temp_col
-
+	LDX tunnel_idx
+	INX
+	CPX #TUNNEL_DOT_LENGTH
+	BCC ok
+	LDX #0
+	.ok
+	STX tunnel_idx
 	RTS
 }
 
@@ -527,96 +493,19 @@ ENDIF
 
 	\\ CRTC setup for rupture
 
-IF 0
-	LDA #4:STA &FE00			; vertical total
-	LDA #2:STA &FE01			; R4 = 3 - 1 = 2
-
-	LDA #6:STA &FE00			; vertical displayed
-	LDA #3:STA &FE01			; R6 = 3
-
-	LDA #7:STA &FE00			; vsync
-	LDA #&FF:STA &FE01			; R7 = &FF (no vsync)
-ENDIF
-
-	LDY #0
-	LDX #0
-
-	.glyph_loop
-	STY temp_idx
-
-	LDA #0
-	STA readptr+1
-
-	LDA (billb_message_ptr), Y
-	BEQ ok
-	SEC
-	SBC #32
-	.ok
-
-	\\ Get byte for column of glyph - don't need to calc this every time
-
-	STA readptr
-	ASL readptr
-	ROL readptr+1
-	ASL readptr
-	ROL readptr+1
-	ASL readptr
-	ROL readptr+1
-
-	CLC
-	LDA readptr
-	ADC #LO(glyph_data)
-	STA readptr
-	LDA readptr+1
-	ADC #HI(glyph_data)
-	STA readptr+1
-
-	\\ Get glyph byte
-	LDY temp_col
-	.col_loop
-	STY temp_col
-	LDA (readptr), Y
-
-	TAY
-	EOR dot_fb, X
-	STY dot_fb, X
-	
+	LDX tunnel_idx
 	JSR plot_dot_col
 
 	INX
-	CPX #DISPLAY_DOT_WIDTH
-	BCS done_loop
-
-	LDY temp_col
-	INY
-	CPY #8
-	BCC col_loop
-
-	LDY #0
-	STY temp_col
-
-	LDY temp_idx
-	INY
-	BNE glyph_loop
-	.done_loop
+	CPX #TUNNEL_DOT_LENGTH
+	BCC ok
+	LDX #0
+	.ok
+	JSR plot_dot_col
 
 	IF _DEBUG_RASTERS
 	SET_PAL MODE1_COL0, PAL_black
 	ENDIF
-
-IF 0
-	\\ R4=vertical total = 39
-	LDA #4: STA &FE00
-	LDA #8: STA &FE01		; 9 - 1
-
-	\\ R7=vsync at row 35
-	LDA #7:	STA &FE00
-	LDA #5: STA &FE01
-
-	\\ R6=displayed
-	LDA #6: STA &FE00
-	LDA #2: STA &FE01
-ENDIF
 
 	\\ Cross fingers
 
@@ -625,12 +514,10 @@ ENDIF
 
 .plot_dot_col		; A = byte, X = col
 {
-	STA data_byte
-
-	LDA dot_col_table_LO, X
+	LDA dot_circle_table_LO, X
 	STA plot_dot_jump+1
 
-	LDA dot_col_table_HI, X
+	LDA dot_circle_table_HI, X
 	STA plot_dot_jump+2
 
 	.plot_dot_jump
@@ -673,6 +560,8 @@ ENDIF
 }
 
 .fx_end
+
+INCLUDE "dot_plot_code.asm"
 
 \ ******************************************************************
 \ *	SYSTEM DATA
@@ -761,7 +650,6 @@ GUARD &C000
 .bank_start
 ;INCLUDE "dot_code.asm"
 INCLUDE "dot_column_code.asm"
-INCLUDE "dot_plot_code.asm"
 
 .bank_end
 

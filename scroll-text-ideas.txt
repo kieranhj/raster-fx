@@ -76,3 +76,14 @@ Better to generate code for all pixel offset combinations instead?
 So 0 <= x <= 3 and 0 <= y <= 7 with character address in ZP and Y as index?
 Painful to span character row or precalc address of following row?
 Depends how often this occurs! Presumably 50% of the time for 4 pixel high dot
+
+Dot Tunnel
+~~~
+Use dot precompiler to generate circles instead of columns
+Can animate maximum 640 dots per frame (maybe less?)
+Need to erase one circle off and plot the next one
+Therefore can only see 320 dots at a time but generate as many as needed for animation
+Say 8 'frames' between circles
+320 visible dots / 20 dots in a circle (say) = 16 circles visible
+But generate 16 * 8 circles in code (assuming space)
+Equivalent to 2560 dots

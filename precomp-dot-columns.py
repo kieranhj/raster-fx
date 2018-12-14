@@ -6,8 +6,8 @@
 SCREEN_WIDTH = 320
 SCREEN_HEIGHT = 256
 
-DISPLAY_DOT_WIDTH = 80
-DISPLAY_DOT_HEIGHT = 8
+TUNNEL_DOT_CIRCLE = 20
+TUNNEL_DOT_LENGTH = 32
 
 DOT_PIXEL_WIDTH = 5
 DOT_PIXEL_HEIGHT = 4
@@ -67,18 +67,18 @@ def calculate_xy(x_norm, y_norm):
 #    x_dot = 160 + (64 + 64 * y_norm) * math.sin(math.pi * x_norm - math.pi/2)
 #    y_dot = 128 + (64 + 64 * y_norm) * math.cos(math.pi * x_norm - math.pi/2)
 
-# Rectangle
-#    x_dot = 400 * x_norm
-#    y_dot = 80 * y_norm
+    # y_norm = angle around circle 0-1
+    # x_norm = distance down the tunnel 0-1
 
-    # Transform rotate
-    angle = math.radians(45)
-    x_pos = math.cos(angle) * x_dot - math.sin(angle) * y_dot
-    y_pos = math.sin(angle) * x_dot + math.cos(angle) * y_dot
+    angle = y_norm * math.pi * 2
+    radius = 64 + 192 * x_norm
+
+    x_dot = math.sin(angle) * radius
+    y_dot = math.cos(angle) * radius
 
     # Transform translate
-    x_pos = x_pos + 50
-    y_pos = y_pos + 00
+    x_pos = x_dot + 160
+    y_pos = y_dot + 128
 
     return [int(x_pos), int(y_pos)]
 
@@ -92,13 +92,13 @@ def main():
     
     dot_list = []
 
-    for x in range(0,DISPLAY_DOT_WIDTH):
-        for y in range(0,DISPLAY_DOT_HEIGHT):
+    for x in range(0,TUNNEL_DOT_LENGTH):
+        for y in range(0,TUNNEL_DOT_CIRCLE):
             d = Dot()
             d.set_label('dot_'+'{:02d}{:02d}'.format(x,y))
 
-            x_norm = x / float(DISPLAY_DOT_WIDTH-1)
-            y_norm = y / float(DISPLAY_DOT_HEIGHT-1)
+            x_norm = x / float(TUNNEL_DOT_LENGTH-1)
+            y_norm = y / float(TUNNEL_DOT_CIRCLE-1)
 
             xy = calculate_xy(x_norm, y_norm)
 
@@ -108,36 +108,31 @@ def main():
 
     output_file = open(output_name, 'wt')
 
-    output_file.write('DISPLAY_DOT_WIDTH=' + str(DISPLAY_DOT_WIDTH) + '\n')
-    output_file.write('DISPLAY_DOT_HEIGHT=' + str(DISPLAY_DOT_HEIGHT) + '\n')
+    output_file.write('TUNNEL_DOT_CIRCLE=' + str(TUNNEL_DOT_CIRCLE) + '\n')
+    output_file.write('TUNNEL_DOT_LENGTH=' + str(TUNNEL_DOT_LENGTH) + '\n')
 
     output_file.write('ALIGN &100\n')
-    output_file.write('.dot_col_table_LO\n')
+    output_file.write('.dot_circle_table_LO\n')
 
-    for x in range(0,DISPLAY_DOT_WIDTH):
-        output_file.write('EQUB LO(dot_column_' + str(x) + ')\n')
+    for x in range(0,TUNNEL_DOT_LENGTH):
+        output_file.write('EQUB LO(dot_circle_' + str(x) + ')\n')
 
-    output_file.write('.dot_col_table_HI\n')
+    output_file.write('.dot_circle_table_HI\n')
 
-    for x in range(0,DISPLAY_DOT_WIDTH):
-        output_file.write('EQUB HI(dot_column_' + str(x) + ')\n')
+    for x in range(0,TUNNEL_DOT_LENGTH):
+        output_file.write('EQUB HI(dot_circle_' + str(x) + ')\n')
 
-    for x in range(0,DISPLAY_DOT_WIDTH):
+    for x in range(0,TUNNEL_DOT_LENGTH):
 
-        output_file.write('.dot_column_' + str(x) + '\n')
+        output_file.write('.dot_circle_' + str(x) + '\n')
 
-        for y in range(0,DISPLAY_DOT_HEIGHT):
-            d = dot_list[x * DISPLAY_DOT_HEIGHT + y]
+        for y in range(0,TUNNEL_DOT_CIRCLE):
+            d = dot_list[x * TUNNEL_DOT_CIRCLE + y]
 
             output_file.write('{\n')
-            output_file.write('\tROR data_byte\n')
-            output_file.write('\tBCC skip_dot\n')
-
             output_file.write('\t;x={:03d} y={:03d}\n'.format(d.get_x(),d.get_y()))
             output_file.write('\tLDA #LO(&{:04X}):LDY #HI(&{:04X}):'.format(d.get_char_address(),d.get_char_address()))
             output_file.write('JSR dot_{:02d}{:02d}\n'.format(d.get_table_index()%4,d.get_table_index()/4))
-
-            output_file.write('\t.skip_dot\n')
             output_file.write('}\n')
 
         output_file.write('RTS\n')
