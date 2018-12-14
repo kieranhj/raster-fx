@@ -68,6 +68,9 @@ class Dot():
             output_file.write('LDA #&' + '{:02X}'.format(data00 | data00<<4) + '\n')      # AND dither_row0
             output_file.write('EOR &' + '{:04X}'.format(row0_address) + '\n')
             output_file.write('STA &' + '{:04X}'.format(row0_address) + '\n')
+
+            output_file.write('LDA #&' + '{:02X}'.format(data00 | data00<<4) + '\n')
+            output_file.write('EOR &' + '{:04X}'.format(row3_address) + '\n')
             output_file.write('STA &' + '{:04X}'.format(row3_address) + '\n')
             
         # could clip to rhs
@@ -75,18 +78,27 @@ class Dot():
             output_file.write('LDA #&' + '{:02X}'.format(data01 | data01<<4) + '\n')      # OR dither_row0
             output_file.write('EOR &' + '{:04X}'.format(row0_address + 8) + '\n')
             output_file.write('STA &' + '{:04X}'.format(row0_address + 8) + '\n')
+
+            output_file.write('LDA #&' + '{:02X}'.format(data01 | data01<<4) + '\n')
+            output_file.write('EOR &' + '{:04X}'.format(row3_address + 8) + '\n')
             output_file.write('STA &' + '{:04X}'.format(row3_address + 8) + '\n')
         
         if data10 != 0:
             output_file.write('LDA #&' + '{:02X}'.format(data10 | data10<<4) + '\n')      # OR dither_row1
             output_file.write('EOR &' + '{:04X}'.format(row1_address) + '\n')
             output_file.write('STA &' + '{:04X}'.format(row1_address) + '\n')
+
+            output_file.write('LDA #&' + '{:02X}'.format(data10 | data10<<4) + '\n')
+            output_file.write('EOR &' + '{:04X}'.format(row2_address) + '\n')
             output_file.write('STA &' + '{:04X}'.format(row2_address) + '\n')
 
         if data11 != 0:
             output_file.write('LDA #&' + '{:02X}'.format(data11 | data11<<4) + '\n')      # OR dither_row1
             output_file.write('EOR &' + '{:04X}'.format(row1_address + 8) + '\n')
             output_file.write('STA &' + '{:04X}'.format(row1_address + 8) + '\n')
+
+            output_file.write('LDA #&' + '{:02X}'.format(data11 | data11<<4) + '\n')
+            output_file.write('EOR &' + '{:04X}'.format(row2_address + 8) + '\n')
             output_file.write('STA &' + '{:04X}'.format(row2_address + 8) + '\n')
 
         #output_file.write('RTS\n')

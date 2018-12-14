@@ -87,10 +87,10 @@ glyph_base_addr = &8000 - WAVE_TOTAL_BYTES
 \ *	ZERO PAGE
 \ ******************************************************************
 
-dot_fb = &00
-
-ORG &70
+ORG &0
 GUARD &9F
+
+.dot_fb					SKIP 80
 
 \\ System variables
 
@@ -108,8 +108,8 @@ GUARD &9F
 .temp_col				SKIP 1
 .temp_idx				SKIP 1
 
-.dot_ptr				SKIP 2
 .data_byte				SKIP 1
+.screen_ptr				SKIP 2
 
 \ ******************************************************************
 \ *	CODE START
@@ -627,12 +627,14 @@ ENDIF
 {
 	STA data_byte
 
-	LDA dot_table_LO, X
-	STA dot_ptr
-	LDA dot_table_HI, X
-	STA dot_ptr+1
+	LDA dot_col_table_LO, X
+	STA plot_dot_jump+1
 
-	JMP (dot_ptr)
+	LDA dot_col_table_HI, X
+	STA plot_dot_jump+2
+
+	.plot_dot_jump
+	JMP &FFFF
 }
 
 \ ******************************************************************
@@ -705,7 +707,7 @@ EQUS "Bank",13
 
 ; hack wrap
 .message_text
-EQUS "     HELLO WORLD! BITSHIFTERS SCROLLTEXT PROTOTYPE CHALLENGE... PRECOMPILED DOTS!",0,"     "
+EQUS "          HELLO WORLD! BITSHIFTERS SCROLLTEXT PROTOTYPE CHALLENGE... 80x8 = 640 PRECOMPILED DOTS!",0,"          "
 
 ALIGN &100
 .glyph_data
@@ -757,11 +759,16 @@ CLEAR 0,&FFFF
 ORG &8000
 GUARD &C000
 .bank_start
-INCLUDE "dot_code.asm"
+;INCLUDE "dot_code.asm"
+INCLUDE "dot_column_code.asm"
+INCLUDE "dot_plot_code.asm"
+
 .bank_end
 
 SAVE "Bank", bank_start, bank_end, 0
-PRINT "BANK size =", ~bank_end-bank_start
+PRINT "DOT COLUMN CODE size = ", ~(dot_0000 - bank_start)
+PRINT "DOT PLOT CODE size = ", ~(bank_end - dot_0000)
+PRINT "BANK size =", ~(bank_end-bank_start)
 
 \ ******************************************************************
 \ *	Any other files for the disc

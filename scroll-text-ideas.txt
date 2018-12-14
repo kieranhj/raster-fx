@@ -68,3 +68,11 @@ Could save cycles & bytes by utilising duplicated data
 E.g. sprite row 0 & 2 are the same
 Need a nice way to generate pre-compiled dots and patterns - Python?
 Start with 40 x 8 = 320 dots which comes in at <16K bytes code
+
+Think precompilng more appropriate with a smaller number of larger sprites
+rather than a large number of small sprites
+
+Better to generate code for all pixel offset combinations instead?
+So 0 <= x <= 3 and 0 <= y <= 7 with character address in ZP and Y as index?
+Painful to span character row or precalc address of following row?
+Depends how often this occurs! Presumably 50% of the time for 4 pixel high dot
