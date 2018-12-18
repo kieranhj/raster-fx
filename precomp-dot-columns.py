@@ -7,7 +7,7 @@ SCREEN_WIDTH = 320
 SCREEN_HEIGHT = 256
 
 TUNNEL_DOT_CIRCLE = 20
-TUNNEL_DOT_LENGTH = 32
+TUNNEL_DOT_LENGTH = 110
 
 DOT_PIXEL_WIDTH = 5
 DOT_PIXEL_HEIGHT = 4
@@ -60,8 +60,8 @@ class Dot():
 
 def calculate_xy(x_norm, y_norm):
 # Sine wave
-    x_dot = x_norm * 310    #(SCREEN_WIDTH - DOT_PIXEL_WIDTH)
-    y_dot = 64 * math.sin(2 * math.pi * x_norm) + (32 + 64 * x_norm) * y_norm
+#    x_dot = x_norm * 310    #(SCREEN_WIDTH - DOT_PIXEL_WIDTH)
+#    y_dot = 64 * math.sin(2 * math.pi * x_norm) + (32 + 64 * x_norm) * y_norm
 
 # Semi-circle
 #    x_dot = 160 + (64 + 64 * y_norm) * math.sin(math.pi * x_norm - math.pi/2)
@@ -71,10 +71,20 @@ def calculate_xy(x_norm, y_norm):
     # x_norm = distance down the tunnel 0-1
 
     angle = y_norm * math.pi * 2
-    radius = 64 + 192 * x_norm
+    radius = 160 #32 + 160 * x_norm
+    length = 1280
+    axis = x_norm * math.pi
 
-    x_dot = math.sin(angle) * radius
-    y_dot = math.cos(angle) * radius
+    x = math.sin(angle) * radius + math.cos(axis) * 32
+    y = math.cos(angle) * radius + math.sin(axis) * 32
+    z = (1-x_norm) * length
+
+    cx = 0
+    cy = 0
+    cz = -160       # camera z = screen width/2
+
+    x_dot = 160 * (x - cx) / (z - cz)
+    y_dot = 160 * (y - cy) / (z - cz)
 
     # Transform translate
     x_pos = x_dot + 160
@@ -97,8 +107,8 @@ def main():
             d = Dot()
             d.set_label('dot_'+'{:02d}{:02d}'.format(x,y))
 
-            x_norm = x / float(TUNNEL_DOT_LENGTH-1)
-            y_norm = y / float(TUNNEL_DOT_CIRCLE-1)
+            x_norm = x / float(TUNNEL_DOT_LENGTH)
+            y_norm = y / float(TUNNEL_DOT_CIRCLE)
 
             xy = calculate_xy(x_norm, y_norm)
 

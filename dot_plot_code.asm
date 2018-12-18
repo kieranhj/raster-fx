@@ -1,108 +1,48 @@
 .dot_0000	;x=000 y=000
 STA screen_ptr
 STY screen_ptr+1
-LDY #0
-LDA #&77
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #1
-LDA #&FF
+LDA #&CC
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #2
-LDA #&FF
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #3
-LDA #&77
+LDA #&CC
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0100	;x=001 y=000
 STA screen_ptr
 STY screen_ptr+1
-LDY #0
-LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #8
-LDA #&88
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #1
-LDA #&77
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #9
-LDA #&CC
+LDA #&66
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #2
-LDA #&77
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #10
-LDA #&CC
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #3
-LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #11
-LDA #&88
+LDA #&66
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0200	;x=002 y=000
 STA screen_ptr
 STY screen_ptr+1
-LDY #0
-LDA #&11
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #8
-LDA #&CC
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #1
 LDA #&33
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
-LDY #9
-LDA #&EE
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #2
 LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #10
-LDA #&EE
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #3
-LDA #&11
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #11
-LDA #&CC
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0300	;x=003 y=000
 STA screen_ptr
 STY screen_ptr+1
-LDY #8
-LDA #&EE
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #1
 LDA #&11
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #9
-LDA #&FF
+LDA #&88
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #2
@@ -110,119 +50,55 @@ LDA #&11
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #10
-LDA #&FF
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #11
-LDA #&EE
+LDA #&88
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0001	;x=000 y=001
 STA screen_ptr
 STY screen_ptr+1
-LDY #1
-LDA #&77
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #2
-LDA #&FF
+LDA #&CC
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #3
-LDA #&FF
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #4
-LDA #&77
+LDA #&CC
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0101	;x=001 y=001
 STA screen_ptr
 STY screen_ptr+1
-LDY #1
-LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #9
-LDA #&88
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #2
-LDA #&77
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #10
-LDA #&CC
+LDA #&66
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #3
-LDA #&77
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #11
-LDA #&CC
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #4
-LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #12
-LDA #&88
+LDA #&66
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0201	;x=002 y=001
 STA screen_ptr
 STY screen_ptr+1
-LDY #1
-LDA #&11
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #9
-LDA #&CC
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #2
 LDA #&33
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
-LDY #10
-LDA #&EE
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #3
 LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #11
-LDA #&EE
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #4
-LDA #&11
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #12
-LDA #&CC
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0301	;x=003 y=001
 STA screen_ptr
 STY screen_ptr+1
-LDY #9
-LDA #&EE
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #2
 LDA #&11
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #10
-LDA #&FF
+LDA #&88
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #3
@@ -230,119 +106,55 @@ LDA #&11
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #11
-LDA #&FF
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #12
-LDA #&EE
+LDA #&88
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0002	;x=000 y=002
 STA screen_ptr
 STY screen_ptr+1
-LDY #2
-LDA #&77
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #3
-LDA #&FF
+LDA #&CC
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #4
-LDA #&FF
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #5
-LDA #&77
+LDA #&CC
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0102	;x=001 y=002
 STA screen_ptr
 STY screen_ptr+1
-LDY #2
-LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #10
-LDA #&88
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #3
-LDA #&77
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #11
-LDA #&CC
+LDA #&66
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #4
-LDA #&77
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #12
-LDA #&CC
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #5
-LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #13
-LDA #&88
+LDA #&66
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0202	;x=002 y=002
 STA screen_ptr
 STY screen_ptr+1
-LDY #2
-LDA #&11
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #10
-LDA #&CC
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #3
 LDA #&33
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
-LDY #11
-LDA #&EE
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #4
 LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #12
-LDA #&EE
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #5
-LDA #&11
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #13
-LDA #&CC
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0302	;x=003 y=002
 STA screen_ptr
 STY screen_ptr+1
-LDY #10
-LDA #&EE
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #3
 LDA #&11
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #11
-LDA #&FF
+LDA #&88
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #4
@@ -350,119 +162,55 @@ LDA #&11
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #12
-LDA #&FF
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #13
-LDA #&EE
+LDA #&88
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0003	;x=000 y=003
 STA screen_ptr
 STY screen_ptr+1
-LDY #3
-LDA #&77
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #4
-LDA #&FF
+LDA #&CC
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #5
-LDA #&FF
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #6
-LDA #&77
+LDA #&CC
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0103	;x=001 y=003
 STA screen_ptr
 STY screen_ptr+1
-LDY #3
-LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #11
-LDA #&88
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #4
-LDA #&77
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #12
-LDA #&CC
+LDA #&66
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #5
-LDA #&77
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #13
-LDA #&CC
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #6
-LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #14
-LDA #&88
+LDA #&66
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0203	;x=002 y=003
 STA screen_ptr
 STY screen_ptr+1
-LDY #3
-LDA #&11
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #11
-LDA #&CC
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #4
 LDA #&33
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
-LDY #12
-LDA #&EE
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #5
 LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #13
-LDA #&EE
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #6
-LDA #&11
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #14
-LDA #&CC
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0303	;x=003 y=003
 STA screen_ptr
 STY screen_ptr+1
-LDY #11
-LDA #&EE
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #4
 LDA #&11
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #12
-LDA #&FF
+LDA #&88
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #5
@@ -470,119 +218,55 @@ LDA #&11
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #13
-LDA #&FF
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #14
-LDA #&EE
+LDA #&88
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0004	;x=000 y=004
 STA screen_ptr
 STY screen_ptr+1
-LDY #4
-LDA #&77
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #5
-LDA #&FF
+LDA #&CC
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #6
-LDA #&FF
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #7
-LDA #&77
+LDA #&CC
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0104	;x=001 y=004
 STA screen_ptr
 STY screen_ptr+1
-LDY #4
-LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #12
-LDA #&88
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #5
-LDA #&77
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #13
-LDA #&CC
+LDA #&66
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #6
-LDA #&77
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #14
-LDA #&CC
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #7
-LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #15
-LDA #&88
+LDA #&66
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0204	;x=002 y=004
 STA screen_ptr
 STY screen_ptr+1
-LDY #4
-LDA #&11
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #12
-LDA #&CC
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #5
 LDA #&33
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
-LDY #13
-LDA #&EE
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #6
 LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #14
-LDA #&EE
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #7
-LDA #&11
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #15
-LDA #&CC
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0304	;x=003 y=004
 STA screen_ptr
 STY screen_ptr+1
-LDY #12
-LDA #&EE
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #5
 LDA #&11
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #13
-LDA #&FF
+LDA #&88
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #6
@@ -590,140 +274,55 @@ LDA #&11
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #14
-LDA #&FF
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #15
-LDA #&EE
+LDA #&88
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0005	;x=000 y=005
 STA screen_ptr
 STY screen_ptr+1
-LDY #5
-LDA #&77
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #6
-LDA #&FF
+LDA #&CC
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #7
-LDA #&FF
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-CLC
-LDA screen_ptr
-ADC #LO(640)
-STA screen_ptr
-LDA screen_ptr+1
-ADC #HI(640)
-STA screen_ptr+1
-LDY #0
-LDA #&77
+LDA #&CC
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0105	;x=001 y=005
 STA screen_ptr
 STY screen_ptr+1
-LDY #5
-LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #13
-LDA #&88
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #6
-LDA #&77
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #14
-LDA #&CC
+LDA #&66
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #7
-LDA #&77
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #15
-LDA #&CC
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-CLC
-LDA screen_ptr
-ADC #LO(640)
-STA screen_ptr
-LDA screen_ptr+1
-ADC #HI(640)
-STA screen_ptr+1
-LDY #0
-LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #8
-LDA #&88
+LDA #&66
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0205	;x=002 y=005
 STA screen_ptr
 STY screen_ptr+1
-LDY #5
-LDA #&11
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #13
-LDA #&CC
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #6
 LDA #&33
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
-LDY #14
-LDA #&EE
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #7
 LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #15
-LDA #&EE
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-CLC
-LDA screen_ptr
-ADC #LO(640)
-STA screen_ptr
-LDA screen_ptr+1
-ADC #HI(640)
-STA screen_ptr+1
-LDY #0
-LDA #&11
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #8
-LDA #&CC
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0305	;x=003 y=005
 STA screen_ptr
 STY screen_ptr+1
-LDY #13
-LDA #&EE
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #6
 LDA #&11
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #14
-LDA #&FF
+LDA #&88
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #7
@@ -731,30 +330,15 @@ LDA #&11
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #15
-LDA #&FF
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-CLC
-LDA screen_ptr
-ADC #LO(640)
-STA screen_ptr
-LDA screen_ptr+1
-ADC #HI(640)
-STA screen_ptr+1
-LDY #8
-LDA #&EE
+LDA #&88
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0006	;x=000 y=006
 STA screen_ptr
 STY screen_ptr+1
-LDY #6
-LDA #&77
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #7
-LDA #&FF
+LDA #&CC
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 CLC
@@ -765,31 +349,15 @@ LDA screen_ptr+1
 ADC #HI(640)
 STA screen_ptr+1
 LDY #0
-LDA #&FF
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #1
-LDA #&77
+LDA #&CC
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0106	;x=001 y=006
 STA screen_ptr
 STY screen_ptr+1
-LDY #6
-LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #14
-LDA #&88
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #7
-LDA #&77
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #15
-LDA #&CC
+LDA #&66
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 CLC
@@ -800,39 +368,15 @@ LDA screen_ptr+1
 ADC #HI(640)
 STA screen_ptr+1
 LDY #0
-LDA #&77
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #8
-LDA #&CC
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #1
-LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #9
-LDA #&88
+LDA #&66
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0206	;x=002 y=006
 STA screen_ptr
 STY screen_ptr+1
-LDY #6
-LDA #&11
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #14
-LDA #&CC
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #7
 LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #15
-LDA #&EE
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 CLC
@@ -844,34 +388,18 @@ ADC #HI(640)
 STA screen_ptr+1
 LDY #0
 LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #8
-LDA #&EE
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #1
-LDA #&11
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #9
-LDA #&CC
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0306	;x=003 y=006
 STA screen_ptr
 STY screen_ptr+1
-LDY #14
-LDA #&EE
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #7
 LDA #&11
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #15
-LDA #&FF
+LDA #&88
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 CLC
@@ -886,21 +414,13 @@ LDA #&11
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #8
-LDA #&FF
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #9
-LDA #&EE
+LDA #&88
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0007	;x=000 y=007
 STA screen_ptr
 STY screen_ptr+1
-LDY #7
-LDA #&77
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 CLC
 LDA screen_ptr
 ADC #LO(640)
@@ -909,29 +429,17 @@ LDA screen_ptr+1
 ADC #HI(640)
 STA screen_ptr+1
 LDY #0
-LDA #&FF
+LDA #&CC
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #1
-LDA #&FF
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #2
-LDA #&77
+LDA #&CC
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0107	;x=001 y=007
 STA screen_ptr
 STY screen_ptr+1
-LDY #7
-LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #15
-LDA #&88
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 CLC
 LDA screen_ptr
 ADC #LO(640)
@@ -940,41 +448,17 @@ LDA screen_ptr+1
 ADC #HI(640)
 STA screen_ptr+1
 LDY #0
-LDA #&77
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #8
-LDA #&CC
+LDA #&66
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #1
-LDA #&77
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #9
-LDA #&CC
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #2
-LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #10
-LDA #&88
+LDA #&66
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0207	;x=002 y=007
 STA screen_ptr
 STY screen_ptr+1
-LDY #7
-LDA #&11
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #15
-LDA #&CC
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 CLC
 LDA screen_ptr
 ADC #LO(640)
@@ -986,34 +470,14 @@ LDY #0
 LDA #&33
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
-LDY #8
-LDA #&EE
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 LDY #1
 LDA #&33
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #9
-LDA #&EE
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #2
-LDA #&11
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #10
-LDA #&CC
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS
 .dot_0307	;x=003 y=007
 STA screen_ptr
 STY screen_ptr+1
-LDY #15
-LDA #&EE
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
 CLC
 LDA screen_ptr
 ADC #LO(640)
@@ -1026,7 +490,7 @@ LDA #&11
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #8
-LDA #&FF
+LDA #&88
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #1
@@ -1034,11 +498,7 @@ LDA #&11
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 LDY #9
-LDA #&FF
-EOR (screen_ptr), Y
-STA (screen_ptr), Y
-LDY #10
-LDA #&EE
+LDA #&88
 EOR (screen_ptr), Y
 STA (screen_ptr), Y
 RTS

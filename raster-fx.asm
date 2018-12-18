@@ -83,6 +83,8 @@ WAVE_TOTAL_BYTES = WAVE_GLYPH_BYTES * WAVE_NUM_GLYPHS
 
 glyph_base_addr = &8000 - WAVE_TOTAL_BYTES
 
+TUNNEL_STEP = 10
+
 \ ******************************************************************
 \ *	ZERO PAGE
 \ ******************************************************************
@@ -104,7 +106,8 @@ GUARD &9F
 
 .screen_ptr				SKIP 2
 
-.tunnel_idx				SKIP 1
+.tunnel_buffer			SKIP 1
+.tunnel_frame			SKIP 2
 
 \ ******************************************************************
 \ *	CODE START
@@ -136,6 +139,10 @@ INCLUDE "lib/disksys.asm"
 	CLI							; enable interupts
 
 	\\ Load SIDEWAYS RAM modules here!
+
+\ Ensure MAIN RAM is writeable
+
+    LDA &FE34:AND #&FB:STA &FE34
 
 	\\ Initalise system vars
 
@@ -406,9 +413,6 @@ ENDIF
 
 .fx_init_function
 {
-	LDA #0
-	STA tunnel_idx
-
 	LDX #TUNNEL_DOT_LENGTH-1
 	LDA #0
 	.loop
@@ -434,8 +438,29 @@ ENDIF
 	INC clear_loop+2
 	BPL clear_loop
 
+	\ need to draw first frame on both screen buffers
+
 	LDX #1
-	JSR plot_dot_col
+	STX tunnel_frame
+	JSR plot_dot_tunnel
+
+\ Ensure SHADOW RAM is writeable
+
+    LDA &FE34:ORA #&4:STA &FE34
+
+	LDX #0
+	STX tunnel_frame+1
+	JSR plot_dot_tunnel
+
+	\ set up double buffered mode with CRTC
+    ; we set bits 0 and 2 of ACCCON, so that display=Main RAM, and shadow ram is selected as main memory
+    lda &fe34
+    and #255-1  ; set D to 0
+    ora #4    	; set X to 1
+    sta &fe34
+
+	LDX #1		; last plotted
+	STX tunnel_buffer
 
 	RTS
 }
@@ -457,14 +482,17 @@ ENDIF
 
 .fx_update_function
 {
-	LDX tunnel_idx
-	INX
-	CPX #TUNNEL_DOT_LENGTH
-	BCC ok
-	LDX #0
-	.ok
-	STX tunnel_idx
-	RTS
+	; swap visible screen buffer
+    lda &fe34
+    eor #1+4	; invert bits 0 (CRTC) & 2 (RAM)
+    sta &fe34
+
+	; switch buffers
+	LDA tunnel_buffer
+	EOR #1
+	STA tunnel_buffer
+
+	rts
 }
 
 \ ******************************************************************
@@ -483,6 +511,16 @@ ENDIF
 \ A FULL AND VALID 312 line PAL signal before exiting!
 \ ******************************************************************
 
+MACRO FRAME_UPDATE_X
+{
+	INX
+	CPX #TUNNEL_DOT_LENGTH
+	BCC ok
+	LDX #0
+	.ok
+}
+ENDMACRO
+
 .fx_draw_function
 {
 	\\ Raster is displaying row 0
@@ -491,25 +529,47 @@ ENDIF
 	SET_PAL MODE1_COL0, PAL_red
 	ENDIF
 
-	\\ CRTC setup for rupture
+	; plotted frame
+	LDY tunnel_buffer
+	LDX tunnel_frame, Y
 
-	LDX tunnel_idx
-	JSR plot_dot_col
+	; erase old circle
+	JSR plot_dot_tunnel
 
-	INX
-	CPX #TUNNEL_DOT_LENGTH
-	BCC ok
-	LDX #0
-	.ok
-	JSR plot_dot_col
+	; visible frame
+	LDA tunnel_buffer
+	EOR #1
+	TAY
+	LDX tunnel_frame, Y
+
+	; increment frame
+	FRAME_UPDATE_X
+
+	LDY tunnel_buffer
+	STX tunnel_frame, Y
+
+	; plot new circle
+	JSR plot_dot_tunnel
 
 	IF _DEBUG_RASTERS
 	SET_PAL MODE1_COL0, PAL_black
 	ENDIF
 
+
 	\\ Cross fingers
 
     RTS
+}
+
+.plot_dot_tunnel
+{
+	FOR n,1,110,TUNNEL_STEP
+		JSR plot_dot_col
+		FOR i,1,TUNNEL_STEP
+			FRAME_UPDATE_X
+		NEXT
+	NEXT
+	RTS
 }
 
 .plot_dot_col		; A = byte, X = col
@@ -561,7 +621,9 @@ ENDIF
 
 .fx_end
 
+.dot_code_start
 INCLUDE "dot_plot_code.asm"
+.dot_code_end
 
 \ ******************************************************************
 \ *	SYSTEM DATA
@@ -633,6 +695,7 @@ PRINT "RASTER FX"
 PRINT "------"
 PRINT "MAIN size =", ~main_end-main_start
 PRINT "FX size = ", ~fx_end-fx_start
+PRINT "DOT PLOT CODE size = ", ~(dot_code_end-dot_code_start)
 PRINT "DATA size =",~data_end-data_start
 PRINT "BSS size =",~bss_end-bss_start
 PRINT "------"
@@ -654,8 +717,7 @@ INCLUDE "dot_column_code.asm"
 .bank_end
 
 SAVE "Bank", bank_start, bank_end, 0
-PRINT "DOT COLUMN CODE size = ", ~(dot_0000 - bank_start)
-PRINT "DOT PLOT CODE size = ", ~(bank_end - dot_0000)
+PRINT "DOT COLUMN CODE size = ", ~(bank_end - bank_start)
 PRINT "BANK size =", ~(bank_end-bank_start)
 
 \ ******************************************************************

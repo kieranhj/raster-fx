@@ -1,5 +1,5 @@
 TUNNEL_DOT_CIRCLE=20
-TUNNEL_DOT_LENGTH=32
+TUNNEL_DOT_LENGTH=110
 ALIGN &100
 .dot_circle_table_LO
 EQUB LO(dot_circle_0)
@@ -34,6 +34,84 @@ EQUB LO(dot_circle_28)
 EQUB LO(dot_circle_29)
 EQUB LO(dot_circle_30)
 EQUB LO(dot_circle_31)
+EQUB LO(dot_circle_32)
+EQUB LO(dot_circle_33)
+EQUB LO(dot_circle_34)
+EQUB LO(dot_circle_35)
+EQUB LO(dot_circle_36)
+EQUB LO(dot_circle_37)
+EQUB LO(dot_circle_38)
+EQUB LO(dot_circle_39)
+EQUB LO(dot_circle_40)
+EQUB LO(dot_circle_41)
+EQUB LO(dot_circle_42)
+EQUB LO(dot_circle_43)
+EQUB LO(dot_circle_44)
+EQUB LO(dot_circle_45)
+EQUB LO(dot_circle_46)
+EQUB LO(dot_circle_47)
+EQUB LO(dot_circle_48)
+EQUB LO(dot_circle_49)
+EQUB LO(dot_circle_50)
+EQUB LO(dot_circle_51)
+EQUB LO(dot_circle_52)
+EQUB LO(dot_circle_53)
+EQUB LO(dot_circle_54)
+EQUB LO(dot_circle_55)
+EQUB LO(dot_circle_56)
+EQUB LO(dot_circle_57)
+EQUB LO(dot_circle_58)
+EQUB LO(dot_circle_59)
+EQUB LO(dot_circle_60)
+EQUB LO(dot_circle_61)
+EQUB LO(dot_circle_62)
+EQUB LO(dot_circle_63)
+EQUB LO(dot_circle_64)
+EQUB LO(dot_circle_65)
+EQUB LO(dot_circle_66)
+EQUB LO(dot_circle_67)
+EQUB LO(dot_circle_68)
+EQUB LO(dot_circle_69)
+EQUB LO(dot_circle_70)
+EQUB LO(dot_circle_71)
+EQUB LO(dot_circle_72)
+EQUB LO(dot_circle_73)
+EQUB LO(dot_circle_74)
+EQUB LO(dot_circle_75)
+EQUB LO(dot_circle_76)
+EQUB LO(dot_circle_77)
+EQUB LO(dot_circle_78)
+EQUB LO(dot_circle_79)
+EQUB LO(dot_circle_80)
+EQUB LO(dot_circle_81)
+EQUB LO(dot_circle_82)
+EQUB LO(dot_circle_83)
+EQUB LO(dot_circle_84)
+EQUB LO(dot_circle_85)
+EQUB LO(dot_circle_86)
+EQUB LO(dot_circle_87)
+EQUB LO(dot_circle_88)
+EQUB LO(dot_circle_89)
+EQUB LO(dot_circle_90)
+EQUB LO(dot_circle_91)
+EQUB LO(dot_circle_92)
+EQUB LO(dot_circle_93)
+EQUB LO(dot_circle_94)
+EQUB LO(dot_circle_95)
+EQUB LO(dot_circle_96)
+EQUB LO(dot_circle_97)
+EQUB LO(dot_circle_98)
+EQUB LO(dot_circle_99)
+EQUB LO(dot_circle_100)
+EQUB LO(dot_circle_101)
+EQUB LO(dot_circle_102)
+EQUB LO(dot_circle_103)
+EQUB LO(dot_circle_104)
+EQUB LO(dot_circle_105)
+EQUB LO(dot_circle_106)
+EQUB LO(dot_circle_107)
+EQUB LO(dot_circle_108)
+EQUB LO(dot_circle_109)
 .dot_circle_table_HI
 EQUB HI(dot_circle_0)
 EQUB HI(dot_circle_1)
@@ -67,2627 +145,9101 @@ EQUB HI(dot_circle_28)
 EQUB HI(dot_circle_29)
 EQUB HI(dot_circle_30)
 EQUB HI(dot_circle_31)
+EQUB HI(dot_circle_32)
+EQUB HI(dot_circle_33)
+EQUB HI(dot_circle_34)
+EQUB HI(dot_circle_35)
+EQUB HI(dot_circle_36)
+EQUB HI(dot_circle_37)
+EQUB HI(dot_circle_38)
+EQUB HI(dot_circle_39)
+EQUB HI(dot_circle_40)
+EQUB HI(dot_circle_41)
+EQUB HI(dot_circle_42)
+EQUB HI(dot_circle_43)
+EQUB HI(dot_circle_44)
+EQUB HI(dot_circle_45)
+EQUB HI(dot_circle_46)
+EQUB HI(dot_circle_47)
+EQUB HI(dot_circle_48)
+EQUB HI(dot_circle_49)
+EQUB HI(dot_circle_50)
+EQUB HI(dot_circle_51)
+EQUB HI(dot_circle_52)
+EQUB HI(dot_circle_53)
+EQUB HI(dot_circle_54)
+EQUB HI(dot_circle_55)
+EQUB HI(dot_circle_56)
+EQUB HI(dot_circle_57)
+EQUB HI(dot_circle_58)
+EQUB HI(dot_circle_59)
+EQUB HI(dot_circle_60)
+EQUB HI(dot_circle_61)
+EQUB HI(dot_circle_62)
+EQUB HI(dot_circle_63)
+EQUB HI(dot_circle_64)
+EQUB HI(dot_circle_65)
+EQUB HI(dot_circle_66)
+EQUB HI(dot_circle_67)
+EQUB HI(dot_circle_68)
+EQUB HI(dot_circle_69)
+EQUB HI(dot_circle_70)
+EQUB HI(dot_circle_71)
+EQUB HI(dot_circle_72)
+EQUB HI(dot_circle_73)
+EQUB HI(dot_circle_74)
+EQUB HI(dot_circle_75)
+EQUB HI(dot_circle_76)
+EQUB HI(dot_circle_77)
+EQUB HI(dot_circle_78)
+EQUB HI(dot_circle_79)
+EQUB HI(dot_circle_80)
+EQUB HI(dot_circle_81)
+EQUB HI(dot_circle_82)
+EQUB HI(dot_circle_83)
+EQUB HI(dot_circle_84)
+EQUB HI(dot_circle_85)
+EQUB HI(dot_circle_86)
+EQUB HI(dot_circle_87)
+EQUB HI(dot_circle_88)
+EQUB HI(dot_circle_89)
+EQUB HI(dot_circle_90)
+EQUB HI(dot_circle_91)
+EQUB HI(dot_circle_92)
+EQUB HI(dot_circle_93)
+EQUB HI(dot_circle_94)
+EQUB HI(dot_circle_95)
+EQUB HI(dot_circle_96)
+EQUB HI(dot_circle_97)
+EQUB HI(dot_circle_98)
+EQUB HI(dot_circle_99)
+EQUB HI(dot_circle_100)
+EQUB HI(dot_circle_101)
+EQUB HI(dot_circle_102)
+EQUB HI(dot_circle_103)
+EQUB HI(dot_circle_104)
+EQUB HI(dot_circle_105)
+EQUB HI(dot_circle_106)
+EQUB HI(dot_circle_107)
+EQUB HI(dot_circle_108)
+EQUB HI(dot_circle_109)
 .dot_circle_0
 {
-	;x=160 y=192
-	LDA #LO(&6D40):LDY #HI(&6D40):JSR dot_0000
+	;x=163 y=145
+	LDA #LO(&5E40):LDY #HI(&5E40):JSR dot_0301
 }
 {
-	;x=180 y=188
-	LDA #LO(&6AE8):LDY #HI(&6AE8):JSR dot_0004
+	;x=169 y=144
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0100
 }
 {
-	;x=199 y=178
-	LDA #LO(&6888):LDY #HI(&6888):JSR dot_0302
+	;x=174 y=142
+	LDA #LO(&5BD8):LDY #HI(&5BD8):JSR dot_0206
 }
 {
-	;x=213 y=163
-	LDA #LO(&63A8):LDY #HI(&63A8):JSR dot_0103
+	;x=177 y=138
+	LDA #LO(&5BE0):LDY #HI(&5BE0):JSR dot_0102
 }
 {
-	;x=222 y=143
-	LDA #LO(&5C38):LDY #HI(&5C38):JSR dot_0207
+	;x=180 y=133
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0005
 }
 {
-	;x=223 y=122
-	LDA #LO(&5738):LDY #HI(&5738):JSR dot_0302
+	;x=181 y=128
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0100
 }
 {
-	;x=218 y=102
-	LDA #LO(&4FB0):LDY #HI(&4FB0):JSR dot_0206
+	;x=180 y=122
+	LDA #LO(&56E8):LDY #HI(&56E8):JSR dot_0002
 }
 {
-	;x=207 y=084
-	LDA #LO(&4A98):LDY #HI(&4A98):JSR dot_0304
+	;x=177 y=117
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0105
 }
 {
-	;x=190 y=071
-	LDA #LO(&4578):LDY #HI(&4578):JSR dot_0207
+	;x=174 y=113
+	LDA #LO(&5458):LDY #HI(&5458):JSR dot_0201
 }
 {
-	;x=170 y=064
-	LDA #LO(&4550):LDY #HI(&4550):JSR dot_0200
+	;x=169 y=111
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0107
 }
 {
-	;x=149 y=064
-	LDA #LO(&4528):LDY #HI(&4528):JSR dot_0100
+	;x=163 y=110
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0306
 }
 {
-	;x=129 y=071
-	LDA #LO(&4500):LDY #HI(&4500):JSR dot_0107
+	;x=158 y=111
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0207
 }
 {
-	;x=112 y=084
-	LDA #LO(&49E0):LDY #HI(&49E0):JSR dot_0004
+	;x=153 y=113
+	LDA #LO(&5430):LDY #HI(&5430):JSR dot_0101
 }
 {
-	;x=101 y=102
-	LDA #LO(&4EC8):LDY #HI(&4EC8):JSR dot_0106
+	;x=149 y=117
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0105
 }
 {
-	;x=096 y=122
-	LDA #LO(&5640):LDY #HI(&5640):JSR dot_0002
+	;x=146 y=122
+	LDA #LO(&56A0):LDY #HI(&56A0):JSR dot_0202
 }
 {
-	;x=097 y=143
-	LDA #LO(&5B40):LDY #HI(&5B40):JSR dot_0107
+	;x=145 y=128
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0100
 }
 {
-	;x=106 y=163
-	LDA #LO(&62D0):LDY #HI(&62D0):JSR dot_0203
+	;x=146 y=133
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0205
 }
 {
-	;x=120 y=178
-	LDA #LO(&67F0):LDY #HI(&67F0):JSR dot_0002
+	;x=149 y=138
+	LDA #LO(&5BA8):LDY #HI(&5BA8):JSR dot_0102
 }
 {
-	;x=139 y=188
-	LDA #LO(&6A90):LDY #HI(&6A90):JSR dot_0304
+	;x=153 y=142
+	LDA #LO(&5BB0):LDY #HI(&5BB0):JSR dot_0106
 }
 {
-	;x=159 y=192
-	LDA #LO(&6D38):LDY #HI(&6D38):JSR dot_0300
+	;x=158 y=144
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0200
 }
 RTS
 .dot_circle_1
 {
-	;x=160 y=198
-	LDA #LO(&6D40):LDY #HI(&6D40):JSR dot_0006
+	;x=163 y=146
+	LDA #LO(&5E40):LDY #HI(&5E40):JSR dot_0302
 }
 {
-	;x=182 y=194
-	LDA #LO(&6D68):LDY #HI(&6D68):JSR dot_0202
+	;x=169 y=145
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0101
 }
 {
-	;x=203 y=183
-	LDA #LO(&6890):LDY #HI(&6890):JSR dot_0307
+	;x=174 y=142
+	LDA #LO(&5BD8):LDY #HI(&5BD8):JSR dot_0206
 }
 {
-	;x=218 y=166
-	LDA #LO(&63B0):LDY #HI(&63B0):JSR dot_0206
+	;x=178 y=138
+	LDA #LO(&5BE0):LDY #HI(&5BE0):JSR dot_0202
 }
 {
-	;x=228 y=145
-	LDA #LO(&5EC8):LDY #HI(&5EC8):JSR dot_0001
+	;x=180 y=133
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0005
 }
 {
-	;x=229 y=122
-	LDA #LO(&5748):LDY #HI(&5748):JSR dot_0102
+	;x=181 y=128
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0100
 }
 {
-	;x=224 y=099
-	LDA #LO(&4FC0):LDY #HI(&4FC0):JSR dot_0003
+	;x=180 y=122
+	LDA #LO(&56E8):LDY #HI(&56E8):JSR dot_0002
 }
 {
-	;x=211 y=080
-	LDA #LO(&4AA0):LDY #HI(&4AA0):JSR dot_0300
+	;x=178 y=117
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0205
 }
 {
-	;x=193 y=066
-	LDA #LO(&4580):LDY #HI(&4580):JSR dot_0102
+	;x=174 y=113
+	LDA #LO(&5458):LDY #HI(&5458):JSR dot_0201
 }
 {
-	;x=171 y=058
-	LDA #LO(&42D0):LDY #HI(&42D0):JSR dot_0302
+	;x=169 y=111
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0107
 }
 {
-	;x=148 y=058
-	LDA #LO(&42A8):LDY #HI(&42A8):JSR dot_0002
+	;x=163 y=110
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0306
 }
 {
-	;x=126 y=066
-	LDA #LO(&44F8):LDY #HI(&44F8):JSR dot_0202
+	;x=158 y=111
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0207
 }
 {
-	;x=108 y=080
-	LDA #LO(&49D8):LDY #HI(&49D8):JSR dot_0000
+	;x=153 y=113
+	LDA #LO(&5430):LDY #HI(&5430):JSR dot_0101
 }
 {
-	;x=095 y=099
-	LDA #LO(&4EB8):LDY #HI(&4EB8):JSR dot_0303
+	;x=149 y=117
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0105
 }
 {
-	;x=090 y=122
-	LDA #LO(&5630):LDY #HI(&5630):JSR dot_0202
+	;x=146 y=122
+	LDA #LO(&56A0):LDY #HI(&56A0):JSR dot_0202
 }
 {
-	;x=091 y=145
-	LDA #LO(&5DB0):LDY #HI(&5DB0):JSR dot_0301
+	;x=145 y=128
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0100
 }
 {
-	;x=101 y=166
-	LDA #LO(&62C8):LDY #HI(&62C8):JSR dot_0106
+	;x=146 y=133
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0205
 }
 {
-	;x=116 y=183
-	LDA #LO(&67E8):LDY #HI(&67E8):JSR dot_0007
+	;x=149 y=138
+	LDA #LO(&5BA8):LDY #HI(&5BA8):JSR dot_0102
 }
 {
-	;x=137 y=194
-	LDA #LO(&6D10):LDY #HI(&6D10):JSR dot_0102
+	;x=153 y=142
+	LDA #LO(&5BB0):LDY #HI(&5BB0):JSR dot_0106
 }
 {
-	;x=159 y=198
-	LDA #LO(&6D38):LDY #HI(&6D38):JSR dot_0306
+	;x=158 y=145
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0201
 }
 RTS
 .dot_circle_2
 {
-	;x=160 y=204
-	LDA #LO(&6FC0):LDY #HI(&6FC0):JSR dot_0004
+	;x=163 y=146
+	LDA #LO(&5E40):LDY #HI(&5E40):JSR dot_0302
 }
 {
-	;x=184 y=200
-	LDA #LO(&6FF0):LDY #HI(&6FF0):JSR dot_0000
+	;x=169 y=145
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0101
 }
 {
-	;x=206 y=188
-	LDA #LO(&6B18):LDY #HI(&6B18):JSR dot_0204
+	;x=174 y=142
+	LDA #LO(&5BD8):LDY #HI(&5BD8):JSR dot_0206
 }
 {
-	;x=223 y=169
-	LDA #LO(&6638):LDY #HI(&6638):JSR dot_0301
+	;x=178 y=138
+	LDA #LO(&5BE0):LDY #HI(&5BE0):JSR dot_0202
 }
 {
-	;x=234 y=146
-	LDA #LO(&5ED0):LDY #HI(&5ED0):JSR dot_0202
+	;x=180 y=133
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0005
 }
 {
-	;x=236 y=121
-	LDA #LO(&5758):LDY #HI(&5758):JSR dot_0001
+	;x=181 y=128
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0100
 }
 {
-	;x=229 y=097
-	LDA #LO(&4FC8):LDY #HI(&4FC8):JSR dot_0101
+	;x=180 y=122
+	LDA #LO(&56E8):LDY #HI(&56E8):JSR dot_0002
 }
 {
-	;x=216 y=076
-	LDA #LO(&4830):LDY #HI(&4830):JSR dot_0004
+	;x=178 y=117
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0205
 }
 {
-	;x=196 y=060
-	LDA #LO(&4308):LDY #HI(&4308):JSR dot_0004
+	;x=174 y=113
+	LDA #LO(&5458):LDY #HI(&5458):JSR dot_0201
 }
 {
-	;x=172 y=052
-	LDA #LO(&4058):LDY #HI(&4058):JSR dot_0004
+	;x=169 y=111
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0107
 }
 {
-	;x=147 y=052
-	LDA #LO(&4020):LDY #HI(&4020):JSR dot_0304
+	;x=163 y=110
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0306
 }
 {
-	;x=123 y=060
-	LDA #LO(&4270):LDY #HI(&4270):JSR dot_0304
+	;x=158 y=111
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0207
 }
 {
-	;x=103 y=076
-	LDA #LO(&4748):LDY #HI(&4748):JSR dot_0304
+	;x=152 y=113
+	LDA #LO(&5430):LDY #HI(&5430):JSR dot_0001
 }
 {
-	;x=090 y=097
-	LDA #LO(&4EB0):LDY #HI(&4EB0):JSR dot_0201
+	;x=148 y=117
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0005
 }
 {
-	;x=083 y=121
-	LDA #LO(&5620):LDY #HI(&5620):JSR dot_0301
+	;x=146 y=122
+	LDA #LO(&56A0):LDY #HI(&56A0):JSR dot_0202
 }
 {
-	;x=085 y=146
-	LDA #LO(&5DA8):LDY #HI(&5DA8):JSR dot_0102
+	;x=145 y=128
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0100
 }
 {
-	;x=096 y=169
-	LDA #LO(&6540):LDY #HI(&6540):JSR dot_0001
+	;x=146 y=133
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0205
 }
 {
-	;x=113 y=188
-	LDA #LO(&6A60):LDY #HI(&6A60):JSR dot_0104
+	;x=148 y=138
+	LDA #LO(&5BA8):LDY #HI(&5BA8):JSR dot_0002
 }
 {
-	;x=135 y=200
-	LDA #LO(&6F88):LDY #HI(&6F88):JSR dot_0300
+	;x=152 y=142
+	LDA #LO(&5BB0):LDY #HI(&5BB0):JSR dot_0006
 }
 {
-	;x=159 y=204
-	LDA #LO(&6FB8):LDY #HI(&6FB8):JSR dot_0304
+	;x=158 y=145
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0201
 }
 RTS
 .dot_circle_3
 {
-	;x=160 y=210
-	LDA #LO(&7240):LDY #HI(&7240):JSR dot_0002
+	;x=163 y=146
+	LDA #LO(&5E40):LDY #HI(&5E40):JSR dot_0302
 }
 {
-	;x=186 y=206
-	LDA #LO(&6FF0):LDY #HI(&6FF0):JSR dot_0206
+	;x=169 y=145
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0101
 }
 {
-	;x=210 y=193
-	LDA #LO(&6DA0):LDY #HI(&6DA0):JSR dot_0201
+	;x=174 y=143
+	LDA #LO(&5BD8):LDY #HI(&5BD8):JSR dot_0207
 }
 {
-	;x=229 y=173
-	LDA #LO(&6648):LDY #HI(&6648):JSR dot_0105
+	;x=178 y=139
+	LDA #LO(&5BE0):LDY #HI(&5BE0):JSR dot_0203
 }
 {
-	;x=240 y=148
-	LDA #LO(&5EE0):LDY #HI(&5EE0):JSR dot_0004
+	;x=180 y=133
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0005
 }
 {
-	;x=242 y=121
-	LDA #LO(&5760):LDY #HI(&5760):JSR dot_0201
+	;x=181 y=128
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0100
 }
 {
-	;x=235 y=094
-	LDA #LO(&4D50):LDY #HI(&4D50):JSR dot_0306
+	;x=180 y=122
+	LDA #LO(&56E8):LDY #HI(&56E8):JSR dot_0002
 }
 {
-	;x=220 y=072
-	LDA #LO(&4838):LDY #HI(&4838):JSR dot_0000
+	;x=178 y=117
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0205
 }
 {
-	;x=199 y=055
-	LDA #LO(&4088):LDY #HI(&4088):JSR dot_0307
+	;x=174 y=113
+	LDA #LO(&5458):LDY #HI(&5458):JSR dot_0201
 }
 {
-	;x=173 y=046
-	LDA #LO(&3DD8):LDY #HI(&3DD8):JSR dot_0106
+	;x=169 y=110
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0106
 }
 {
-	;x=146 y=046
-	LDA #LO(&3DA0):LDY #HI(&3DA0):JSR dot_0206
+	;x=163 y=110
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0306
 }
 {
-	;x=120 y=055
-	LDA #LO(&3FF0):LDY #HI(&3FF0):JSR dot_0007
+	;x=158 y=110
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0206
 }
 {
-	;x=099 y=072
-	LDA #LO(&4740):LDY #HI(&4740):JSR dot_0300
+	;x=152 y=113
+	LDA #LO(&5430):LDY #HI(&5430):JSR dot_0001
 }
 {
-	;x=084 y=094
-	LDA #LO(&4C28):LDY #HI(&4C28):JSR dot_0006
+	;x=148 y=117
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0005
 }
 {
-	;x=077 y=121
-	LDA #LO(&5618):LDY #HI(&5618):JSR dot_0101
+	;x=146 y=122
+	LDA #LO(&56A0):LDY #HI(&56A0):JSR dot_0202
 }
 {
-	;x=079 y=148
-	LDA #LO(&5D98):LDY #HI(&5D98):JSR dot_0304
+	;x=145 y=128
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0100
 }
 {
-	;x=090 y=173
-	LDA #LO(&6530):LDY #HI(&6530):JSR dot_0205
+	;x=146 y=133
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0205
 }
 {
-	;x=109 y=193
-	LDA #LO(&6CD8):LDY #HI(&6CD8):JSR dot_0101
+	;x=148 y=139
+	LDA #LO(&5BA8):LDY #HI(&5BA8):JSR dot_0003
 }
 {
-	;x=133 y=206
-	LDA #LO(&6F88):LDY #HI(&6F88):JSR dot_0106
+	;x=152 y=143
+	LDA #LO(&5BB0):LDY #HI(&5BB0):JSR dot_0007
 }
 {
-	;x=159 y=210
-	LDA #LO(&7238):LDY #HI(&7238):JSR dot_0302
+	;x=158 y=145
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0201
 }
 RTS
 .dot_circle_4
 {
-	;x=160 y=216
-	LDA #LO(&74C0):LDY #HI(&74C0):JSR dot_0000
+	;x=163 y=146
+	LDA #LO(&5E40):LDY #HI(&5E40):JSR dot_0302
 }
 {
-	;x=188 y=211
-	LDA #LO(&7278):LDY #HI(&7278):JSR dot_0003
+	;x=169 y=145
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0101
 }
 {
-	;x=214 y=198
-	LDA #LO(&6DA8):LDY #HI(&6DA8):JSR dot_0206
+	;x=174 y=143
+	LDA #LO(&5BD8):LDY #HI(&5BD8):JSR dot_0207
 }
 {
-	;x=234 y=176
-	LDA #LO(&68D0):LDY #HI(&68D0):JSR dot_0200
+	;x=178 y=139
+	LDA #LO(&5BE0):LDY #HI(&5BE0):JSR dot_0203
 }
 {
-	;x=246 y=149
-	LDA #LO(&5EE8):LDY #HI(&5EE8):JSR dot_0205
+	;x=181 y=134
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0106
 }
 {
-	;x=248 y=120
-	LDA #LO(&5770):LDY #HI(&5770):JSR dot_0000
+	;x=182 y=128
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0200
 }
 {
-	;x=241 y=092
-	LDA #LO(&4D60):LDY #HI(&4D60):JSR dot_0104
+	;x=181 y=122
+	LDA #LO(&56E8):LDY #HI(&56E8):JSR dot_0102
 }
 {
-	;x=225 y=067
-	LDA #LO(&45C0):LDY #HI(&45C0):JSR dot_0103
+	;x=178 y=117
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0205
 }
 {
-	;x=202 y=049
-	LDA #LO(&4090):LDY #HI(&4090):JSR dot_0201
+	;x=174 y=113
+	LDA #LO(&5458):LDY #HI(&5458):JSR dot_0201
 }
 {
-	;x=174 y=040
-	LDA #LO(&3DD8):LDY #HI(&3DD8):JSR dot_0200
+	;x=169 y=110
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0106
 }
 {
-	;x=145 y=040
-	LDA #LO(&3DA0):LDY #HI(&3DA0):JSR dot_0100
+	;x=163 y=110
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0306
 }
 {
-	;x=117 y=049
-	LDA #LO(&3FE8):LDY #HI(&3FE8):JSR dot_0101
+	;x=157 y=110
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0106
 }
 {
-	;x=094 y=067
-	LDA #LO(&44B8):LDY #HI(&44B8):JSR dot_0203
+	;x=152 y=113
+	LDA #LO(&5430):LDY #HI(&5430):JSR dot_0001
 }
 {
-	;x=078 y=092
-	LDA #LO(&4C18):LDY #HI(&4C18):JSR dot_0204
+	;x=148 y=117
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0005
 }
 {
-	;x=071 y=120
-	LDA #LO(&5608):LDY #HI(&5608):JSR dot_0300
+	;x=146 y=122
+	LDA #LO(&56A0):LDY #HI(&56A0):JSR dot_0202
 }
 {
-	;x=073 y=149
-	LDA #LO(&5D90):LDY #HI(&5D90):JSR dot_0105
+	;x=145 y=128
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0100
 }
 {
-	;x=085 y=176
-	LDA #LO(&67A8):LDY #HI(&67A8):JSR dot_0100
+	;x=146 y=134
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0206
 }
 {
-	;x=105 y=198
-	LDA #LO(&6CD0):LDY #HI(&6CD0):JSR dot_0106
+	;x=148 y=139
+	LDA #LO(&5BA8):LDY #HI(&5BA8):JSR dot_0003
 }
 {
-	;x=131 y=211
-	LDA #LO(&7200):LDY #HI(&7200):JSR dot_0303
+	;x=152 y=143
+	LDA #LO(&5BB0):LDY #HI(&5BB0):JSR dot_0007
 }
 {
-	;x=159 y=216
-	LDA #LO(&74B8):LDY #HI(&74B8):JSR dot_0300
+	;x=157 y=145
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0101
 }
 RTS
 .dot_circle_5
 {
-	;x=160 y=222
-	LDA #LO(&74C0):LDY #HI(&74C0):JSR dot_0006
+	;x=163 y=147
+	LDA #LO(&5E40):LDY #HI(&5E40):JSR dot_0303
 }
 {
-	;x=190 y=217
-	LDA #LO(&74F8):LDY #HI(&74F8):JSR dot_0201
+	;x=169 y=146
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0102
 }
 {
-	;x=218 y=202
-	LDA #LO(&7030):LDY #HI(&7030):JSR dot_0202
+	;x=174 y=143
+	LDA #LO(&5BD8):LDY #HI(&5BD8):JSR dot_0207
 }
 {
-	;x=239 y=179
-	LDA #LO(&68D8):LDY #HI(&68D8):JSR dot_0303
+	;x=178 y=139
+	LDA #LO(&5BE0):LDY #HI(&5BE0):JSR dot_0203
 }
 {
-	;x=252 y=151
-	LDA #LO(&5EF8):LDY #HI(&5EF8):JSR dot_0007
+	;x=181 y=134
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0106
 }
 {
-	;x=254 y=120
-	LDA #LO(&5778):LDY #HI(&5778):JSR dot_0200
+	;x=182 y=128
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0200
 }
 {
-	;x=246 y=089
-	LDA #LO(&4D68):LDY #HI(&4D68):JSR dot_0201
+	;x=181 y=122
+	LDA #LO(&56E8):LDY #HI(&56E8):JSR dot_0102
 }
 {
-	;x=229 y=063
-	LDA #LO(&4348):LDY #HI(&4348):JSR dot_0107
+	;x=178 y=117
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0205
 }
 {
-	;x=205 y=044
-	LDA #LO(&3E18):LDY #HI(&3E18):JSR dot_0104
+	;x=174 y=113
+	LDA #LO(&5458):LDY #HI(&5458):JSR dot_0201
 }
 {
-	;x=175 y=034
-	LDA #LO(&3B58):LDY #HI(&3B58):JSR dot_0302
+	;x=169 y=110
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0106
 }
 {
-	;x=144 y=034
-	LDA #LO(&3B20):LDY #HI(&3B20):JSR dot_0002
+	;x=163 y=110
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0306
 }
 {
-	;x=114 y=044
-	LDA #LO(&3D60):LDY #HI(&3D60):JSR dot_0204
+	;x=157 y=110
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0106
 }
 {
-	;x=090 y=063
-	LDA #LO(&4230):LDY #HI(&4230):JSR dot_0207
+	;x=152 y=113
+	LDA #LO(&5430):LDY #HI(&5430):JSR dot_0001
 }
 {
-	;x=073 y=089
-	LDA #LO(&4C10):LDY #HI(&4C10):JSR dot_0101
+	;x=148 y=117
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0005
 }
 {
-	;x=065 y=120
-	LDA #LO(&5600):LDY #HI(&5600):JSR dot_0100
+	;x=146 y=122
+	LDA #LO(&56A0):LDY #HI(&56A0):JSR dot_0202
 }
 {
-	;x=067 y=151
-	LDA #LO(&5D80):LDY #HI(&5D80):JSR dot_0307
+	;x=145 y=128
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0100
 }
 {
-	;x=080 y=179
-	LDA #LO(&67A0):LDY #HI(&67A0):JSR dot_0003
+	;x=146 y=134
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0206
 }
 {
-	;x=101 y=202
-	LDA #LO(&6F48):LDY #HI(&6F48):JSR dot_0102
+	;x=148 y=139
+	LDA #LO(&5BA8):LDY #HI(&5BA8):JSR dot_0003
 }
 {
-	;x=129 y=217
-	LDA #LO(&7480):LDY #HI(&7480):JSR dot_0101
+	;x=152 y=143
+	LDA #LO(&5BB0):LDY #HI(&5BB0):JSR dot_0007
 }
 {
-	;x=159 y=222
-	LDA #LO(&74B8):LDY #HI(&74B8):JSR dot_0306
+	;x=157 y=146
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0102
 }
 RTS
 .dot_circle_6
 {
-	;x=160 y=229
-	LDA #LO(&7740):LDY #HI(&7740):JSR dot_0005
+	;x=163 y=147
+	LDA #LO(&5E40):LDY #HI(&5E40):JSR dot_0303
 }
 {
-	;x=192 y=223
-	LDA #LO(&7500):LDY #HI(&7500):JSR dot_0007
+	;x=169 y=146
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0102
 }
 {
-	;x=222 y=207
-	LDA #LO(&7038):LDY #HI(&7038):JSR dot_0207
+	;x=174 y=143
+	LDA #LO(&5BD8):LDY #HI(&5BD8):JSR dot_0207
 }
 {
-	;x=244 y=183
-	LDA #LO(&68E8):LDY #HI(&68E8):JSR dot_0007
+	;x=178 y=139
+	LDA #LO(&5BE0):LDY #HI(&5BE0):JSR dot_0203
 }
 {
-	;x=258 y=152
-	LDA #LO(&6180):LDY #HI(&6180):JSR dot_0200
+	;x=181 y=134
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0106
 }
 {
-	;x=260 y=119
-	LDA #LO(&5508):LDY #HI(&5508):JSR dot_0007
+	;x=182 y=128
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0200
 }
 {
-	;x=252 y=087
-	LDA #LO(&4AF8):LDY #HI(&4AF8):JSR dot_0007
+	;x=181 y=122
+	LDA #LO(&56E8):LDY #HI(&56E8):JSR dot_0102
 }
 {
-	;x=234 y=059
-	LDA #LO(&4350):LDY #HI(&4350):JSR dot_0203
+	;x=178 y=117
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0205
 }
 {
-	;x=208 y=039
-	LDA #LO(&3BA0):LDY #HI(&3BA0):JSR dot_0007
+	;x=174 y=113
+	LDA #LO(&5458):LDY #HI(&5458):JSR dot_0201
 }
 {
-	;x=176 y=028
-	LDA #LO(&38E0):LDY #HI(&38E0):JSR dot_0004
+	;x=169 y=110
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0106
 }
 {
-	;x=143 y=028
-	LDA #LO(&3898):LDY #HI(&3898):JSR dot_0304
+	;x=163 y=109
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0305
 }
 {
-	;x=111 y=039
-	LDA #LO(&3AD8):LDY #HI(&3AD8):JSR dot_0307
+	;x=157 y=110
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0106
 }
 {
-	;x=085 y=059
-	LDA #LO(&4228):LDY #HI(&4228):JSR dot_0103
+	;x=152 y=113
+	LDA #LO(&5430):LDY #HI(&5430):JSR dot_0001
 }
 {
-	;x=067 y=087
-	LDA #LO(&4980):LDY #HI(&4980):JSR dot_0307
+	;x=148 y=117
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0005
 }
 {
-	;x=059 y=119
-	LDA #LO(&5370):LDY #HI(&5370):JSR dot_0307
+	;x=145 y=122
+	LDA #LO(&56A0):LDY #HI(&56A0):JSR dot_0102
 }
 {
-	;x=061 y=152
-	LDA #LO(&5FF8):LDY #HI(&5FF8):JSR dot_0100
+	;x=144 y=128
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0000
 }
 {
-	;x=075 y=183
-	LDA #LO(&6790):LDY #HI(&6790):JSR dot_0307
+	;x=145 y=134
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0106
 }
 {
-	;x=097 y=207
-	LDA #LO(&6F40):LDY #HI(&6F40):JSR dot_0107
+	;x=148 y=139
+	LDA #LO(&5BA8):LDY #HI(&5BA8):JSR dot_0003
 }
 {
-	;x=127 y=223
-	LDA #LO(&7478):LDY #HI(&7478):JSR dot_0307
+	;x=152 y=143
+	LDA #LO(&5BB0):LDY #HI(&5BB0):JSR dot_0007
 }
 {
-	;x=159 y=229
-	LDA #LO(&7738):LDY #HI(&7738):JSR dot_0305
+	;x=157 y=146
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0102
 }
 RTS
 .dot_circle_7
 {
-	;x=160 y=235
-	LDA #LO(&79C0):LDY #HI(&79C0):JSR dot_0003
+	;x=163 y=147
+	LDA #LO(&5E40):LDY #HI(&5E40):JSR dot_0303
 }
 {
-	;x=194 y=229
-	LDA #LO(&7780):LDY #HI(&7780):JSR dot_0205
+	;x=169 y=146
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0102
 }
 {
-	;x=225 y=212
-	LDA #LO(&72C0):LDY #HI(&72C0):JSR dot_0104
+	;x=174 y=143
+	LDA #LO(&5BD8):LDY #HI(&5BD8):JSR dot_0207
 }
 {
-	;x=249 y=186
-	LDA #LO(&6B70):LDY #HI(&6B70):JSR dot_0102
+	;x=178 y=139
+	LDA #LO(&5BE0):LDY #HI(&5BE0):JSR dot_0203
 }
 {
-	;x=264 y=154
-	LDA #LO(&6190):LDY #HI(&6190):JSR dot_0002
+	;x=181 y=134
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0106
 }
 {
-	;x=266 y=119
-	LDA #LO(&5510):LDY #HI(&5510):JSR dot_0207
+	;x=182 y=128
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0200
 }
 {
-	;x=258 y=084
-	LDA #LO(&4B00):LDY #HI(&4B00):JSR dot_0204
+	;x=181 y=122
+	LDA #LO(&56E8):LDY #HI(&56E8):JSR dot_0102
 }
 {
-	;x=238 y=055
-	LDA #LO(&40D8):LDY #HI(&40D8):JSR dot_0207
+	;x=178 y=117
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0205
 }
 {
-	;x=211 y=033
-	LDA #LO(&3BA0):LDY #HI(&3BA0):JSR dot_0301
+	;x=174 y=113
+	LDA #LO(&5458):LDY #HI(&5458):JSR dot_0201
 }
 {
-	;x=177 y=022
-	LDA #LO(&3660):LDY #HI(&3660):JSR dot_0106
+	;x=169 y=110
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0106
 }
 {
-	;x=142 y=022
-	LDA #LO(&3618):LDY #HI(&3618):JSR dot_0206
+	;x=163 y=109
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0305
 }
 {
-	;x=108 y=033
-	LDA #LO(&3AD8):LDY #HI(&3AD8):JSR dot_0001
+	;x=157 y=110
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0106
 }
 {
-	;x=081 y=055
-	LDA #LO(&3FA0):LDY #HI(&3FA0):JSR dot_0107
+	;x=152 y=113
+	LDA #LO(&5430):LDY #HI(&5430):JSR dot_0001
 }
 {
-	;x=061 y=084
-	LDA #LO(&4978):LDY #HI(&4978):JSR dot_0104
+	;x=148 y=117
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0005
 }
 {
-	;x=053 y=119
-	LDA #LO(&5368):LDY #HI(&5368):JSR dot_0107
+	;x=145 y=122
+	LDA #LO(&56A0):LDY #HI(&56A0):JSR dot_0102
 }
 {
-	;x=055 y=154
-	LDA #LO(&5FE8):LDY #HI(&5FE8):JSR dot_0302
+	;x=144 y=128
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0000
 }
 {
-	;x=070 y=186
-	LDA #LO(&6A08):LDY #HI(&6A08):JSR dot_0202
+	;x=145 y=134
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0106
 }
 {
-	;x=094 y=212
-	LDA #LO(&71B8):LDY #HI(&71B8):JSR dot_0204
+	;x=148 y=139
+	LDA #LO(&5BA8):LDY #HI(&5BA8):JSR dot_0003
 }
 {
-	;x=125 y=229
-	LDA #LO(&76F8):LDY #HI(&76F8):JSR dot_0105
+	;x=152 y=143
+	LDA #LO(&5BB0):LDY #HI(&5BB0):JSR dot_0007
 }
 {
-	;x=159 y=235
-	LDA #LO(&79B8):LDY #HI(&79B8):JSR dot_0303
+	;x=157 y=146
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0102
 }
 RTS
 .dot_circle_8
 {
-	;x=160 y=241
-	LDA #LO(&7C40):LDY #HI(&7C40):JSR dot_0001
+	;x=163 y=147
+	LDA #LO(&5E40):LDY #HI(&5E40):JSR dot_0303
 }
 {
-	;x=196 y=235
-	LDA #LO(&7A08):LDY #HI(&7A08):JSR dot_0003
+	;x=169 y=146
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0102
 }
 {
-	;x=229 y=217
-	LDA #LO(&7548):LDY #HI(&7548):JSR dot_0101
+	;x=174 y=144
+	LDA #LO(&5E58):LDY #HI(&5E58):JSR dot_0200
 }
 {
-	;x=255 y=190
-	LDA #LO(&6B78):LDY #HI(&6B78):JSR dot_0306
+	;x=179 y=140
+	LDA #LO(&5BE0):LDY #HI(&5BE0):JSR dot_0304
 }
 {
-	;x=270 y=155
-	LDA #LO(&6198):LDY #HI(&6198):JSR dot_0203
+	;x=181 y=134
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0106
 }
 {
-	;x=273 y=118
-	LDA #LO(&5520):LDY #HI(&5520):JSR dot_0106
+	;x=182 y=128
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0200
 }
 {
-	;x=263 y=082
-	LDA #LO(&4B08):LDY #HI(&4B08):JSR dot_0302
+	;x=181 y=122
+	LDA #LO(&56E8):LDY #HI(&56E8):JSR dot_0102
 }
 {
-	;x=243 y=051
-	LDA #LO(&40E0):LDY #HI(&40E0):JSR dot_0303
+	;x=179 y=117
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0305
 }
 {
-	;x=214 y=028
-	LDA #LO(&3928):LDY #HI(&3928):JSR dot_0204
+	;x=174 y=113
+	LDA #LO(&5458):LDY #HI(&5458):JSR dot_0201
 }
 {
-	;x=178 y=016
-	LDA #LO(&3660):LDY #HI(&3660):JSR dot_0200
+	;x=169 y=110
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0106
 }
 {
-	;x=141 y=016
-	LDA #LO(&3618):LDY #HI(&3618):JSR dot_0100
+	;x=163 y=109
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0305
 }
 {
-	;x=105 y=028
-	LDA #LO(&3850):LDY #HI(&3850):JSR dot_0104
+	;x=157 y=110
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0106
 }
 {
-	;x=076 y=051
-	LDA #LO(&3F98):LDY #HI(&3F98):JSR dot_0003
+	;x=152 y=113
+	LDA #LO(&5430):LDY #HI(&5430):JSR dot_0001
 }
 {
-	;x=056 y=082
-	LDA #LO(&4970):LDY #HI(&4970):JSR dot_0002
+	;x=148 y=117
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0005
 }
 {
-	;x=046 y=118
-	LDA #LO(&5358):LDY #HI(&5358):JSR dot_0206
+	;x=145 y=122
+	LDA #LO(&56A0):LDY #HI(&56A0):JSR dot_0102
 }
 {
-	;x=049 y=155
-	LDA #LO(&5FE0):LDY #HI(&5FE0):JSR dot_0103
+	;x=144 y=128
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0000
 }
 {
-	;x=064 y=190
-	LDA #LO(&6A00):LDY #HI(&6A00):JSR dot_0006
+	;x=145 y=134
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0106
 }
 {
-	;x=090 y=217
-	LDA #LO(&7430):LDY #HI(&7430):JSR dot_0201
+	;x=148 y=140
+	LDA #LO(&5BA8):LDY #HI(&5BA8):JSR dot_0004
 }
 {
-	;x=123 y=235
-	LDA #LO(&7970):LDY #HI(&7970):JSR dot_0303
+	;x=152 y=144
+	LDA #LO(&5E30):LDY #HI(&5E30):JSR dot_0000
 }
 {
-	;x=159 y=241
-	LDA #LO(&7C38):LDY #HI(&7C38):JSR dot_0301
+	;x=157 y=146
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0102
 }
 RTS
 .dot_circle_9
 {
-	;x=160 y=247
-	LDA #LO(&7C40):LDY #HI(&7C40):JSR dot_0007
+	;x=163 y=148
+	LDA #LO(&5E40):LDY #HI(&5E40):JSR dot_0304
 }
 {
-	;x=198 y=241
-	LDA #LO(&7C88):LDY #HI(&7C88):JSR dot_0201
+	;x=169 y=147
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0103
 }
 {
-	;x=233 y=222
-	LDA #LO(&7550):LDY #HI(&7550):JSR dot_0106
+	;x=174 y=144
+	LDA #LO(&5E58):LDY #HI(&5E58):JSR dot_0200
 }
 {
-	;x=260 y=193
-	LDA #LO(&6E08):LDY #HI(&6E08):JSR dot_0001
+	;x=179 y=140
+	LDA #LO(&5BE0):LDY #HI(&5BE0):JSR dot_0304
 }
 {
-	;x=276 y=157
-	LDA #LO(&61A8):LDY #HI(&61A8):JSR dot_0005
+	;x=181 y=134
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0106
 }
 {
-	;x=279 y=118
-	LDA #LO(&5528):LDY #HI(&5528):JSR dot_0306
+	;x=182 y=128
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0200
 }
 {
-	;x=269 y=079
-	LDA #LO(&4898):LDY #HI(&4898):JSR dot_0107
+	;x=181 y=123
+	LDA #LO(&56E8):LDY #HI(&56E8):JSR dot_0103
 }
 {
-	;x=248 y=046
-	LDA #LO(&3E70):LDY #HI(&3E70):JSR dot_0006
+	;x=179 y=117
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0305
 }
 {
-	;x=216 y=022
-	LDA #LO(&36B0):LDY #HI(&36B0):JSR dot_0006
+	;x=174 y=113
+	LDA #LO(&5458):LDY #HI(&5458):JSR dot_0201
 }
 {
-	;x=179 y=009
-	LDA #LO(&33E0):LDY #HI(&33E0):JSR dot_0301
+	;x=169 y=110
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0106
 }
 {
-	;x=140 y=009
-	LDA #LO(&3398):LDY #HI(&3398):JSR dot_0001
+	;x=163 y=109
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0305
 }
 {
-	;x=103 y=022
-	LDA #LO(&35C8):LDY #HI(&35C8):JSR dot_0306
+	;x=157 y=110
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0106
 }
 {
-	;x=071 y=046
-	LDA #LO(&3D08):LDY #HI(&3D08):JSR dot_0306
+	;x=152 y=113
+	LDA #LO(&5430):LDY #HI(&5430):JSR dot_0001
 }
 {
-	;x=050 y=079
-	LDA #LO(&46E0):LDY #HI(&46E0):JSR dot_0207
+	;x=148 y=117
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0005
 }
 {
-	;x=040 y=118
-	LDA #LO(&5350):LDY #HI(&5350):JSR dot_0006
+	;x=145 y=123
+	LDA #LO(&56A0):LDY #HI(&56A0):JSR dot_0103
 }
 {
-	;x=043 y=157
-	LDA #LO(&5FD0):LDY #HI(&5FD0):JSR dot_0305
+	;x=144 y=128
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0000
 }
 {
-	;x=059 y=193
-	LDA #LO(&6C70):LDY #HI(&6C70):JSR dot_0301
+	;x=145 y=134
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0106
 }
 {
-	;x=086 y=222
-	LDA #LO(&7428):LDY #HI(&7428):JSR dot_0206
+	;x=148 y=140
+	LDA #LO(&5BA8):LDY #HI(&5BA8):JSR dot_0004
 }
 {
-	;x=121 y=241
-	LDA #LO(&7BF0):LDY #HI(&7BF0):JSR dot_0101
+	;x=152 y=144
+	LDA #LO(&5E30):LDY #HI(&5E30):JSR dot_0000
 }
 {
-	;x=159 y=247
-	LDA #LO(&7C38):LDY #HI(&7C38):JSR dot_0307
+	;x=157 y=147
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0103
 }
 RTS
 .dot_circle_10
 {
-	;x=160 y=253
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0005
+	;x=163 y=148
+	LDA #LO(&5E40):LDY #HI(&5E40):JSR dot_0304
 }
 {
-	;x=200 y=247
-	LDA #LO(&7C90):LDY #HI(&7C90):JSR dot_0007
+	;x=169 y=147
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0103
 }
 {
-	;x=237 y=227
-	LDA #LO(&77D8):LDY #HI(&77D8):JSR dot_0103
+	;x=175 y=144
+	LDA #LO(&5E58):LDY #HI(&5E58):JSR dot_0300
 }
 {
-	;x=265 y=196
-	LDA #LO(&6E10):LDY #HI(&6E10):JSR dot_0104
+	;x=179 y=140
+	LDA #LO(&5BE0):LDY #HI(&5BE0):JSR dot_0304
 }
 {
-	;x=282 y=158
-	LDA #LO(&61B0):LDY #HI(&61B0):JSR dot_0206
+	;x=182 y=135
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0207
 }
 {
-	;x=285 y=117
-	LDA #LO(&5538):LDY #HI(&5538):JSR dot_0105
+	;x=183 y=129
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0301
 }
 {
-	;x=275 y=077
-	LDA #LO(&48A0):LDY #HI(&48A0):JSR dot_0305
+	;x=182 y=123
+	LDA #LO(&56E8):LDY #HI(&56E8):JSR dot_0203
 }
 {
-	;x=252 y=042
-	LDA #LO(&3E78):LDY #HI(&3E78):JSR dot_0002
+	;x=179 y=117
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0305
 }
 {
-	;x=219 y=017
-	LDA #LO(&36B0):LDY #HI(&36B0):JSR dot_0301
+	;x=175 y=113
+	LDA #LO(&5458):LDY #HI(&5458):JSR dot_0301
 }
 {
-	;x=180 y=003
-	LDA #LO(&3168):LDY #HI(&3168):JSR dot_0003
+	;x=169 y=110
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0106
 }
 {
-	;x=139 y=003
-	LDA #LO(&3110):LDY #HI(&3110):JSR dot_0303
+	;x=163 y=109
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0305
 }
 {
-	;x=100 y=017
-	LDA #LO(&35C8):LDY #HI(&35C8):JSR dot_0001
+	;x=157 y=110
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0106
 }
 {
-	;x=067 y=042
-	LDA #LO(&3D00):LDY #HI(&3D00):JSR dot_0302
+	;x=152 y=113
+	LDA #LO(&5430):LDY #HI(&5430):JSR dot_0001
 }
 {
-	;x=044 y=077
-	LDA #LO(&46D8):LDY #HI(&46D8):JSR dot_0005
+	;x=148 y=117
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0005
 }
 {
-	;x=034 y=117
-	LDA #LO(&5340):LDY #HI(&5340):JSR dot_0205
+	;x=145 y=123
+	LDA #LO(&56A0):LDY #HI(&56A0):JSR dot_0103
 }
 {
-	;x=037 y=158
-	LDA #LO(&5FC8):LDY #HI(&5FC8):JSR dot_0106
+	;x=144 y=129
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0001
 }
 {
-	;x=054 y=196
-	LDA #LO(&6C68):LDY #HI(&6C68):JSR dot_0204
+	;x=145 y=135
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0107
 }
 {
-	;x=082 y=227
-	LDA #LO(&76A0):LDY #HI(&76A0):JSR dot_0203
+	;x=148 y=140
+	LDA #LO(&5BA8):LDY #HI(&5BA8):JSR dot_0004
 }
 {
-	;x=119 y=247
-	LDA #LO(&7BE8):LDY #HI(&7BE8):JSR dot_0307
+	;x=152 y=144
+	LDA #LO(&5E30):LDY #HI(&5E30):JSR dot_0000
 }
 {
-	;x=159 y=253
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0305
+	;x=157 y=147
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0103
 }
 RTS
 .dot_circle_11
 {
-	;x=160 y=260
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0004
+	;x=163 y=148
+	LDA #LO(&5E40):LDY #HI(&5E40):JSR dot_0304
 }
 {
-	;x=202 y=252
-	LDA #LO(&7F10):LDY #HI(&7F10):JSR dot_0204
+	;x=169 y=147
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0103
 }
 {
-	;x=241 y=232
-	LDA #LO(&7A60):LDY #HI(&7A60):JSR dot_0100
+	;x=175 y=144
+	LDA #LO(&5E58):LDY #HI(&5E58):JSR dot_0300
 }
 {
-	;x=270 y=200
-	LDA #LO(&7098):LDY #HI(&7098):JSR dot_0200
+	;x=179 y=140
+	LDA #LO(&5BE0):LDY #HI(&5BE0):JSR dot_0304
 }
 {
-	;x=288 y=160
-	LDA #LO(&6440):LDY #HI(&6440):JSR dot_0000
+	;x=182 y=135
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0207
 }
 {
-	;x=291 y=117
-	LDA #LO(&5540):LDY #HI(&5540):JSR dot_0305
+	;x=183 y=129
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0301
 }
 {
-	;x=281 y=074
-	LDA #LO(&48B0):LDY #HI(&48B0):JSR dot_0102
+	;x=182 y=123
+	LDA #LO(&56E8):LDY #HI(&56E8):JSR dot_0203
 }
 {
-	;x=257 y=038
-	LDA #LO(&3C00):LDY #HI(&3C00):JSR dot_0106
+	;x=179 y=117
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0305
 }
 {
-	;x=222 y=011
-	LDA #LO(&3438):LDY #HI(&3438):JSR dot_0203
+	;x=175 y=113
+	LDA #LO(&5458):LDY #HI(&5458):JSR dot_0301
 }
 {
-	;x=181 y=-02
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0106
+	;x=169 y=110
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0106
 }
 {
-	;x=138 y=-02
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0206
+	;x=163 y=109
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0305
 }
 {
-	;x=097 y=011
-	LDA #LO(&3340):LDY #HI(&3340):JSR dot_0103
+	;x=157 y=110
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0106
 }
 {
-	;x=062 y=038
-	LDA #LO(&3A78):LDY #HI(&3A78):JSR dot_0206
+	;x=152 y=113
+	LDA #LO(&5430):LDY #HI(&5430):JSR dot_0001
 }
 {
-	;x=038 y=074
-	LDA #LO(&46C8):LDY #HI(&46C8):JSR dot_0202
+	;x=147 y=117
+	LDA #LO(&5420):LDY #HI(&5420):JSR dot_0305
 }
 {
-	;x=028 y=117
-	LDA #LO(&5338):LDY #HI(&5338):JSR dot_0005
+	;x=145 y=123
+	LDA #LO(&56A0):LDY #HI(&56A0):JSR dot_0103
 }
 {
-	;x=031 y=160
-	LDA #LO(&6238):LDY #HI(&6238):JSR dot_0300
+	;x=144 y=129
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0001
 }
 {
-	;x=049 y=200
-	LDA #LO(&6EE0):LDY #HI(&6EE0):JSR dot_0100
+	;x=145 y=135
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0107
 }
 {
-	;x=078 y=232
-	LDA #LO(&7918):LDY #HI(&7918):JSR dot_0200
+	;x=147 y=140
+	LDA #LO(&5BA0):LDY #HI(&5BA0):JSR dot_0304
 }
 {
-	;x=117 y=252
-	LDA #LO(&7E68):LDY #HI(&7E68):JSR dot_0104
+	;x=152 y=144
+	LDA #LO(&5E30):LDY #HI(&5E30):JSR dot_0000
 }
 {
-	;x=159 y=260
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0304
+	;x=157 y=147
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0103
 }
 RTS
 .dot_circle_12
 {
-	;x=160 y=266
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0002
+	;x=163 y=149
+	LDA #LO(&5E40):LDY #HI(&5E40):JSR dot_0305
 }
 {
-	;x=204 y=258
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0002
+	;x=169 y=148
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0104
 }
 {
-	;x=244 y=237
-	LDA #LO(&7A68):LDY #HI(&7A68):JSR dot_0005
+	;x=175 y=145
+	LDA #LO(&5E58):LDY #HI(&5E58):JSR dot_0301
 }
 {
-	;x=275 y=203
-	LDA #LO(&70A0):LDY #HI(&70A0):JSR dot_0303
+	;x=179 y=140
+	LDA #LO(&5BE0):LDY #HI(&5BE0):JSR dot_0304
 }
 {
-	;x=294 y=161
-	LDA #LO(&6448):LDY #HI(&6448):JSR dot_0201
+	;x=182 y=135
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0207
 }
 {
-	;x=297 y=116
-	LDA #LO(&5550):LDY #HI(&5550):JSR dot_0104
+	;x=183 y=129
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0301
 }
 {
-	;x=286 y=072
-	LDA #LO(&48B8):LDY #HI(&48B8):JSR dot_0200
+	;x=182 y=123
+	LDA #LO(&56E8):LDY #HI(&56E8):JSR dot_0203
 }
 {
-	;x=261 y=034
-	LDA #LO(&3C08):LDY #HI(&3C08):JSR dot_0102
+	;x=179 y=117
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0305
 }
 {
-	;x=225 y=006
-	LDA #LO(&31C0):LDY #HI(&31C0):JSR dot_0106
+	;x=175 y=113
+	LDA #LO(&5458):LDY #HI(&5458):JSR dot_0301
 }
 {
-	;x=182 y=-08
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0200
+	;x=169 y=110
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0106
 }
 {
-	;x=137 y=-08
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0100
+	;x=163 y=109
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0305
 }
 {
-	;x=094 y=006
-	LDA #LO(&30B8):LDY #HI(&30B8):JSR dot_0206
+	;x=157 y=110
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0106
 }
 {
-	;x=058 y=034
-	LDA #LO(&3A70):LDY #HI(&3A70):JSR dot_0202
+	;x=152 y=113
+	LDA #LO(&5430):LDY #HI(&5430):JSR dot_0001
 }
 {
-	;x=033 y=072
-	LDA #LO(&46C0):LDY #HI(&46C0):JSR dot_0100
+	;x=147 y=117
+	LDA #LO(&5420):LDY #HI(&5420):JSR dot_0305
 }
 {
-	;x=022 y=116
-	LDA #LO(&5328):LDY #HI(&5328):JSR dot_0204
+	;x=144 y=123
+	LDA #LO(&56A0):LDY #HI(&56A0):JSR dot_0003
 }
 {
-	;x=025 y=161
-	LDA #LO(&6230):LDY #HI(&6230):JSR dot_0101
+	;x=144 y=129
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0001
 }
 {
-	;x=044 y=203
-	LDA #LO(&6ED8):LDY #HI(&6ED8):JSR dot_0003
+	;x=144 y=135
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0007
 }
 {
-	;x=075 y=237
-	LDA #LO(&7910):LDY #HI(&7910):JSR dot_0305
+	;x=147 y=140
+	LDA #LO(&5BA0):LDY #HI(&5BA0):JSR dot_0304
 }
 {
-	;x=115 y=258
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0302
+	;x=152 y=145
+	LDA #LO(&5E30):LDY #HI(&5E30):JSR dot_0001
 }
 {
-	;x=159 y=266
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0302
+	;x=157 y=148
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0104
 }
 RTS
 .dot_circle_13
 {
-	;x=160 y=272
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0000
+	;x=163 y=149
+	LDA #LO(&5E40):LDY #HI(&5E40):JSR dot_0305
 }
 {
-	;x=206 y=264
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0200
+	;x=169 y=148
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0104
 }
 {
-	;x=248 y=242
-	LDA #LO(&7CF0):LDY #HI(&7CF0):JSR dot_0002
+	;x=175 y=145
+	LDA #LO(&5E58):LDY #HI(&5E58):JSR dot_0301
 }
 {
-	;x=280 y=207
-	LDA #LO(&70B0):LDY #HI(&70B0):JSR dot_0007
+	;x=179 y=141
+	LDA #LO(&5BE0):LDY #HI(&5BE0):JSR dot_0305
 }
 {
-	;x=300 y=163
-	LDA #LO(&6458):LDY #HI(&6458):JSR dot_0003
+	;x=182 y=135
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0207
 }
 {
-	;x=304 y=116
-	LDA #LO(&5560):LDY #HI(&5560):JSR dot_0004
+	;x=183 y=129
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0301
 }
 {
-	;x=292 y=069
-	LDA #LO(&4648):LDY #HI(&4648):JSR dot_0005
+	;x=182 y=123
+	LDA #LO(&56E8):LDY #HI(&56E8):JSR dot_0203
 }
 {
-	;x=266 y=030
-	LDA #LO(&3990):LDY #HI(&3990):JSR dot_0206
+	;x=179 y=117
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0305
 }
 {
-	;x=228 y=000
-	LDA #LO(&31C8):LDY #HI(&31C8):JSR dot_0000
+	;x=175 y=113
+	LDA #LO(&5458):LDY #HI(&5458):JSR dot_0301
 }
 {
-	;x=183 y=-14
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0302
+	;x=169 y=110
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0106
 }
 {
-	;x=136 y=-14
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0002
+	;x=163 y=109
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0305
 }
 {
-	;x=091 y=000
-	LDA #LO(&30B0):LDY #HI(&30B0):JSR dot_0300
+	;x=157 y=110
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0106
 }
 {
-	;x=053 y=030
-	LDA #LO(&37E8):LDY #HI(&37E8):JSR dot_0106
+	;x=152 y=113
+	LDA #LO(&5430):LDY #HI(&5430):JSR dot_0001
 }
 {
-	;x=027 y=069
-	LDA #LO(&4430):LDY #HI(&4430):JSR dot_0305
+	;x=147 y=117
+	LDA #LO(&5420):LDY #HI(&5420):JSR dot_0305
 }
 {
-	;x=015 y=116
-	LDA #LO(&5318):LDY #HI(&5318):JSR dot_0304
+	;x=144 y=123
+	LDA #LO(&56A0):LDY #HI(&56A0):JSR dot_0003
 }
 {
-	;x=019 y=163
-	LDA #LO(&6220):LDY #HI(&6220):JSR dot_0303
+	;x=143 y=129
+	LDA #LO(&5918):LDY #HI(&5918):JSR dot_0301
 }
 {
-	;x=039 y=207
-	LDA #LO(&6EC8):LDY #HI(&6EC8):JSR dot_0307
+	;x=144 y=135
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0007
 }
 {
-	;x=071 y=242
-	LDA #LO(&7B88):LDY #HI(&7B88):JSR dot_0302
+	;x=147 y=141
+	LDA #LO(&5BA0):LDY #HI(&5BA0):JSR dot_0305
 }
 {
-	;x=113 y=264
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0100
+	;x=152 y=145
+	LDA #LO(&5E30):LDY #HI(&5E30):JSR dot_0001
 }
 {
-	;x=159 y=272
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0300
+	;x=157 y=148
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0104
 }
 RTS
 .dot_circle_14
 {
-	;x=160 y=278
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0006
+	;x=163 y=149
+	LDA #LO(&5E40):LDY #HI(&5E40):JSR dot_0305
 }
 {
-	;x=208 y=270
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0006
+	;x=169 y=148
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0104
 }
 {
-	;x=252 y=246
-	LDA #LO(&7CF8):LDY #HI(&7CF8):JSR dot_0006
+	;x=175 y=145
+	LDA #LO(&5E58):LDY #HI(&5E58):JSR dot_0301
 }
 {
-	;x=286 y=210
-	LDA #LO(&7338):LDY #HI(&7338):JSR dot_0202
+	;x=179 y=141
+	LDA #LO(&5BE0):LDY #HI(&5BE0):JSR dot_0305
 }
 {
-	;x=306 y=164
-	LDA #LO(&6460):LDY #HI(&6460):JSR dot_0204
+	;x=182 y=135
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0207
 }
 {
-	;x=310 y=115
-	LDA #LO(&5568):LDY #HI(&5568):JSR dot_0203
+	;x=183 y=129
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0301
 }
 {
-	;x=298 y=067
-	LDA #LO(&4650):LDY #HI(&4650):JSR dot_0203
+	;x=182 y=123
+	LDA #LO(&56E8):LDY #HI(&56E8):JSR dot_0203
 }
 {
-	;x=270 y=025
-	LDA #LO(&3998):LDY #HI(&3998):JSR dot_0201
+	;x=179 y=117
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0305
 }
 {
-	;x=231 y=-04
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0304
+	;x=175 y=113
+	LDA #LO(&5458):LDY #HI(&5458):JSR dot_0301
 }
 {
-	;x=184 y=-20
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0004
+	;x=169 y=110
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0106
 }
 {
-	;x=135 y=-20
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0304
+	;x=163 y=109
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0305
 }
 {
-	;x=088 y=-04
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0004
+	;x=157 y=110
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0106
 }
 {
-	;x=049 y=025
-	LDA #LO(&37E0):LDY #HI(&37E0):JSR dot_0101
+	;x=151 y=113
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0301
 }
 {
-	;x=021 y=067
-	LDA #LO(&4428):LDY #HI(&4428):JSR dot_0103
+	;x=147 y=117
+	LDA #LO(&5420):LDY #HI(&5420):JSR dot_0305
 }
 {
-	;x=009 y=115
-	LDA #LO(&5310):LDY #HI(&5310):JSR dot_0103
+	;x=144 y=123
+	LDA #LO(&56A0):LDY #HI(&56A0):JSR dot_0003
 }
 {
-	;x=013 y=164
-	LDA #LO(&6218):LDY #HI(&6218):JSR dot_0104
+	;x=143 y=129
+	LDA #LO(&5918):LDY #HI(&5918):JSR dot_0301
 }
 {
-	;x=033 y=210
-	LDA #LO(&7140):LDY #HI(&7140):JSR dot_0102
+	;x=144 y=135
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0007
 }
 {
-	;x=067 y=246
-	LDA #LO(&7B80):LDY #HI(&7B80):JSR dot_0306
+	;x=147 y=141
+	LDA #LO(&5BA0):LDY #HI(&5BA0):JSR dot_0305
 }
 {
-	;x=111 y=270
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0306
+	;x=151 y=145
+	LDA #LO(&5E28):LDY #HI(&5E28):JSR dot_0301
 }
 {
-	;x=159 y=278
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0306
+	;x=157 y=148
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0104
 }
 RTS
 .dot_circle_15
 {
-	;x=160 y=284
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0004
+	;x=163 y=149
+	LDA #LO(&5E40):LDY #HI(&5E40):JSR dot_0305
 }
 {
-	;x=210 y=276
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0204
+	;x=169 y=148
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0104
 }
 {
-	;x=256 y=251
-	LDA #LO(&7F80):LDY #HI(&7F80):JSR dot_0003
+	;x=175 y=146
+	LDA #LO(&5E58):LDY #HI(&5E58):JSR dot_0302
 }
 {
-	;x=291 y=213
-	LDA #LO(&7340):LDY #HI(&7340):JSR dot_0305
+	;x=180 y=141
+	LDA #LO(&5BE8):LDY #HI(&5BE8):JSR dot_0005
 }
 {
-	;x=312 y=166
-	LDA #LO(&6470):LDY #HI(&6470):JSR dot_0006
+	;x=182 y=135
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0207
 }
 {
-	;x=316 y=115
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0003
+	;x=183 y=129
+	LDA #LO(&5968):LDY #HI(&5968):JSR dot_0301
 }
 {
-	;x=303 y=064
-	LDA #LO(&4658):LDY #HI(&4658):JSR dot_0300
+	;x=182 y=123
+	LDA #LO(&56E8):LDY #HI(&56E8):JSR dot_0203
 }
 {
-	;x=275 y=021
-	LDA #LO(&3720):LDY #HI(&3720):JSR dot_0305
+	;x=180 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0005
 }
 {
-	;x=234 y=-09
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0207
+	;x=175 y=113
+	LDA #LO(&5458):LDY #HI(&5458):JSR dot_0301
 }
 {
-	;x=185 y=-26
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0106
+	;x=169 y=110
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0106
 }
 {
-	;x=134 y=-26
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0206
+	;x=163 y=109
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0305
 }
 {
-	;x=085 y=-09
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0107
+	;x=157 y=110
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0106
 }
 {
-	;x=044 y=021
-	LDA #LO(&3558):LDY #HI(&3558):JSR dot_0005
+	;x=151 y=113
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0301
 }
 {
-	;x=016 y=064
-	LDA #LO(&4420):LDY #HI(&4420):JSR dot_0000
+	;x=147 y=117
+	LDA #LO(&5420):LDY #HI(&5420):JSR dot_0305
 }
 {
-	;x=003 y=115
-	LDA #LO(&5300):LDY #HI(&5300):JSR dot_0303
+	;x=144 y=123
+	LDA #LO(&56A0):LDY #HI(&56A0):JSR dot_0003
 }
 {
-	;x=007 y=166
-	LDA #LO(&6208):LDY #HI(&6208):JSR dot_0306
+	;x=143 y=129
+	LDA #LO(&5918):LDY #HI(&5918):JSR dot_0301
 }
 {
-	;x=028 y=213
-	LDA #LO(&7138):LDY #HI(&7138):JSR dot_0005
+	;x=144 y=135
+	LDA #LO(&5920):LDY #HI(&5920):JSR dot_0007
 }
 {
-	;x=063 y=251
-	LDA #LO(&7DF8):LDY #HI(&7DF8):JSR dot_0303
+	;x=147 y=141
+	LDA #LO(&5BA0):LDY #HI(&5BA0):JSR dot_0305
 }
 {
-	;x=109 y=276
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0104
+	;x=151 y=146
+	LDA #LO(&5E28):LDY #HI(&5E28):JSR dot_0302
 }
 {
-	;x=159 y=284
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0304
+	;x=157 y=148
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0104
 }
 RTS
 .dot_circle_16
 {
-	;x=160 y=291
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0003
+	;x=163 y=150
+	LDA #LO(&5E40):LDY #HI(&5E40):JSR dot_0306
 }
 {
-	;x=212 y=282
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0002
+	;x=169 y=149
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0105
 }
 {
-	;x=260 y=256
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0000
+	;x=175 y=146
+	LDA #LO(&5E58):LDY #HI(&5E58):JSR dot_0302
 }
 {
-	;x=296 y=217
-	LDA #LO(&75D0):LDY #HI(&75D0):JSR dot_0001
+	;x=180 y=141
+	LDA #LO(&5BE8):LDY #HI(&5BE8):JSR dot_0005
 }
 {
-	;x=318 y=168
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0200
+	;x=183 y=136
+	LDA #LO(&5BE8):LDY #HI(&5BE8):JSR dot_0300
 }
 {
-	;x=322 y=114
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0202
+	;x=184 y=129
+	LDA #LO(&5970):LDY #HI(&5970):JSR dot_0001
 }
 {
-	;x=309 y=062
-	LDA #LO(&43E8):LDY #HI(&43E8):JSR dot_0106
+	;x=183 y=123
+	LDA #LO(&56E8):LDY #HI(&56E8):JSR dot_0303
 }
 {
-	;x=279 y=017
-	LDA #LO(&3728):LDY #HI(&3728):JSR dot_0301
+	;x=180 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0005
 }
 {
-	;x=237 y=-15
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0101
+	;x=175 y=113
+	LDA #LO(&5458):LDY #HI(&5458):JSR dot_0301
 }
 {
-	;x=186 y=-32
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0200
+	;x=169 y=110
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0106
 }
 {
-	;x=133 y=-32
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0100
+	;x=163 y=109
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0305
 }
 {
-	;x=082 y=-15
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0201
+	;x=157 y=110
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0106
 }
 {
-	;x=040 y=017
-	LDA #LO(&3550):LDY #HI(&3550):JSR dot_0001
+	;x=151 y=113
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0301
 }
 {
-	;x=010 y=062
-	LDA #LO(&4190):LDY #HI(&4190):JSR dot_0206
+	;x=147 y=117
+	LDA #LO(&5420):LDY #HI(&5420):JSR dot_0305
 }
 {
-	;x=-02 y=114
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0202
+	;x=144 y=123
+	LDA #LO(&56A0):LDY #HI(&56A0):JSR dot_0003
 }
 {
-	;x=001 y=168
-	LDA #LO(&6480):LDY #HI(&6480):JSR dot_0100
+	;x=143 y=129
+	LDA #LO(&5918):LDY #HI(&5918):JSR dot_0301
 }
 {
-	;x=023 y=217
-	LDA #LO(&73A8):LDY #HI(&73A8):JSR dot_0301
+	;x=144 y=136
+	LDA #LO(&5BA0):LDY #HI(&5BA0):JSR dot_0000
 }
 {
-	;x=059 y=256
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0300
+	;x=147 y=141
+	LDA #LO(&5BA0):LDY #HI(&5BA0):JSR dot_0305
 }
 {
-	;x=107 y=282
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0302
+	;x=151 y=146
+	LDA #LO(&5E28):LDY #HI(&5E28):JSR dot_0302
 }
 {
-	;x=159 y=291
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0303
+	;x=157 y=149
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0105
 }
 RTS
 .dot_circle_17
 {
-	;x=160 y=297
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0001
+	;x=163 y=150
+	LDA #LO(&5E40):LDY #HI(&5E40):JSR dot_0306
 }
 {
-	;x=214 y=288
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0200
+	;x=170 y=149
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0205
 }
 {
-	;x=263 y=261
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0305
+	;x=175 y=146
+	LDA #LO(&5E58):LDY #HI(&5E58):JSR dot_0302
 }
 {
-	;x=301 y=220
-	LDA #LO(&75D8):LDY #HI(&75D8):JSR dot_0104
+	;x=180 y=142
+	LDA #LO(&5BE8):LDY #HI(&5BE8):JSR dot_0006
 }
 {
-	;x=324 y=169
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0001
+	;x=183 y=136
+	LDA #LO(&5BE8):LDY #HI(&5BE8):JSR dot_0300
 }
 {
-	;x=328 y=114
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0002
+	;x=184 y=129
+	LDA #LO(&5970):LDY #HI(&5970):JSR dot_0001
 }
 {
-	;x=315 y=059
-	LDA #LO(&43F0):LDY #HI(&43F0):JSR dot_0303
+	;x=183 y=123
+	LDA #LO(&56E8):LDY #HI(&56E8):JSR dot_0303
 }
 {
-	;x=284 y=013
-	LDA #LO(&34B8):LDY #HI(&34B8):JSR dot_0005
+	;x=180 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0005
 }
 {
-	;x=240 y=-20
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0004
+	;x=175 y=113
+	LDA #LO(&5458):LDY #HI(&5458):JSR dot_0301
 }
 {
-	;x=187 y=-38
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0302
+	;x=170 y=110
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0206
 }
 {
-	;x=132 y=-38
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0002
+	;x=163 y=109
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0305
 }
 {
-	;x=079 y=-20
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0304
+	;x=157 y=110
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0106
 }
 {
-	;x=035 y=013
-	LDA #LO(&32C0):LDY #HI(&32C0):JSR dot_0305
+	;x=151 y=113
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0301
 }
 {
-	;x=004 y=059
-	LDA #LO(&4188):LDY #HI(&4188):JSR dot_0003
+	;x=146 y=117
+	LDA #LO(&5420):LDY #HI(&5420):JSR dot_0205
 }
 {
-	;x=-08 y=114
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0002
+	;x=144 y=123
+	LDA #LO(&56A0):LDY #HI(&56A0):JSR dot_0003
 }
 {
-	;x=-04 y=169
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0001
+	;x=143 y=129
+	LDA #LO(&5918):LDY #HI(&5918):JSR dot_0301
 }
 {
-	;x=018 y=220
-	LDA #LO(&73A0):LDY #HI(&73A0):JSR dot_0204
+	;x=144 y=136
+	LDA #LO(&5BA0):LDY #HI(&5BA0):JSR dot_0000
 }
 {
-	;x=056 y=261
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0005
+	;x=146 y=142
+	LDA #LO(&5BA0):LDY #HI(&5BA0):JSR dot_0206
 }
 {
-	;x=105 y=288
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0100
+	;x=151 y=146
+	LDA #LO(&5E28):LDY #HI(&5E28):JSR dot_0302
 }
 {
-	;x=159 y=297
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0301
+	;x=157 y=149
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0105
 }
 RTS
 .dot_circle_18
 {
-	;x=160 y=303
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0007
+	;x=163 y=150
+	LDA #LO(&5E40):LDY #HI(&5E40):JSR dot_0306
 }
 {
-	;x=216 y=293
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0005
+	;x=170 y=149
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0205
 }
 {
-	;x=267 y=266
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0302
+	;x=175 y=146
+	LDA #LO(&5E58):LDY #HI(&5E58):JSR dot_0302
 }
 {
-	;x=306 y=223
-	LDA #LO(&75E0):LDY #HI(&75E0):JSR dot_0207
+	;x=180 y=142
+	LDA #LO(&5BE8):LDY #HI(&5BE8):JSR dot_0006
 }
 {
-	;x=330 y=171
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0203
+	;x=183 y=136
+	LDA #LO(&5BE8):LDY #HI(&5BE8):JSR dot_0300
 }
 {
-	;x=334 y=113
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0201
+	;x=184 y=130
+	LDA #LO(&5970):LDY #HI(&5970):JSR dot_0002
 }
 {
-	;x=320 y=057
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0001
+	;x=183 y=123
+	LDA #LO(&56E8):LDY #HI(&56E8):JSR dot_0303
 }
 {
-	;x=289 y=009
-	LDA #LO(&34C0):LDY #HI(&34C0):JSR dot_0101
+	;x=180 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0005
 }
 {
-	;x=243 y=-26
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0306
+	;x=175 y=113
+	LDA #LO(&5458):LDY #HI(&5458):JSR dot_0301
 }
 {
-	;x=188 y=-45
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0003
+	;x=170 y=110
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0206
 }
 {
-	;x=131 y=-45
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0303
+	;x=163 y=109
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0305
 }
 {
-	;x=076 y=-26
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0006
+	;x=157 y=110
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0106
 }
 {
-	;x=030 y=009
-	LDA #LO(&32B8):LDY #HI(&32B8):JSR dot_0201
+	;x=151 y=113
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0301
 }
 {
-	;x=000 y=057
-	LDA #LO(&4180):LDY #HI(&4180):JSR dot_0001
+	;x=146 y=117
+	LDA #LO(&5420):LDY #HI(&5420):JSR dot_0205
 }
 {
-	;x=-14 y=113
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0201
+	;x=143 y=123
+	LDA #LO(&5698):LDY #HI(&5698):JSR dot_0303
 }
 {
-	;x=-10 y=171
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0203
+	;x=142 y=130
+	LDA #LO(&5918):LDY #HI(&5918):JSR dot_0202
 }
 {
-	;x=013 y=223
-	LDA #LO(&7398):LDY #HI(&7398):JSR dot_0107
+	;x=143 y=136
+	LDA #LO(&5B98):LDY #HI(&5B98):JSR dot_0300
 }
 {
-	;x=052 y=266
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0002
+	;x=146 y=142
+	LDA #LO(&5BA0):LDY #HI(&5BA0):JSR dot_0206
 }
 {
-	;x=103 y=293
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0305
+	;x=151 y=146
+	LDA #LO(&5E28):LDY #HI(&5E28):JSR dot_0302
 }
 {
-	;x=159 y=303
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0307
+	;x=157 y=149
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0105
 }
 RTS
 .dot_circle_19
 {
-	;x=160 y=309
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0005
+	;x=163 y=151
+	LDA #LO(&5E40):LDY #HI(&5E40):JSR dot_0307
 }
 {
-	;x=218 y=299
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0203
+	;x=170 y=150
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0206
 }
 {
-	;x=271 y=271
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0307
+	;x=175 y=147
+	LDA #LO(&5E58):LDY #HI(&5E58):JSR dot_0303
 }
 {
-	;x=312 y=227
-	LDA #LO(&7870):LDY #HI(&7870):JSR dot_0003
+	;x=180 y=142
+	LDA #LO(&5BE8):LDY #HI(&5BE8):JSR dot_0006
 }
 {
-	;x=336 y=172
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0004
+	;x=183 y=136
+	LDA #LO(&5BE8):LDY #HI(&5BE8):JSR dot_0300
 }
 {
-	;x=341 y=112
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0100
+	;x=184 y=130
+	LDA #LO(&5970):LDY #HI(&5970):JSR dot_0002
 }
 {
-	;x=326 y=055
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0207
+	;x=183 y=123
+	LDA #LO(&56E8):LDY #HI(&56E8):JSR dot_0303
 }
 {
-	;x=293 y=004
-	LDA #LO(&3248):LDY #HI(&3248):JSR dot_0104
+	;x=180 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0005
 }
 {
-	;x=246 y=-31
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0201
+	;x=175 y=113
+	LDA #LO(&5458):LDY #HI(&5458):JSR dot_0301
 }
 {
-	;x=189 y=-51
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0105
+	;x=170 y=110
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0206
 }
 {
-	;x=130 y=-51
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0205
+	;x=163 y=109
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0305
 }
 {
-	;x=073 y=-31
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0101
+	;x=157 y=110
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0106
 }
 {
-	;x=026 y=004
-	LDA #LO(&3030):LDY #HI(&3030):JSR dot_0204
+	;x=151 y=113
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0301
 }
 {
-	;x=-06 y=055
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0207
+	;x=146 y=117
+	LDA #LO(&5420):LDY #HI(&5420):JSR dot_0205
 }
 {
-	;x=-21 y=112
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0300
+	;x=143 y=123
+	LDA #LO(&5698):LDY #HI(&5698):JSR dot_0303
 }
 {
-	;x=-16 y=172
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0004
+	;x=142 y=130
+	LDA #LO(&5918):LDY #HI(&5918):JSR dot_0202
 }
 {
-	;x=007 y=227
-	LDA #LO(&7608):LDY #HI(&7608):JSR dot_0303
+	;x=143 y=136
+	LDA #LO(&5B98):LDY #HI(&5B98):JSR dot_0300
 }
 {
-	;x=048 y=271
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0007
+	;x=146 y=142
+	LDA #LO(&5BA0):LDY #HI(&5BA0):JSR dot_0206
 }
 {
-	;x=101 y=299
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0103
+	;x=151 y=147
+	LDA #LO(&5E28):LDY #HI(&5E28):JSR dot_0303
 }
 {
-	;x=159 y=309
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0305
+	;x=157 y=150
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0106
 }
 RTS
 .dot_circle_20
 {
-	;x=160 y=315
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0003
+	;x=163 y=151
+	LDA #LO(&5E40):LDY #HI(&5E40):JSR dot_0307
 }
 {
-	;x=221 y=305
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0101
+	;x=170 y=150
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0206
 }
 {
-	;x=275 y=276
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0304
+	;x=176 y=147
+	LDA #LO(&5E60):LDY #HI(&5E60):JSR dot_0003
 }
 {
-	;x=317 y=230
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0106
+	;x=180 y=142
+	LDA #LO(&5BE8):LDY #HI(&5BE8):JSR dot_0006
 }
 {
-	;x=342 y=174
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0206
+	;x=183 y=136
+	LDA #LO(&5BE8):LDY #HI(&5BE8):JSR dot_0300
 }
 {
-	;x=347 y=112
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0300
+	;x=184 y=130
+	LDA #LO(&5970):LDY #HI(&5970):JSR dot_0002
 }
 {
-	;x=332 y=052
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0004
+	;x=183 y=123
+	LDA #LO(&56E8):LDY #HI(&56E8):JSR dot_0303
 }
 {
-	;x=298 y=000
-	LDA #LO(&3250):LDY #HI(&3250):JSR dot_0200
+	;x=180 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0005
 }
 {
-	;x=249 y=-37
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0103
+	;x=176 y=113
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0001
 }
 {
-	;x=190 y=-57
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0207
+	;x=170 y=110
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0206
 }
 {
-	;x=129 y=-57
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0107
+	;x=163 y=109
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0305
 }
 {
-	;x=070 y=-37
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0203
+	;x=157 y=110
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0106
 }
 {
-	;x=021 y=000
-	LDA #LO(&3028):LDY #HI(&3028):JSR dot_0100
+	;x=151 y=113
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0301
 }
 {
-	;x=-12 y=052
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0004
+	;x=146 y=117
+	LDA #LO(&5420):LDY #HI(&5420):JSR dot_0205
 }
 {
-	;x=-27 y=112
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0100
+	;x=143 y=123
+	LDA #LO(&5698):LDY #HI(&5698):JSR dot_0303
 }
 {
-	;x=-22 y=174
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0206
+	;x=142 y=130
+	LDA #LO(&5918):LDY #HI(&5918):JSR dot_0202
 }
 {
-	;x=002 y=230
-	LDA #LO(&7600):LDY #HI(&7600):JSR dot_0206
+	;x=143 y=136
+	LDA #LO(&5B98):LDY #HI(&5B98):JSR dot_0300
 }
 {
-	;x=044 y=276
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0004
+	;x=146 y=142
+	LDA #LO(&5BA0):LDY #HI(&5BA0):JSR dot_0206
 }
 {
-	;x=098 y=305
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0201
+	;x=151 y=147
+	LDA #LO(&5E28):LDY #HI(&5E28):JSR dot_0303
 }
 {
-	;x=159 y=315
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0303
+	;x=157 y=150
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0106
 }
 RTS
 .dot_circle_21
 {
-	;x=160 y=322
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0002
+	;x=163 y=151
+	LDA #LO(&5E40):LDY #HI(&5E40):JSR dot_0307
 }
 {
-	;x=223 y=311
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0307
+	;x=170 y=150
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0206
 }
 {
-	;x=279 y=281
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0301
+	;x=176 y=147
+	LDA #LO(&5E60):LDY #HI(&5E60):JSR dot_0003
 }
 {
-	;x=322 y=234
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0202
+	;x=180 y=143
+	LDA #LO(&5BE8):LDY #HI(&5BE8):JSR dot_0007
 }
 {
-	;x=348 y=175
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0007
+	;x=183 y=137
+	LDA #LO(&5BE8):LDY #HI(&5BE8):JSR dot_0301
 }
 {
-	;x=353 y=111
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0107
+	;x=184 y=130
+	LDA #LO(&5970):LDY #HI(&5970):JSR dot_0002
 }
 {
-	;x=337 y=050
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0102
+	;x=183 y=123
+	LDA #LO(&56E8):LDY #HI(&56E8):JSR dot_0303
 }
 {
-	;x=302 y=-03
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0205
+	;x=180 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0005
 }
 {
-	;x=252 y=-42
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0006
+	;x=176 y=113
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0001
 }
 {
-	;x=191 y=-63
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0301
+	;x=170 y=110
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0206
 }
 {
-	;x=128 y=-63
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0001
+	;x=163 y=109
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0305
 }
 {
-	;x=067 y=-42
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0306
+	;x=156 y=110
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0006
 }
 {
-	;x=017 y=-03
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0105
+	;x=150 y=113
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0201
 }
 {
-	;x=-17 y=050
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0302
+	;x=146 y=117
+	LDA #LO(&5420):LDY #HI(&5420):JSR dot_0205
 }
 {
-	;x=-33 y=111
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0307
+	;x=143 y=123
+	LDA #LO(&5698):LDY #HI(&5698):JSR dot_0303
 }
 {
-	;x=-28 y=175
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0007
+	;x=142 y=130
+	LDA #LO(&5918):LDY #HI(&5918):JSR dot_0202
 }
 {
-	;x=-02 y=234
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0202
+	;x=143 y=137
+	LDA #LO(&5B98):LDY #HI(&5B98):JSR dot_0301
 }
 {
-	;x=040 y=281
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0001
+	;x=146 y=143
+	LDA #LO(&5BA0):LDY #HI(&5BA0):JSR dot_0207
 }
 {
-	;x=096 y=311
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0007
+	;x=150 y=147
+	LDA #LO(&5E28):LDY #HI(&5E28):JSR dot_0203
 }
 {
-	;x=159 y=322
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0302
+	;x=156 y=150
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0006
 }
 RTS
 .dot_circle_22
 {
-	;x=160 y=328
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0000
+	;x=163 y=152
+	LDA #LO(&60C0):LDY #HI(&60C0):JSR dot_0300
 }
 {
-	;x=225 y=317
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0105
+	;x=170 y=151
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0207
 }
 {
-	;x=283 y=286
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0306
+	;x=176 y=148
+	LDA #LO(&5E60):LDY #HI(&5E60):JSR dot_0004
 }
 {
-	;x=327 y=237
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0305
+	;x=180 y=143
+	LDA #LO(&5BE8):LDY #HI(&5BE8):JSR dot_0007
 }
 {
-	;x=354 y=177
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0201
+	;x=184 y=137
+	LDA #LO(&5BF0):LDY #HI(&5BF0):JSR dot_0001
 }
 {
-	;x=359 y=111
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0307
+	;x=185 y=130
+	LDA #LO(&5970):LDY #HI(&5970):JSR dot_0102
 }
 {
-	;x=343 y=047
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0307
+	;x=184 y=123
+	LDA #LO(&56F0):LDY #HI(&56F0):JSR dot_0003
 }
 {
-	;x=307 y=-07
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0301
+	;x=180 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0005
 }
 {
-	;x=255 y=-48
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0300
+	;x=176 y=113
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0001
 }
 {
-	;x=192 y=-69
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0003
+	;x=170 y=109
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0205
 }
 {
-	;x=127 y=-69
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0303
+	;x=163 y=108
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0304
 }
 {
-	;x=064 y=-48
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0000
+	;x=156 y=109
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0005
 }
 {
-	;x=012 y=-07
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0001
+	;x=150 y=113
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0201
 }
 {
-	;x=-23 y=047
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0107
+	;x=146 y=117
+	LDA #LO(&5420):LDY #HI(&5420):JSR dot_0205
 }
 {
-	;x=-39 y=111
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0107
+	;x=142 y=123
+	LDA #LO(&5698):LDY #HI(&5698):JSR dot_0203
 }
 {
-	;x=-34 y=177
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0201
+	;x=141 y=130
+	LDA #LO(&5918):LDY #HI(&5918):JSR dot_0102
 }
 {
-	;x=-07 y=237
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0105
+	;x=142 y=137
+	LDA #LO(&5B98):LDY #HI(&5B98):JSR dot_0201
 }
 {
-	;x=036 y=286
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0006
+	;x=146 y=143
+	LDA #LO(&5BA0):LDY #HI(&5BA0):JSR dot_0207
 }
 {
-	;x=094 y=317
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0205
+	;x=150 y=148
+	LDA #LO(&5E28):LDY #HI(&5E28):JSR dot_0204
 }
 {
-	;x=159 y=328
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0300
+	;x=156 y=151
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0007
 }
 RTS
 .dot_circle_23
 {
-	;x=160 y=334
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0006
+	;x=163 y=152
+	LDA #LO(&60C0):LDY #HI(&60C0):JSR dot_0300
 }
 {
-	;x=227 y=323
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0303
+	;x=170 y=151
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0207
 }
 {
-	;x=286 y=290
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0202
+	;x=176 y=148
+	LDA #LO(&5E60):LDY #HI(&5E60):JSR dot_0004
 }
 {
-	;x=332 y=240
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0000
+	;x=181 y=143
+	LDA #LO(&5BE8):LDY #HI(&5BE8):JSR dot_0107
 }
 {
-	;x=360 y=178
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0002
+	;x=184 y=137
+	LDA #LO(&5BF0):LDY #HI(&5BF0):JSR dot_0001
 }
 {
-	;x=365 y=110
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0106
+	;x=185 y=130
+	LDA #LO(&5970):LDY #HI(&5970):JSR dot_0102
 }
 {
-	;x=349 y=045
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0105
+	;x=184 y=123
+	LDA #LO(&56F0):LDY #HI(&56F0):JSR dot_0003
 }
 {
-	;x=311 y=-11
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0305
+	;x=181 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0105
 }
 {
-	;x=258 y=-53
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0203
+	;x=176 y=113
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0001
 }
 {
-	;x=193 y=-75
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0105
+	;x=170 y=109
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0205
 }
 {
-	;x=126 y=-75
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0205
+	;x=163 y=108
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0304
 }
 {
-	;x=061 y=-53
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0103
+	;x=156 y=109
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0005
 }
 {
-	;x=008 y=-11
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0005
+	;x=150 y=113
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0201
 }
 {
-	;x=-29 y=045
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0305
+	;x=145 y=117
+	LDA #LO(&5420):LDY #HI(&5420):JSR dot_0105
 }
 {
-	;x=-45 y=110
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0306
+	;x=142 y=123
+	LDA #LO(&5698):LDY #HI(&5698):JSR dot_0203
 }
 {
-	;x=-40 y=178
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0002
+	;x=141 y=130
+	LDA #LO(&5918):LDY #HI(&5918):JSR dot_0102
 }
 {
-	;x=-12 y=240
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0000
+	;x=142 y=137
+	LDA #LO(&5B98):LDY #HI(&5B98):JSR dot_0201
 }
 {
-	;x=033 y=290
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0102
+	;x=145 y=143
+	LDA #LO(&5BA0):LDY #HI(&5BA0):JSR dot_0107
 }
 {
-	;x=092 y=323
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0003
+	;x=150 y=148
+	LDA #LO(&5E28):LDY #HI(&5E28):JSR dot_0204
 }
 {
-	;x=159 y=334
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0306
+	;x=156 y=151
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0007
 }
 RTS
 .dot_circle_24
 {
-	;x=160 y=340
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0004
+	;x=163 y=152
+	LDA #LO(&60C0):LDY #HI(&60C0):JSR dot_0300
 }
 {
-	;x=229 y=329
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0101
+	;x=170 y=151
+	LDA #LO(&5E50):LDY #HI(&5E50):JSR dot_0207
 }
 {
-	;x=290 y=295
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0207
+	;x=176 y=148
+	LDA #LO(&5E60):LDY #HI(&5E60):JSR dot_0004
 }
 {
-	;x=338 y=244
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0204
+	;x=181 y=143
+	LDA #LO(&5BE8):LDY #HI(&5BE8):JSR dot_0107
 }
 {
-	;x=366 y=180
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0204
+	;x=184 y=137
+	LDA #LO(&5BF0):LDY #HI(&5BF0):JSR dot_0001
 }
 {
-	;x=371 y=110
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0306
+	;x=185 y=130
+	LDA #LO(&5970):LDY #HI(&5970):JSR dot_0102
 }
 {
-	;x=354 y=042
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0202
+	;x=184 y=123
+	LDA #LO(&56F0):LDY #HI(&56F0):JSR dot_0003
 }
 {
-	;x=316 y=-16
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0000
+	;x=181 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0105
 }
 {
-	;x=261 y=-59
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0105
+	;x=176 y=112
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0000
 }
 {
-	;x=195 y=-81
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0307
+	;x=170 y=109
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0205
 }
 {
-	;x=124 y=-81
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0007
+	;x=163 y=108
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0304
 }
 {
-	;x=058 y=-59
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0205
+	;x=156 y=109
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0005
 }
 {
-	;x=003 y=-16
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0300
+	;x=150 y=112
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0200
 }
 {
-	;x=-34 y=042
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0202
+	;x=145 y=117
+	LDA #LO(&5420):LDY #HI(&5420):JSR dot_0105
 }
 {
-	;x=-51 y=110
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0106
+	;x=142 y=123
+	LDA #LO(&5698):LDY #HI(&5698):JSR dot_0203
 }
 {
-	;x=-46 y=180
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0204
+	;x=141 y=130
+	LDA #LO(&5918):LDY #HI(&5918):JSR dot_0102
 }
 {
-	;x=-18 y=244
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0204
+	;x=142 y=137
+	LDA #LO(&5B98):LDY #HI(&5B98):JSR dot_0201
 }
 {
-	;x=029 y=295
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0107
+	;x=145 y=143
+	LDA #LO(&5BA0):LDY #HI(&5BA0):JSR dot_0107
 }
 {
-	;x=090 y=329
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0201
+	;x=150 y=148
+	LDA #LO(&5E28):LDY #HI(&5E28):JSR dot_0204
 }
 {
-	;x=159 y=340
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0304
+	;x=156 y=151
+	LDA #LO(&5E38):LDY #HI(&5E38):JSR dot_0007
 }
 RTS
 .dot_circle_25
 {
-	;x=160 y=346
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0002
+	;x=163 y=153
+	LDA #LO(&60C0):LDY #HI(&60C0):JSR dot_0301
 }
 {
-	;x=231 y=334
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0306
+	;x=170 y=152
+	LDA #LO(&60D0):LDY #HI(&60D0):JSR dot_0200
 }
 {
-	;x=294 y=300
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0204
+	;x=176 y=148
+	LDA #LO(&5E60):LDY #HI(&5E60):JSR dot_0004
 }
 {
-	;x=343 y=247
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0307
+	;x=181 y=144
+	LDA #LO(&5E68):LDY #HI(&5E68):JSR dot_0100
 }
 {
-	;x=372 y=181
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0005
+	;x=184 y=137
+	LDA #LO(&5BF0):LDY #HI(&5BF0):JSR dot_0001
 }
 {
-	;x=378 y=109
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0205
+	;x=185 y=130
+	LDA #LO(&5970):LDY #HI(&5970):JSR dot_0102
 }
 {
-	;x=360 y=040
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0000
+	;x=184 y=124
+	LDA #LO(&56F0):LDY #HI(&56F0):JSR dot_0004
 }
 {
-	;x=321 y=-20
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0104
+	;x=181 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0105
 }
 {
-	;x=264 y=-64
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0000
+	;x=176 y=112
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0000
 }
 {
-	;x=196 y=-87
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0001
+	;x=170 y=109
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0205
 }
 {
-	;x=123 y=-87
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0301
+	;x=163 y=108
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0304
 }
 {
-	;x=055 y=-64
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0300
+	;x=156 y=109
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0005
 }
 {
-	;x=-01 y=-20
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0304
+	;x=150 y=112
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0200
 }
 {
-	;x=-40 y=040
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0000
+	;x=145 y=117
+	LDA #LO(&5420):LDY #HI(&5420):JSR dot_0105
 }
 {
-	;x=-58 y=109
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0205
+	;x=142 y=124
+	LDA #LO(&5698):LDY #HI(&5698):JSR dot_0204
 }
 {
-	;x=-52 y=181
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0005
+	;x=141 y=130
+	LDA #LO(&5918):LDY #HI(&5918):JSR dot_0102
 }
 {
-	;x=-23 y=247
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0107
+	;x=142 y=137
+	LDA #LO(&5B98):LDY #HI(&5B98):JSR dot_0201
 }
 {
-	;x=025 y=300
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0104
+	;x=145 y=144
+	LDA #LO(&5E20):LDY #HI(&5E20):JSR dot_0100
 }
 {
-	;x=088 y=334
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0006
+	;x=150 y=148
+	LDA #LO(&5E28):LDY #HI(&5E28):JSR dot_0204
 }
 {
-	;x=159 y=346
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0302
+	;x=156 y=152
+	LDA #LO(&60B8):LDY #HI(&60B8):JSR dot_0000
 }
 RTS
 .dot_circle_26
 {
-	;x=160 y=353
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0001
+	;x=163 y=153
+	LDA #LO(&60C0):LDY #HI(&60C0):JSR dot_0301
 }
 {
-	;x=233 y=340
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0104
+	;x=170 y=152
+	LDA #LO(&60D0):LDY #HI(&60D0):JSR dot_0200
 }
 {
-	;x=298 y=305
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0201
+	;x=176 y=149
+	LDA #LO(&5E60):LDY #HI(&5E60):JSR dot_0005
 }
 {
-	;x=348 y=251
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0003
+	;x=181 y=144
+	LDA #LO(&5E68):LDY #HI(&5E68):JSR dot_0100
 }
 {
-	;x=378 y=183
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0207
+	;x=184 y=137
+	LDA #LO(&5BF0):LDY #HI(&5BF0):JSR dot_0001
 }
 {
-	;x=384 y=109
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0005
+	;x=185 y=131
+	LDA #LO(&5970):LDY #HI(&5970):JSR dot_0103
 }
 {
-	;x=366 y=037
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0205
+	;x=184 y=124
+	LDA #LO(&56F0):LDY #HI(&56F0):JSR dot_0004
 }
 {
-	;x=325 y=-24
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0100
+	;x=181 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0105
 }
 {
-	;x=267 y=-69
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0303
+	;x=176 y=112
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0000
 }
 {
-	;x=197 y=-93
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0103
+	;x=170 y=109
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0205
 }
 {
-	;x=122 y=-93
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0203
+	;x=163 y=108
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0304
 }
 {
-	;x=052 y=-69
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0003
+	;x=156 y=109
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0005
 }
 {
-	;x=-05 y=-24
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0300
+	;x=150 y=112
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0200
 }
 {
-	;x=-46 y=037
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0205
+	;x=145 y=117
+	LDA #LO(&5420):LDY #HI(&5420):JSR dot_0105
 }
 {
-	;x=-64 y=109
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0005
+	;x=141 y=124
+	LDA #LO(&5698):LDY #HI(&5698):JSR dot_0104
 }
 {
-	;x=-58 y=183
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0207
+	;x=140 y=131
+	LDA #LO(&5918):LDY #HI(&5918):JSR dot_0003
 }
 {
-	;x=-28 y=251
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0003
+	;x=141 y=137
+	LDA #LO(&5B98):LDY #HI(&5B98):JSR dot_0101
 }
 {
-	;x=021 y=305
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0101
+	;x=145 y=144
+	LDA #LO(&5E20):LDY #HI(&5E20):JSR dot_0100
 }
 {
-	;x=086 y=340
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0204
+	;x=150 y=149
+	LDA #LO(&5E28):LDY #HI(&5E28):JSR dot_0205
 }
 {
-	;x=159 y=353
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0301
+	;x=156 y=152
+	LDA #LO(&60B8):LDY #HI(&60B8):JSR dot_0000
 }
 RTS
 .dot_circle_27
 {
-	;x=160 y=359
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0007
+	;x=163 y=153
+	LDA #LO(&60C0):LDY #HI(&60C0):JSR dot_0301
 }
 {
-	;x=235 y=346
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0302
+	;x=170 y=152
+	LDA #LO(&60D0):LDY #HI(&60D0):JSR dot_0200
 }
 {
-	;x=302 y=310
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0206
+	;x=176 y=149
+	LDA #LO(&5E60):LDY #HI(&5E60):JSR dot_0005
 }
 {
-	;x=353 y=254
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0106
+	;x=181 y=144
+	LDA #LO(&5E68):LDY #HI(&5E68):JSR dot_0100
 }
 {
-	;x=384 y=184
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0000
+	;x=184 y=138
+	LDA #LO(&5BF0):LDY #HI(&5BF0):JSR dot_0002
 }
 {
-	;x=390 y=108
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0204
+	;x=186 y=131
+	LDA #LO(&5970):LDY #HI(&5970):JSR dot_0203
 }
 {
-	;x=371 y=035
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0303
+	;x=184 y=124
+	LDA #LO(&56F0):LDY #HI(&56F0):JSR dot_0004
 }
 {
-	;x=330 y=-28
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0204
+	;x=181 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0105
 }
 {
-	;x=270 y=-75
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0205
+	;x=176 y=112
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0000
 }
 {
-	;x=198 y=-100
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0204
+	;x=170 y=109
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0205
 }
 {
-	;x=121 y=-100
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0104
+	;x=163 y=108
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0304
 }
 {
-	;x=049 y=-75
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0105
+	;x=156 y=109
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0005
 }
 {
-	;x=-10 y=-28
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0204
+	;x=149 y=112
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0100
 }
 {
-	;x=-51 y=035
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0103
+	;x=144 y=117
+	LDA #LO(&5420):LDY #HI(&5420):JSR dot_0005
 }
 {
-	;x=-70 y=108
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0204
+	;x=141 y=124
+	LDA #LO(&5698):LDY #HI(&5698):JSR dot_0104
 }
 {
-	;x=-64 y=184
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0000
+	;x=140 y=131
+	LDA #LO(&5918):LDY #HI(&5918):JSR dot_0003
 }
 {
-	;x=-33 y=254
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0306
+	;x=141 y=138
+	LDA #LO(&5B98):LDY #HI(&5B98):JSR dot_0102
 }
 {
-	;x=017 y=310
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0106
+	;x=144 y=144
+	LDA #LO(&5E20):LDY #HI(&5E20):JSR dot_0000
 }
 {
-	;x=084 y=346
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0002
+	;x=149 y=149
+	LDA #LO(&5E28):LDY #HI(&5E28):JSR dot_0105
 }
 {
-	;x=159 y=359
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0307
+	;x=156 y=152
+	LDA #LO(&60B8):LDY #HI(&60B8):JSR dot_0000
 }
 RTS
 .dot_circle_28
 {
-	;x=160 y=365
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0005
+	;x=163 y=154
+	LDA #LO(&60C0):LDY #HI(&60C0):JSR dot_0302
 }
 {
-	;x=237 y=352
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0100
+	;x=170 y=153
+	LDA #LO(&60D0):LDY #HI(&60D0):JSR dot_0201
 }
 {
-	;x=305 y=315
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0103
+	;x=176 y=149
+	LDA #LO(&5E60):LDY #HI(&5E60):JSR dot_0005
 }
 {
-	;x=358 y=257
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0201
+	;x=181 y=144
+	LDA #LO(&5E68):LDY #HI(&5E68):JSR dot_0100
 }
 {
-	;x=390 y=186
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0202
+	;x=185 y=138
+	LDA #LO(&5BF0):LDY #HI(&5BF0):JSR dot_0102
 }
 {
-	;x=396 y=108
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0004
+	;x=186 y=131
+	LDA #LO(&5970):LDY #HI(&5970):JSR dot_0203
 }
 {
-	;x=377 y=032
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0100
+	;x=185 y=124
+	LDA #LO(&56F0):LDY #HI(&56F0):JSR dot_0104
 }
 {
-	;x=334 y=-32
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0200
+	;x=181 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0105
 }
 {
-	;x=272 y=-80
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0000
+	;x=176 y=112
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0000
 }
 {
-	;x=199 y=-106
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0306
+	;x=170 y=109
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0205
 }
 {
-	;x=120 y=-106
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0006
+	;x=163 y=108
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0304
 }
 {
-	;x=047 y=-80
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0300
+	;x=156 y=109
+	LDA #LO(&51B8):LDY #HI(&51B8):JSR dot_0005
 }
 {
-	;x=-14 y=-32
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0200
+	;x=149 y=112
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0100
 }
 {
-	;x=-57 y=032
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0300
+	;x=144 y=117
+	LDA #LO(&5420):LDY #HI(&5420):JSR dot_0005
 }
 {
-	;x=-76 y=108
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0004
+	;x=141 y=124
+	LDA #LO(&5698):LDY #HI(&5698):JSR dot_0104
 }
 {
-	;x=-70 y=186
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0202
+	;x=140 y=131
+	LDA #LO(&5918):LDY #HI(&5918):JSR dot_0003
 }
 {
-	;x=-38 y=257
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0201
+	;x=141 y=138
+	LDA #LO(&5B98):LDY #HI(&5B98):JSR dot_0102
 }
 {
-	;x=014 y=315
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0203
+	;x=144 y=144
+	LDA #LO(&5E20):LDY #HI(&5E20):JSR dot_0000
 }
 {
-	;x=082 y=352
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0200
+	;x=149 y=149
+	LDA #LO(&5E28):LDY #HI(&5E28):JSR dot_0105
 }
 {
-	;x=159 y=365
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0305
+	;x=156 y=153
+	LDA #LO(&60B8):LDY #HI(&60B8):JSR dot_0001
 }
 RTS
 .dot_circle_29
 {
-	;x=160 y=371
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0003
+	;x=163 y=154
+	LDA #LO(&60C0):LDY #HI(&60C0):JSR dot_0302
 }
 {
-	;x=239 y=358
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0306
+	;x=170 y=153
+	LDA #LO(&60D0):LDY #HI(&60D0):JSR dot_0201
 }
 {
-	;x=309 y=320
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0100
+	;x=176 y=150
+	LDA #LO(&5E60):LDY #HI(&5E60):JSR dot_0006
 }
 {
-	;x=363 y=261
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0305
+	;x=181 y=145
+	LDA #LO(&5E68):LDY #HI(&5E68):JSR dot_0101
 }
 {
-	;x=396 y=187
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0003
+	;x=185 y=138
+	LDA #LO(&5BF0):LDY #HI(&5BF0):JSR dot_0102
 }
 {
-	;x=402 y=107
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0203
+	;x=186 y=131
+	LDA #LO(&5970):LDY #HI(&5970):JSR dot_0203
 }
 {
-	;x=383 y=030
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0306
+	;x=185 y=124
+	LDA #LO(&56F0):LDY #HI(&56F0):JSR dot_0104
 }
 {
-	;x=339 y=-36
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0304
+	;x=181 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0105
 }
 {
-	;x=275 y=-86
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0302
+	;x=176 y=112
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0000
 }
 {
-	;x=200 y=-112
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0000
+	;x=170 y=109
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0205
 }
 {
-	;x=119 y=-112
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0300
+	;x=163 y=108
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0304
 }
 {
-	;x=044 y=-86
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0002
+	;x=155 y=109
+	LDA #LO(&51B0):LDY #HI(&51B0):JSR dot_0305
 }
 {
-	;x=-19 y=-36
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0104
+	;x=149 y=112
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0100
 }
 {
-	;x=-63 y=030
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0106
+	;x=144 y=117
+	LDA #LO(&5420):LDY #HI(&5420):JSR dot_0005
 }
 {
-	;x=-82 y=107
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0203
+	;x=141 y=124
+	LDA #LO(&5698):LDY #HI(&5698):JSR dot_0104
 }
 {
-	;x=-76 y=187
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0003
+	;x=139 y=131
+	LDA #LO(&5910):LDY #HI(&5910):JSR dot_0303
 }
 {
-	;x=-43 y=261
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0105
+	;x=141 y=138
+	LDA #LO(&5B98):LDY #HI(&5B98):JSR dot_0102
 }
 {
-	;x=010 y=320
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0200
+	;x=144 y=145
+	LDA #LO(&5E20):LDY #HI(&5E20):JSR dot_0001
 }
 {
-	;x=080 y=358
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0006
+	;x=149 y=150
+	LDA #LO(&5E28):LDY #HI(&5E28):JSR dot_0106
 }
 {
-	;x=159 y=371
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0303
+	;x=155 y=153
+	LDA #LO(&60B0):LDY #HI(&60B0):JSR dot_0301
 }
 RTS
 .dot_circle_30
 {
-	;x=160 y=377
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0001
+	;x=163 y=155
+	LDA #LO(&60C0):LDY #HI(&60C0):JSR dot_0303
 }
 {
-	;x=241 y=364
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0104
+	;x=170 y=153
+	LDA #LO(&60D0):LDY #HI(&60D0):JSR dot_0201
 }
 {
-	;x=313 y=325
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0105
+	;x=176 y=150
+	LDA #LO(&5E60):LDY #HI(&5E60):JSR dot_0006
 }
 {
-	;x=369 y=264
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0100
+	;x=182 y=145
+	LDA #LO(&5E68):LDY #HI(&5E68):JSR dot_0201
 }
 {
-	;x=402 y=189
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0205
+	;x=185 y=138
+	LDA #LO(&5BF0):LDY #HI(&5BF0):JSR dot_0102
 }
 {
-	;x=408 y=107
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0003
+	;x=186 y=131
+	LDA #LO(&5970):LDY #HI(&5970):JSR dot_0203
 }
 {
-	;x=388 y=027
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0003
+	;x=185 y=124
+	LDA #LO(&56F0):LDY #HI(&56F0):JSR dot_0104
 }
 {
-	;x=343 y=-41
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0307
+	;x=182 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0205
 }
 {
-	;x=278 y=-91
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0205
+	;x=176 y=112
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0000
 }
 {
-	;x=201 y=-118
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0102
+	;x=170 y=109
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0205
 }
 {
-	;x=118 y=-118
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0202
+	;x=163 y=108
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0304
 }
 {
-	;x=041 y=-91
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0105
+	;x=155 y=109
+	LDA #LO(&51B0):LDY #HI(&51B0):JSR dot_0305
 }
 {
-	;x=-23 y=-41
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0107
+	;x=149 y=112
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0100
 }
 {
-	;x=-68 y=027
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0003
+	;x=144 y=117
+	LDA #LO(&5420):LDY #HI(&5420):JSR dot_0005
 }
 {
-	;x=-88 y=107
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0003
+	;x=140 y=124
+	LDA #LO(&5698):LDY #HI(&5698):JSR dot_0004
 }
 {
-	;x=-82 y=189
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0205
+	;x=139 y=131
+	LDA #LO(&5910):LDY #HI(&5910):JSR dot_0303
 }
 {
-	;x=-49 y=264
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0300
+	;x=140 y=138
+	LDA #LO(&5B98):LDY #HI(&5B98):JSR dot_0002
 }
 {
-	;x=006 y=325
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0205
+	;x=144 y=145
+	LDA #LO(&5E20):LDY #HI(&5E20):JSR dot_0001
 }
 {
-	;x=078 y=364
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0204
+	;x=149 y=150
+	LDA #LO(&5E28):LDY #HI(&5E28):JSR dot_0106
 }
 {
-	;x=159 y=377
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0301
+	;x=155 y=153
+	LDA #LO(&60B0):LDY #HI(&60B0):JSR dot_0301
 }
 RTS
 .dot_circle_31
 {
-	;x=160 y=384
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0000
+	;x=163 y=155
+	LDA #LO(&60C0):LDY #HI(&60C0):JSR dot_0303
 }
 {
-	;x=243 y=370
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0302
+	;x=170 y=154
+	LDA #LO(&60D0):LDY #HI(&60D0):JSR dot_0202
 }
 {
-	;x=317 y=330
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0102
+	;x=176 y=150
+	LDA #LO(&5E60):LDY #HI(&5E60):JSR dot_0006
 }
 {
-	;x=374 y=268
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0204
+	;x=182 y=145
+	LDA #LO(&5E68):LDY #HI(&5E68):JSR dot_0201
 }
 {
-	;x=408 y=190
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0006
+	;x=185 y=139
+	LDA #LO(&5BF0):LDY #HI(&5BF0):JSR dot_0103
 }
 {
-	;x=415 y=106
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0302
+	;x=186 y=131
+	LDA #LO(&5970):LDY #HI(&5970):JSR dot_0203
 }
 {
-	;x=394 y=025
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0201
+	;x=185 y=124
+	LDA #LO(&56F0):LDY #HI(&56F0):JSR dot_0104
 }
 {
-	;x=348 y=-45
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0003
+	;x=182 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0205
 }
 {
-	;x=281 y=-97
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0107
+	;x=176 y=112
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0000
 }
 {
-	;x=202 y=-124
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0204
+	;x=170 y=109
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0205
 }
 {
-	;x=117 y=-124
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0104
+	;x=163 y=107
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0303
 }
 {
-	;x=038 y=-97
+	;x=155 y=109
+	LDA #LO(&51B0):LDY #HI(&51B0):JSR dot_0305
+}
+{
+	;x=149 y=112
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0100
+}
+{
+	;x=143 y=117
+	LDA #LO(&5418):LDY #HI(&5418):JSR dot_0305
+}
+{
+	;x=140 y=124
+	LDA #LO(&5698):LDY #HI(&5698):JSR dot_0004
+}
+{
+	;x=139 y=131
+	LDA #LO(&5910):LDY #HI(&5910):JSR dot_0303
+}
+{
+	;x=140 y=139
+	LDA #LO(&5B98):LDY #HI(&5B98):JSR dot_0003
+}
+{
+	;x=143 y=145
+	LDA #LO(&5E18):LDY #HI(&5E18):JSR dot_0301
+}
+{
+	;x=149 y=150
+	LDA #LO(&5E28):LDY #HI(&5E28):JSR dot_0106
+}
+{
+	;x=155 y=154
+	LDA #LO(&60B0):LDY #HI(&60B0):JSR dot_0302
+}
+RTS
+.dot_circle_32
+{
+	;x=162 y=155
+	LDA #LO(&60C0):LDY #HI(&60C0):JSR dot_0203
+}
+{
+	;x=170 y=154
+	LDA #LO(&60D0):LDY #HI(&60D0):JSR dot_0202
+}
+{
+	;x=177 y=151
+	LDA #LO(&5E60):LDY #HI(&5E60):JSR dot_0107
+}
+{
+	;x=182 y=145
+	LDA #LO(&5E68):LDY #HI(&5E68):JSR dot_0201
+}
+{
+	;x=185 y=139
+	LDA #LO(&5BF0):LDY #HI(&5BF0):JSR dot_0103
+}
+{
+	;x=186 y=131
+	LDA #LO(&5970):LDY #HI(&5970):JSR dot_0203
+}
+{
+	;x=185 y=124
+	LDA #LO(&56F0):LDY #HI(&56F0):JSR dot_0104
+}
+{
+	;x=182 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0205
+}
+{
+	;x=177 y=112
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0100
+}
+{
+	;x=170 y=108
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0204
+}
+{
+	;x=162 y=107
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0203
+}
+{
+	;x=155 y=108
+	LDA #LO(&51B0):LDY #HI(&51B0):JSR dot_0304
+}
+{
+	;x=148 y=112
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0000
+}
+{
+	;x=143 y=117
+	LDA #LO(&5418):LDY #HI(&5418):JSR dot_0305
+}
+{
+	;x=140 y=124
+	LDA #LO(&5698):LDY #HI(&5698):JSR dot_0004
+}
+{
+	;x=138 y=131
+	LDA #LO(&5910):LDY #HI(&5910):JSR dot_0203
+}
+{
+	;x=140 y=139
+	LDA #LO(&5B98):LDY #HI(&5B98):JSR dot_0003
+}
+{
+	;x=143 y=145
+	LDA #LO(&5E18):LDY #HI(&5E18):JSR dot_0301
+}
+{
+	;x=148 y=151
+	LDA #LO(&5E28):LDY #HI(&5E28):JSR dot_0007
+}
+{
+	;x=155 y=154
+	LDA #LO(&60B0):LDY #HI(&60B0):JSR dot_0302
+}
+RTS
+.dot_circle_33
+{
+	;x=162 y=156
+	LDA #LO(&60C0):LDY #HI(&60C0):JSR dot_0204
+}
+{
+	;x=170 y=154
+	LDA #LO(&60D0):LDY #HI(&60D0):JSR dot_0202
+}
+{
+	;x=177 y=151
+	LDA #LO(&5E60):LDY #HI(&5E60):JSR dot_0107
+}
+{
+	;x=182 y=146
+	LDA #LO(&5E68):LDY #HI(&5E68):JSR dot_0202
+}
+{
+	;x=185 y=139
+	LDA #LO(&5BF0):LDY #HI(&5BF0):JSR dot_0103
+}
+{
+	;x=187 y=131
+	LDA #LO(&5970):LDY #HI(&5970):JSR dot_0303
+}
+{
+	;x=185 y=124
+	LDA #LO(&56F0):LDY #HI(&56F0):JSR dot_0104
+}
+{
+	;x=182 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0205
+}
+{
+	;x=177 y=112
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0100
+}
+{
+	;x=170 y=108
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0204
+}
+{
+	;x=162 y=107
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0203
+}
+{
+	;x=155 y=108
+	LDA #LO(&51B0):LDY #HI(&51B0):JSR dot_0304
+}
+{
+	;x=148 y=112
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0000
+}
+{
+	;x=143 y=117
+	LDA #LO(&5418):LDY #HI(&5418):JSR dot_0305
+}
+{
+	;x=139 y=124
+	LDA #LO(&5690):LDY #HI(&5690):JSR dot_0304
+}
+{
+	;x=138 y=131
+	LDA #LO(&5910):LDY #HI(&5910):JSR dot_0203
+}
+{
+	;x=139 y=139
+	LDA #LO(&5B90):LDY #HI(&5B90):JSR dot_0303
+}
+{
+	;x=143 y=146
+	LDA #LO(&5E18):LDY #HI(&5E18):JSR dot_0302
+}
+{
+	;x=148 y=151
+	LDA #LO(&5E28):LDY #HI(&5E28):JSR dot_0007
+}
+{
+	;x=155 y=154
+	LDA #LO(&60B0):LDY #HI(&60B0):JSR dot_0302
+}
+RTS
+.dot_circle_34
+{
+	;x=162 y=156
+	LDA #LO(&60C0):LDY #HI(&60C0):JSR dot_0204
+}
+{
+	;x=170 y=155
+	LDA #LO(&60D0):LDY #HI(&60D0):JSR dot_0203
+}
+{
+	;x=177 y=151
+	LDA #LO(&5E60):LDY #HI(&5E60):JSR dot_0107
+}
+{
+	;x=182 y=146
+	LDA #LO(&5E68):LDY #HI(&5E68):JSR dot_0202
+}
+{
+	;x=186 y=139
+	LDA #LO(&5BF0):LDY #HI(&5BF0):JSR dot_0203
+}
+{
+	;x=187 y=132
+	LDA #LO(&5970):LDY #HI(&5970):JSR dot_0304
+}
+{
+	;x=186 y=124
+	LDA #LO(&56F0):LDY #HI(&56F0):JSR dot_0204
+}
+{
+	;x=182 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0205
+}
+{
+	;x=177 y=112
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0100
+}
+{
+	;x=170 y=108
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0204
+}
+{
+	;x=162 y=107
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0203
+}
+{
+	;x=155 y=108
+	LDA #LO(&51B0):LDY #HI(&51B0):JSR dot_0304
+}
+{
+	;x=148 y=112
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0000
+}
+{
+	;x=142 y=117
+	LDA #LO(&5418):LDY #HI(&5418):JSR dot_0205
+}
+{
+	;x=139 y=124
+	LDA #LO(&5690):LDY #HI(&5690):JSR dot_0304
+}
+{
+	;x=138 y=132
+	LDA #LO(&5910):LDY #HI(&5910):JSR dot_0204
+}
+{
+	;x=139 y=139
+	LDA #LO(&5B90):LDY #HI(&5B90):JSR dot_0303
+}
+{
+	;x=142 y=146
+	LDA #LO(&5E18):LDY #HI(&5E18):JSR dot_0202
+}
+{
+	;x=148 y=151
+	LDA #LO(&5E28):LDY #HI(&5E28):JSR dot_0007
+}
+{
+	;x=155 y=155
+	LDA #LO(&60B0):LDY #HI(&60B0):JSR dot_0303
+}
+RTS
+.dot_circle_35
+{
+	;x=162 y=156
+	LDA #LO(&60C0):LDY #HI(&60C0):JSR dot_0204
+}
+{
+	;x=170 y=155
+	LDA #LO(&60D0):LDY #HI(&60D0):JSR dot_0203
+}
+{
+	;x=177 y=152
+	LDA #LO(&60E0):LDY #HI(&60E0):JSR dot_0100
+}
+{
+	;x=182 y=146
+	LDA #LO(&5E68):LDY #HI(&5E68):JSR dot_0202
+}
+{
+	;x=186 y=139
+	LDA #LO(&5BF0):LDY #HI(&5BF0):JSR dot_0203
+}
+{
+	;x=187 y=132
+	LDA #LO(&5970):LDY #HI(&5970):JSR dot_0304
+}
+{
+	;x=186 y=124
+	LDA #LO(&56F0):LDY #HI(&56F0):JSR dot_0204
+}
+{
+	;x=182 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0205
+}
+{
+	;x=177 y=112
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0100
+}
+{
+	;x=170 y=108
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0204
+}
+{
+	;x=162 y=107
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0203
+}
+{
+	;x=155 y=108
+	LDA #LO(&51B0):LDY #HI(&51B0):JSR dot_0304
+}
+{
+	;x=148 y=112
+	LDA #LO(&5428):LDY #HI(&5428):JSR dot_0000
+}
+{
+	;x=142 y=117
+	LDA #LO(&5418):LDY #HI(&5418):JSR dot_0205
+}
+{
+	;x=139 y=124
+	LDA #LO(&5690):LDY #HI(&5690):JSR dot_0304
+}
+{
+	;x=137 y=132
+	LDA #LO(&5910):LDY #HI(&5910):JSR dot_0104
+}
+{
+	;x=139 y=139
+	LDA #LO(&5B90):LDY #HI(&5B90):JSR dot_0303
+}
+{
+	;x=142 y=146
+	LDA #LO(&5E18):LDY #HI(&5E18):JSR dot_0202
+}
+{
+	;x=148 y=152
+	LDA #LO(&60A8):LDY #HI(&60A8):JSR dot_0000
+}
+{
+	;x=155 y=155
+	LDA #LO(&60B0):LDY #HI(&60B0):JSR dot_0303
+}
+RTS
+.dot_circle_36
+{
+	;x=162 y=157
+	LDA #LO(&60C0):LDY #HI(&60C0):JSR dot_0205
+}
+{
+	;x=170 y=156
+	LDA #LO(&60D0):LDY #HI(&60D0):JSR dot_0204
+}
+{
+	;x=177 y=152
+	LDA #LO(&60E0):LDY #HI(&60E0):JSR dot_0100
+}
+{
+	;x=182 y=147
+	LDA #LO(&5E68):LDY #HI(&5E68):JSR dot_0203
+}
+{
+	;x=186 y=140
+	LDA #LO(&5BF0):LDY #HI(&5BF0):JSR dot_0204
+}
+{
+	;x=187 y=132
+	LDA #LO(&5970):LDY #HI(&5970):JSR dot_0304
+}
+{
+	;x=186 y=124
+	LDA #LO(&56F0):LDY #HI(&56F0):JSR dot_0204
+}
+{
+	;x=182 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0205
+}
+{
+	;x=177 y=112
+	LDA #LO(&5460):LDY #HI(&5460):JSR dot_0100
+}
+{
+	;x=170 y=108
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0204
+}
+{
+	;x=162 y=107
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0203
+}
+{
+	;x=154 y=108
+	LDA #LO(&51B0):LDY #HI(&51B0):JSR dot_0204
+}
+{
+	;x=147 y=112
+	LDA #LO(&5420):LDY #HI(&5420):JSR dot_0300
+}
+{
+	;x=142 y=117
+	LDA #LO(&5418):LDY #HI(&5418):JSR dot_0205
+}
+{
+	;x=138 y=124
+	LDA #LO(&5690):LDY #HI(&5690):JSR dot_0204
+}
+{
+	;x=137 y=132
+	LDA #LO(&5910):LDY #HI(&5910):JSR dot_0104
+}
+{
+	;x=138 y=140
+	LDA #LO(&5B90):LDY #HI(&5B90):JSR dot_0204
+}
+{
+	;x=142 y=147
+	LDA #LO(&5E18):LDY #HI(&5E18):JSR dot_0203
+}
+{
+	;x=147 y=152
+	LDA #LO(&60A0):LDY #HI(&60A0):JSR dot_0300
+}
+{
+	;x=154 y=156
+	LDA #LO(&60B0):LDY #HI(&60B0):JSR dot_0204
+}
+RTS
+.dot_circle_37
+{
+	;x=162 y=157
+	LDA #LO(&60C0):LDY #HI(&60C0):JSR dot_0205
+}
+{
+	;x=170 y=156
+	LDA #LO(&60D0):LDY #HI(&60D0):JSR dot_0204
+}
+{
+	;x=177 y=152
+	LDA #LO(&60E0):LDY #HI(&60E0):JSR dot_0100
+}
+{
+	;x=183 y=147
+	LDA #LO(&5E68):LDY #HI(&5E68):JSR dot_0303
+}
+{
+	;x=186 y=140
+	LDA #LO(&5BF0):LDY #HI(&5BF0):JSR dot_0204
+}
+{
+	;x=187 y=132
+	LDA #LO(&5970):LDY #HI(&5970):JSR dot_0304
+}
+{
+	;x=186 y=124
+	LDA #LO(&56F0):LDY #HI(&56F0):JSR dot_0204
+}
+{
+	;x=183 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0305
+}
+{
+	;x=177 y=111
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0107
+}
+{
+	;x=170 y=108
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0204
+}
+{
+	;x=162 y=107
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0203
+}
+{
+	;x=154 y=108
+	LDA #LO(&51B0):LDY #HI(&51B0):JSR dot_0204
+}
+{
+	;x=147 y=111
+	LDA #LO(&51A0):LDY #HI(&51A0):JSR dot_0307
+}
+{
+	;x=141 y=117
+	LDA #LO(&5418):LDY #HI(&5418):JSR dot_0105
+}
+{
+	;x=138 y=124
+	LDA #LO(&5690):LDY #HI(&5690):JSR dot_0204
+}
+{
+	;x=137 y=132
+	LDA #LO(&5910):LDY #HI(&5910):JSR dot_0104
+}
+{
+	;x=138 y=140
+	LDA #LO(&5B90):LDY #HI(&5B90):JSR dot_0204
+}
+{
+	;x=141 y=147
+	LDA #LO(&5E18):LDY #HI(&5E18):JSR dot_0103
+}
+{
+	;x=147 y=152
+	LDA #LO(&60A0):LDY #HI(&60A0):JSR dot_0300
+}
+{
+	;x=154 y=156
+	LDA #LO(&60B0):LDY #HI(&60B0):JSR dot_0204
+}
+RTS
+.dot_circle_38
+{
+	;x=162 y=158
+	LDA #LO(&60C0):LDY #HI(&60C0):JSR dot_0206
+}
+{
+	;x=170 y=156
+	LDA #LO(&60D0):LDY #HI(&60D0):JSR dot_0204
+}
+{
+	;x=177 y=153
+	LDA #LO(&60E0):LDY #HI(&60E0):JSR dot_0101
+}
+{
+	;x=183 y=147
+	LDA #LO(&5E68):LDY #HI(&5E68):JSR dot_0303
+}
+{
+	;x=186 y=140
+	LDA #LO(&5BF0):LDY #HI(&5BF0):JSR dot_0204
+}
+{
+	;x=188 y=132
+	LDA #LO(&5978):LDY #HI(&5978):JSR dot_0004
+}
+{
+	;x=186 y=124
+	LDA #LO(&56F0):LDY #HI(&56F0):JSR dot_0204
+}
+{
+	;x=183 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0305
+}
+{
+	;x=177 y=111
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0107
+}
+{
+	;x=170 y=108
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0204
+}
+{
+	;x=162 y=106
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0202
+}
+{
+	;x=154 y=108
+	LDA #LO(&51B0):LDY #HI(&51B0):JSR dot_0204
+}
+{
+	;x=147 y=111
+	LDA #LO(&51A0):LDY #HI(&51A0):JSR dot_0307
+}
+{
+	;x=141 y=117
+	LDA #LO(&5418):LDY #HI(&5418):JSR dot_0105
+}
+{
+	;x=137 y=124
+	LDA #LO(&5690):LDY #HI(&5690):JSR dot_0104
+}
+{
+	;x=136 y=132
+	LDA #LO(&5910):LDY #HI(&5910):JSR dot_0004
+}
+{
+	;x=137 y=140
+	LDA #LO(&5B90):LDY #HI(&5B90):JSR dot_0104
+}
+{
+	;x=141 y=147
+	LDA #LO(&5E18):LDY #HI(&5E18):JSR dot_0103
+}
+{
+	;x=147 y=153
+	LDA #LO(&60A0):LDY #HI(&60A0):JSR dot_0301
+}
+{
+	;x=154 y=156
+	LDA #LO(&60B0):LDY #HI(&60B0):JSR dot_0204
+}
+RTS
+.dot_circle_39
+{
+	;x=162 y=158
+	LDA #LO(&60C0):LDY #HI(&60C0):JSR dot_0206
+}
+{
+	;x=170 y=157
+	LDA #LO(&60D0):LDY #HI(&60D0):JSR dot_0205
+}
+{
+	;x=177 y=153
+	LDA #LO(&60E0):LDY #HI(&60E0):JSR dot_0101
+}
+{
+	;x=183 y=147
+	LDA #LO(&5E68):LDY #HI(&5E68):JSR dot_0303
+}
+{
+	;x=186 y=140
+	LDA #LO(&5BF0):LDY #HI(&5BF0):JSR dot_0204
+}
+{
+	;x=188 y=132
+	LDA #LO(&5978):LDY #HI(&5978):JSR dot_0004
+}
+{
+	;x=186 y=124
+	LDA #LO(&56F0):LDY #HI(&56F0):JSR dot_0204
+}
+{
+	;x=183 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0305
+}
+{
+	;x=177 y=111
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0107
+}
+{
+	;x=170 y=107
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0203
+}
+{
+	;x=162 y=106
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0202
+}
+{
+	;x=154 y=107
+	LDA #LO(&51B0):LDY #HI(&51B0):JSR dot_0203
+}
+{
+	;x=147 y=111
+	LDA #LO(&51A0):LDY #HI(&51A0):JSR dot_0307
+}
+{
+	;x=141 y=117
+	LDA #LO(&5418):LDY #HI(&5418):JSR dot_0105
+}
+{
+	;x=137 y=124
+	LDA #LO(&5690):LDY #HI(&5690):JSR dot_0104
+}
+{
+	;x=136 y=132
+	LDA #LO(&5910):LDY #HI(&5910):JSR dot_0004
+}
+{
+	;x=137 y=140
+	LDA #LO(&5B90):LDY #HI(&5B90):JSR dot_0104
+}
+{
+	;x=141 y=147
+	LDA #LO(&5E18):LDY #HI(&5E18):JSR dot_0103
+}
+{
+	;x=147 y=153
+	LDA #LO(&60A0):LDY #HI(&60A0):JSR dot_0301
+}
+{
+	;x=154 y=157
+	LDA #LO(&60B0):LDY #HI(&60B0):JSR dot_0205
+}
+RTS
+.dot_circle_40
+{
+	;x=162 y=159
+	LDA #LO(&60C0):LDY #HI(&60C0):JSR dot_0207
+}
+{
+	;x=170 y=157
+	LDA #LO(&60D0):LDY #HI(&60D0):JSR dot_0205
+}
+{
+	;x=177 y=154
+	LDA #LO(&60E0):LDY #HI(&60E0):JSR dot_0102
+}
+{
+	;x=183 y=148
+	LDA #LO(&5E68):LDY #HI(&5E68):JSR dot_0304
+}
+{
+	;x=187 y=140
+	LDA #LO(&5BF0):LDY #HI(&5BF0):JSR dot_0304
+}
+{
+	;x=188 y=132
+	LDA #LO(&5978):LDY #HI(&5978):JSR dot_0004
+}
+{
+	;x=187 y=124
+	LDA #LO(&56F0):LDY #HI(&56F0):JSR dot_0304
+}
+{
+	;x=183 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0305
+}
+{
+	;x=177 y=111
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0107
+}
+{
+	;x=170 y=107
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0203
+}
+{
+	;x=162 y=106
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0202
+}
+{
+	;x=154 y=107
+	LDA #LO(&51B0):LDY #HI(&51B0):JSR dot_0203
+}
+{
+	;x=146 y=111
+	LDA #LO(&51A0):LDY #HI(&51A0):JSR dot_0207
+}
+{
+	;x=140 y=117
+	LDA #LO(&5418):LDY #HI(&5418):JSR dot_0005
+}
+{
+	;x=137 y=124
+	LDA #LO(&5690):LDY #HI(&5690):JSR dot_0104
+}
+{
+	;x=135 y=132
+	LDA #LO(&5908):LDY #HI(&5908):JSR dot_0304
+}
+{
+	;x=137 y=140
+	LDA #LO(&5B90):LDY #HI(&5B90):JSR dot_0104
+}
+{
+	;x=140 y=148
+	LDA #LO(&5E18):LDY #HI(&5E18):JSR dot_0004
+}
+{
+	;x=146 y=154
+	LDA #LO(&60A0):LDY #HI(&60A0):JSR dot_0202
+}
+{
+	;x=154 y=157
+	LDA #LO(&60B0):LDY #HI(&60B0):JSR dot_0205
+}
+RTS
+.dot_circle_41
+{
+	;x=162 y=159
+	LDA #LO(&60C0):LDY #HI(&60C0):JSR dot_0207
+}
+{
+	;x=170 y=158
+	LDA #LO(&60D0):LDY #HI(&60D0):JSR dot_0206
+}
+{
+	;x=177 y=154
+	LDA #LO(&60E0):LDY #HI(&60E0):JSR dot_0102
+}
+{
+	;x=183 y=148
+	LDA #LO(&5E68):LDY #HI(&5E68):JSR dot_0304
+}
+{
+	;x=187 y=141
+	LDA #LO(&5BF0):LDY #HI(&5BF0):JSR dot_0305
+}
+{
+	;x=188 y=132
+	LDA #LO(&5978):LDY #HI(&5978):JSR dot_0004
+}
+{
+	;x=187 y=124
+	LDA #LO(&56F0):LDY #HI(&56F0):JSR dot_0304
+}
+{
+	;x=183 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0305
+}
+{
+	;x=177 y=111
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0107
+}
+{
+	;x=170 y=107
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0203
+}
+{
+	;x=162 y=106
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0202
+}
+{
+	;x=153 y=107
+	LDA #LO(&51B0):LDY #HI(&51B0):JSR dot_0103
+}
+{
+	;x=146 y=111
+	LDA #LO(&51A0):LDY #HI(&51A0):JSR dot_0207
+}
+{
+	;x=140 y=117
+	LDA #LO(&5418):LDY #HI(&5418):JSR dot_0005
+}
+{
+	;x=136 y=124
+	LDA #LO(&5690):LDY #HI(&5690):JSR dot_0004
+}
+{
+	;x=135 y=132
+	LDA #LO(&5908):LDY #HI(&5908):JSR dot_0304
+}
+{
+	;x=136 y=141
+	LDA #LO(&5B90):LDY #HI(&5B90):JSR dot_0005
+}
+{
+	;x=140 y=148
+	LDA #LO(&5E18):LDY #HI(&5E18):JSR dot_0004
+}
+{
+	;x=146 y=154
+	LDA #LO(&60A0):LDY #HI(&60A0):JSR dot_0202
+}
+{
+	;x=153 y=158
+	LDA #LO(&60B0):LDY #HI(&60B0):JSR dot_0106
+}
+RTS
+.dot_circle_42
+{
+	;x=161 y=159
+	LDA #LO(&60C0):LDY #HI(&60C0):JSR dot_0107
+}
+{
+	;x=170 y=158
+	LDA #LO(&60D0):LDY #HI(&60D0):JSR dot_0206
+}
+{
+	;x=177 y=154
+	LDA #LO(&60E0):LDY #HI(&60E0):JSR dot_0102
+}
+{
+	;x=183 y=148
+	LDA #LO(&5E68):LDY #HI(&5E68):JSR dot_0304
+}
+{
+	;x=187 y=141
+	LDA #LO(&5BF0):LDY #HI(&5BF0):JSR dot_0305
+}
+{
+	;x=188 y=133
+	LDA #LO(&5978):LDY #HI(&5978):JSR dot_0005
+}
+{
+	;x=187 y=124
+	LDA #LO(&56F0):LDY #HI(&56F0):JSR dot_0304
+}
+{
+	;x=183 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0305
+}
+{
+	;x=177 y=111
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0107
+}
+{
+	;x=170 y=107
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0203
+}
+{
+	;x=161 y=106
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0102
+}
+{
+	;x=153 y=107
+	LDA #LO(&51B0):LDY #HI(&51B0):JSR dot_0103
+}
+{
+	;x=146 y=111
+	LDA #LO(&51A0):LDY #HI(&51A0):JSR dot_0207
+}
+{
+	;x=140 y=117
+	LDA #LO(&5418):LDY #HI(&5418):JSR dot_0005
+}
+{
+	;x=136 y=124
+	LDA #LO(&5690):LDY #HI(&5690):JSR dot_0004
+}
+{
+	;x=135 y=133
+	LDA #LO(&5908):LDY #HI(&5908):JSR dot_0305
+}
+{
+	;x=136 y=141
+	LDA #LO(&5B90):LDY #HI(&5B90):JSR dot_0005
+}
+{
+	;x=140 y=148
+	LDA #LO(&5E18):LDY #HI(&5E18):JSR dot_0004
+}
+{
+	;x=146 y=154
+	LDA #LO(&60A0):LDY #HI(&60A0):JSR dot_0202
+}
+{
+	;x=153 y=158
+	LDA #LO(&60B0):LDY #HI(&60B0):JSR dot_0106
+}
+RTS
+.dot_circle_43
+{
+	;x=161 y=160
+	LDA #LO(&6340):LDY #HI(&6340):JSR dot_0100
+}
+{
+	;x=170 y=159
+	LDA #LO(&60D0):LDY #HI(&60D0):JSR dot_0207
+}
+{
+	;x=177 y=155
+	LDA #LO(&60E0):LDY #HI(&60E0):JSR dot_0103
+}
+{
+	;x=183 y=149
+	LDA #LO(&5E68):LDY #HI(&5E68):JSR dot_0305
+}
+{
+	;x=187 y=141
+	LDA #LO(&5BF0):LDY #HI(&5BF0):JSR dot_0305
+}
+{
+	;x=189 y=133
+	LDA #LO(&5978):LDY #HI(&5978):JSR dot_0105
+}
+{
+	;x=187 y=124
+	LDA #LO(&56F0):LDY #HI(&56F0):JSR dot_0304
+}
+{
+	;x=183 y=117
+	LDA #LO(&5468):LDY #HI(&5468):JSR dot_0305
+}
+{
+	;x=177 y=111
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0107
+}
+{
+	;x=170 y=107
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0203
+}
+{
+	;x=161 y=105
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0101
+}
+{
+	;x=153 y=107
+	LDA #LO(&51B0):LDY #HI(&51B0):JSR dot_0103
+}
+{
+	;x=145 y=111
+	LDA #LO(&51A0):LDY #HI(&51A0):JSR dot_0107
+}
+{
+	;x=139 y=117
+	LDA #LO(&5410):LDY #HI(&5410):JSR dot_0305
+}
+{
+	;x=135 y=124
+	LDA #LO(&5688):LDY #HI(&5688):JSR dot_0304
+}
+{
+	;x=134 y=133
+	LDA #LO(&5908):LDY #HI(&5908):JSR dot_0205
+}
+{
+	;x=135 y=141
+	LDA #LO(&5B88):LDY #HI(&5B88):JSR dot_0305
+}
+{
+	;x=139 y=149
+	LDA #LO(&5E10):LDY #HI(&5E10):JSR dot_0305
+}
+{
+	;x=145 y=155
+	LDA #LO(&60A0):LDY #HI(&60A0):JSR dot_0103
+}
+{
+	;x=153 y=159
+	LDA #LO(&60B0):LDY #HI(&60B0):JSR dot_0107
+}
+RTS
+.dot_circle_44
+{
+	;x=161 y=160
+	LDA #LO(&6340):LDY #HI(&6340):JSR dot_0100
+}
+{
+	;x=170 y=159
+	LDA #LO(&60D0):LDY #HI(&60D0):JSR dot_0207
+}
+{
+	;x=177 y=155
+	LDA #LO(&60E0):LDY #HI(&60E0):JSR dot_0103
+}
+{
+	;x=184 y=149
+	LDA #LO(&5E70):LDY #HI(&5E70):JSR dot_0005
+}
+{
+	;x=187 y=141
+	LDA #LO(&5BF0):LDY #HI(&5BF0):JSR dot_0305
+}
+{
+	;x=189 y=133
+	LDA #LO(&5978):LDY #HI(&5978):JSR dot_0105
+}
+{
+	;x=187 y=124
+	LDA #LO(&56F0):LDY #HI(&56F0):JSR dot_0304
+}
+{
+	;x=184 y=117
+	LDA #LO(&5470):LDY #HI(&5470):JSR dot_0005
+}
+{
+	;x=177 y=110
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0106
+}
+{
+	;x=170 y=107
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0203
+}
+{
+	;x=161 y=105
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0101
+}
+{
+	;x=153 y=107
+	LDA #LO(&51B0):LDY #HI(&51B0):JSR dot_0103
+}
+{
+	;x=145 y=110
+	LDA #LO(&51A0):LDY #HI(&51A0):JSR dot_0106
+}
+{
+	;x=139 y=117
+	LDA #LO(&5410):LDY #HI(&5410):JSR dot_0305
+}
+{
+	;x=135 y=124
+	LDA #LO(&5688):LDY #HI(&5688):JSR dot_0304
+}
+{
+	;x=134 y=133
+	LDA #LO(&5908):LDY #HI(&5908):JSR dot_0205
+}
+{
+	;x=135 y=141
+	LDA #LO(&5B88):LDY #HI(&5B88):JSR dot_0305
+}
+{
+	;x=139 y=149
+	LDA #LO(&5E10):LDY #HI(&5E10):JSR dot_0305
+}
+{
+	;x=145 y=155
+	LDA #LO(&60A0):LDY #HI(&60A0):JSR dot_0103
+}
+{
+	;x=153 y=159
+	LDA #LO(&60B0):LDY #HI(&60B0):JSR dot_0107
+}
+RTS
+.dot_circle_45
+{
+	;x=161 y=161
+	LDA #LO(&6340):LDY #HI(&6340):JSR dot_0101
+}
+{
+	;x=170 y=159
+	LDA #LO(&60D0):LDY #HI(&60D0):JSR dot_0207
+}
+{
+	;x=177 y=155
+	LDA #LO(&60E0):LDY #HI(&60E0):JSR dot_0103
+}
+{
+	;x=184 y=149
+	LDA #LO(&5E70):LDY #HI(&5E70):JSR dot_0005
+}
+{
+	;x=188 y=141
+	LDA #LO(&5BF8):LDY #HI(&5BF8):JSR dot_0005
+}
+{
+	;x=189 y=133
+	LDA #LO(&5978):LDY #HI(&5978):JSR dot_0105
+}
+{
+	;x=188 y=124
+	LDA #LO(&56F8):LDY #HI(&56F8):JSR dot_0004
+}
+{
+	;x=184 y=116
+	LDA #LO(&5470):LDY #HI(&5470):JSR dot_0004
+}
+{
+	;x=177 y=110
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0106
+}
+{
+	;x=170 y=106
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0202
+}
+{
+	;x=161 y=105
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0101
+}
+{
+	;x=152 y=106
+	LDA #LO(&51B0):LDY #HI(&51B0):JSR dot_0002
+}
+{
+	;x=145 y=110
+	LDA #LO(&51A0):LDY #HI(&51A0):JSR dot_0106
+}
+{
+	;x=138 y=116
+	LDA #LO(&5410):LDY #HI(&5410):JSR dot_0204
+}
+{
+	;x=135 y=124
+	LDA #LO(&5688):LDY #HI(&5688):JSR dot_0304
+}
+{
+	;x=133 y=133
+	LDA #LO(&5908):LDY #HI(&5908):JSR dot_0105
+}
+{
+	;x=135 y=141
+	LDA #LO(&5B88):LDY #HI(&5B88):JSR dot_0305
+}
+{
+	;x=138 y=149
+	LDA #LO(&5E10):LDY #HI(&5E10):JSR dot_0205
+}
+{
+	;x=145 y=155
+	LDA #LO(&60A0):LDY #HI(&60A0):JSR dot_0103
+}
+{
+	;x=152 y=159
+	LDA #LO(&60B0):LDY #HI(&60B0):JSR dot_0007
+}
+RTS
+.dot_circle_46
+{
+	;x=161 y=161
+	LDA #LO(&6340):LDY #HI(&6340):JSR dot_0101
+}
+{
+	;x=170 y=160
+	LDA #LO(&6350):LDY #HI(&6350):JSR dot_0200
+}
+{
+	;x=178 y=156
+	LDA #LO(&60E0):LDY #HI(&60E0):JSR dot_0204
+}
+{
+	;x=184 y=150
+	LDA #LO(&5E70):LDY #HI(&5E70):JSR dot_0006
+}
+{
+	;x=188 y=142
+	LDA #LO(&5BF8):LDY #HI(&5BF8):JSR dot_0006
+}
+{
+	;x=189 y=133
+	LDA #LO(&5978):LDY #HI(&5978):JSR dot_0105
+}
+{
+	;x=188 y=124
+	LDA #LO(&56F8):LDY #HI(&56F8):JSR dot_0004
+}
+{
+	;x=184 y=116
+	LDA #LO(&5470):LDY #HI(&5470):JSR dot_0004
+}
+{
+	;x=178 y=110
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0206
+}
+{
+	;x=170 y=106
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0202
+}
+{
+	;x=161 y=105
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0101
+}
+{
+	;x=152 y=106
+	LDA #LO(&51B0):LDY #HI(&51B0):JSR dot_0002
+}
+{
+	;x=144 y=110
+	LDA #LO(&51A0):LDY #HI(&51A0):JSR dot_0006
+}
+{
+	;x=138 y=116
+	LDA #LO(&5410):LDY #HI(&5410):JSR dot_0204
+}
+{
+	;x=134 y=124
+	LDA #LO(&5688):LDY #HI(&5688):JSR dot_0204
+}
+{
+	;x=133 y=133
+	LDA #LO(&5908):LDY #HI(&5908):JSR dot_0105
+}
+{
+	;x=134 y=142
+	LDA #LO(&5B88):LDY #HI(&5B88):JSR dot_0206
+}
+{
+	;x=138 y=150
+	LDA #LO(&5E10):LDY #HI(&5E10):JSR dot_0206
+}
+{
+	;x=144 y=156
+	LDA #LO(&60A0):LDY #HI(&60A0):JSR dot_0004
+}
+{
+	;x=152 y=160
+	LDA #LO(&6330):LDY #HI(&6330):JSR dot_0000
+}
+RTS
+.dot_circle_47
+{
+	;x=161 y=162
+	LDA #LO(&6340):LDY #HI(&6340):JSR dot_0102
+}
+{
+	;x=170 y=160
+	LDA #LO(&6350):LDY #HI(&6350):JSR dot_0200
+}
+{
+	;x=178 y=156
+	LDA #LO(&60E0):LDY #HI(&60E0):JSR dot_0204
+}
+{
+	;x=184 y=150
+	LDA #LO(&5E70):LDY #HI(&5E70):JSR dot_0006
+}
+{
+	;x=188 y=142
+	LDA #LO(&5BF8):LDY #HI(&5BF8):JSR dot_0006
+}
+{
+	;x=189 y=133
+	LDA #LO(&5978):LDY #HI(&5978):JSR dot_0105
+}
+{
+	;x=188 y=124
+	LDA #LO(&56F8):LDY #HI(&56F8):JSR dot_0004
+}
+{
+	;x=184 y=116
+	LDA #LO(&5470):LDY #HI(&5470):JSR dot_0004
+}
+{
+	;x=178 y=110
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0206
+}
+{
+	;x=170 y=106
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0202
+}
+{
+	;x=161 y=104
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0100
+}
+{
+	;x=152 y=106
+	LDA #LO(&51B0):LDY #HI(&51B0):JSR dot_0002
+}
+{
+	;x=144 y=110
+	LDA #LO(&51A0):LDY #HI(&51A0):JSR dot_0006
+}
+{
+	;x=138 y=116
+	LDA #LO(&5410):LDY #HI(&5410):JSR dot_0204
+}
+{
+	;x=134 y=124
+	LDA #LO(&5688):LDY #HI(&5688):JSR dot_0204
+}
+{
+	;x=132 y=133
+	LDA #LO(&5908):LDY #HI(&5908):JSR dot_0005
+}
+{
+	;x=134 y=142
+	LDA #LO(&5B88):LDY #HI(&5B88):JSR dot_0206
+}
+{
+	;x=138 y=150
+	LDA #LO(&5E10):LDY #HI(&5E10):JSR dot_0206
+}
+{
+	;x=144 y=156
+	LDA #LO(&60A0):LDY #HI(&60A0):JSR dot_0004
+}
+{
+	;x=152 y=160
+	LDA #LO(&6330):LDY #HI(&6330):JSR dot_0000
+}
+RTS
+.dot_circle_48
+{
+	;x=161 y=162
+	LDA #LO(&6340):LDY #HI(&6340):JSR dot_0102
+}
+{
+	;x=170 y=161
+	LDA #LO(&6350):LDY #HI(&6350):JSR dot_0201
+}
+{
+	;x=178 y=157
+	LDA #LO(&60E0):LDY #HI(&60E0):JSR dot_0205
+}
+{
+	;x=184 y=150
+	LDA #LO(&5E70):LDY #HI(&5E70):JSR dot_0006
+}
+{
+	;x=188 y=142
+	LDA #LO(&5BF8):LDY #HI(&5BF8):JSR dot_0006
+}
+{
+	;x=190 y=133
+	LDA #LO(&5978):LDY #HI(&5978):JSR dot_0205
+}
+{
+	;x=188 y=124
+	LDA #LO(&56F8):LDY #HI(&56F8):JSR dot_0004
+}
+{
+	;x=184 y=116
+	LDA #LO(&5470):LDY #HI(&5470):JSR dot_0004
+}
+{
+	;x=178 y=110
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0206
+}
+{
+	;x=170 y=106
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0202
+}
+{
+	;x=161 y=104
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0100
+}
+{
+	;x=152 y=106
+	LDA #LO(&51B0):LDY #HI(&51B0):JSR dot_0002
+}
+{
+	;x=144 y=110
+	LDA #LO(&51A0):LDY #HI(&51A0):JSR dot_0006
+}
+{
+	;x=137 y=116
+	LDA #LO(&5410):LDY #HI(&5410):JSR dot_0104
+}
+{
+	;x=133 y=124
+	LDA #LO(&5688):LDY #HI(&5688):JSR dot_0104
+}
+{
+	;x=132 y=133
+	LDA #LO(&5908):LDY #HI(&5908):JSR dot_0005
+}
+{
+	;x=133 y=142
+	LDA #LO(&5B88):LDY #HI(&5B88):JSR dot_0106
+}
+{
+	;x=137 y=150
+	LDA #LO(&5E10):LDY #HI(&5E10):JSR dot_0106
+}
+{
+	;x=144 y=157
+	LDA #LO(&60A0):LDY #HI(&60A0):JSR dot_0005
+}
+{
+	;x=152 y=161
+	LDA #LO(&6330):LDY #HI(&6330):JSR dot_0001
+}
+RTS
+.dot_circle_49
+{
+	;x=161 y=163
+	LDA #LO(&6340):LDY #HI(&6340):JSR dot_0103
+}
+{
+	;x=170 y=161
+	LDA #LO(&6350):LDY #HI(&6350):JSR dot_0201
+}
+{
+	;x=178 y=157
+	LDA #LO(&60E0):LDY #HI(&60E0):JSR dot_0205
+}
+{
+	;x=184 y=151
+	LDA #LO(&5E70):LDY #HI(&5E70):JSR dot_0007
+}
+{
+	;x=188 y=142
+	LDA #LO(&5BF8):LDY #HI(&5BF8):JSR dot_0006
+}
+{
+	;x=190 y=133
+	LDA #LO(&5978):LDY #HI(&5978):JSR dot_0205
+}
+{
+	;x=188 y=124
+	LDA #LO(&56F8):LDY #HI(&56F8):JSR dot_0004
+}
+{
+	;x=184 y=116
+	LDA #LO(&5470):LDY #HI(&5470):JSR dot_0004
+}
+{
+	;x=178 y=109
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0205
+}
+{
+	;x=170 y=105
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0201
+}
+{
+	;x=161 y=104
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0100
+}
+{
+	;x=151 y=105
+	LDA #LO(&51A8):LDY #HI(&51A8):JSR dot_0301
+}
+{
+	;x=143 y=109
+	LDA #LO(&5198):LDY #HI(&5198):JSR dot_0305
+}
+{
+	;x=137 y=116
+	LDA #LO(&5410):LDY #HI(&5410):JSR dot_0104
+}
+{
+	;x=133 y=124
+	LDA #LO(&5688):LDY #HI(&5688):JSR dot_0104
+}
+{
+	;x=131 y=133
+	LDA #LO(&5900):LDY #HI(&5900):JSR dot_0305
+}
+{
+	;x=133 y=142
+	LDA #LO(&5B88):LDY #HI(&5B88):JSR dot_0106
+}
+{
+	;x=137 y=151
+	LDA #LO(&5E10):LDY #HI(&5E10):JSR dot_0107
+}
+{
+	;x=143 y=157
+	LDA #LO(&6098):LDY #HI(&6098):JSR dot_0305
+}
+{
+	;x=151 y=161
+	LDA #LO(&6328):LDY #HI(&6328):JSR dot_0301
+}
+RTS
+.dot_circle_50
+{
+	;x=160 y=163
+	LDA #LO(&6340):LDY #HI(&6340):JSR dot_0003
+}
+{
+	;x=170 y=162
+	LDA #LO(&6350):LDY #HI(&6350):JSR dot_0202
+}
+{
+	;x=178 y=158
+	LDA #LO(&60E0):LDY #HI(&60E0):JSR dot_0206
+}
+{
+	;x=184 y=151
+	LDA #LO(&5E70):LDY #HI(&5E70):JSR dot_0007
+}
+{
+	;x=189 y=143
+	LDA #LO(&5BF8):LDY #HI(&5BF8):JSR dot_0107
+}
+{
+	;x=190 y=133
+	LDA #LO(&5978):LDY #HI(&5978):JSR dot_0205
+}
+{
+	;x=189 y=124
+	LDA #LO(&56F8):LDY #HI(&56F8):JSR dot_0104
+}
+{
+	;x=184 y=116
+	LDA #LO(&5470):LDY #HI(&5470):JSR dot_0004
+}
+{
+	;x=178 y=109
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0205
+}
+{
+	;x=170 y=105
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0201
+}
+{
+	;x=160 y=104
+	LDA #LO(&51C0):LDY #HI(&51C0):JSR dot_0000
+}
+{
+	;x=151 y=105
+	LDA #LO(&51A8):LDY #HI(&51A8):JSR dot_0301
+}
+{
+	;x=143 y=109
+	LDA #LO(&5198):LDY #HI(&5198):JSR dot_0305
+}
+{
+	;x=136 y=116
+	LDA #LO(&5410):LDY #HI(&5410):JSR dot_0004
+}
+{
+	;x=132 y=124
+	LDA #LO(&5688):LDY #HI(&5688):JSR dot_0004
+}
+{
+	;x=131 y=133
+	LDA #LO(&5900):LDY #HI(&5900):JSR dot_0305
+}
+{
+	;x=132 y=143
+	LDA #LO(&5B88):LDY #HI(&5B88):JSR dot_0007
+}
+{
+	;x=136 y=151
+	LDA #LO(&5E10):LDY #HI(&5E10):JSR dot_0007
+}
+{
+	;x=143 y=158
+	LDA #LO(&6098):LDY #HI(&6098):JSR dot_0306
+}
+{
+	;x=151 y=162
+	LDA #LO(&6328):LDY #HI(&6328):JSR dot_0302
+}
+RTS
+.dot_circle_51
+{
+	;x=160 y=164
+	LDA #LO(&6340):LDY #HI(&6340):JSR dot_0004
+}
+{
+	;x=170 y=162
+	LDA #LO(&6350):LDY #HI(&6350):JSR dot_0202
+}
+{
+	;x=178 y=158
+	LDA #LO(&60E0):LDY #HI(&60E0):JSR dot_0206
+}
+{
+	;x=185 y=151
+	LDA #LO(&5E70):LDY #HI(&5E70):JSR dot_0107
+}
+{
+	;x=189 y=143
+	LDA #LO(&5BF8):LDY #HI(&5BF8):JSR dot_0107
+}
+{
+	;x=190 y=134
+	LDA #LO(&5978):LDY #HI(&5978):JSR dot_0206
+}
+{
+	;x=189 y=124
+	LDA #LO(&56F8):LDY #HI(&56F8):JSR dot_0104
+}
+{
+	;x=185 y=116
+	LDA #LO(&5470):LDY #HI(&5470):JSR dot_0104
+}
+{
+	;x=178 y=109
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0205
+}
+{
+	;x=170 y=105
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0201
+}
+{
+	;x=160 y=103
+	LDA #LO(&4F40):LDY #HI(&4F40):JSR dot_0007
+}
+{
+	;x=151 y=105
+	LDA #LO(&51A8):LDY #HI(&51A8):JSR dot_0301
+}
+{
+	;x=142 y=109
+	LDA #LO(&5198):LDY #HI(&5198):JSR dot_0205
+}
+{
+	;x=136 y=116
+	LDA #LO(&5410):LDY #HI(&5410):JSR dot_0004
+}
+{
+	;x=131 y=124
+	LDA #LO(&5680):LDY #HI(&5680):JSR dot_0304
+}
+{
+	;x=130 y=134
+	LDA #LO(&5900):LDY #HI(&5900):JSR dot_0206
+}
+{
+	;x=131 y=143
+	LDA #LO(&5B80):LDY #HI(&5B80):JSR dot_0307
+}
+{
+	;x=136 y=151
+	LDA #LO(&5E10):LDY #HI(&5E10):JSR dot_0007
+}
+{
+	;x=142 y=158
+	LDA #LO(&6098):LDY #HI(&6098):JSR dot_0206
+}
+{
+	;x=151 y=162
+	LDA #LO(&6328):LDY #HI(&6328):JSR dot_0302
+}
+RTS
+.dot_circle_52
+{
+	;x=160 y=164
+	LDA #LO(&6340):LDY #HI(&6340):JSR dot_0004
+}
+{
+	;x=169 y=163
+	LDA #LO(&6350):LDY #HI(&6350):JSR dot_0103
+}
+{
+	;x=178 y=158
+	LDA #LO(&60E0):LDY #HI(&60E0):JSR dot_0206
+}
+{
+	;x=185 y=152
+	LDA #LO(&60F0):LDY #HI(&60F0):JSR dot_0100
+}
+{
+	;x=189 y=143
+	LDA #LO(&5BF8):LDY #HI(&5BF8):JSR dot_0107
+}
+{
+	;x=191 y=134
+	LDA #LO(&5978):LDY #HI(&5978):JSR dot_0306
+}
+{
+	;x=189 y=124
+	LDA #LO(&56F8):LDY #HI(&56F8):JSR dot_0104
+}
+{
+	;x=185 y=116
+	LDA #LO(&5470):LDY #HI(&5470):JSR dot_0104
+}
+{
+	;x=178 y=109
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0205
+}
+{
+	;x=169 y=104
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0100
+}
+{
+	;x=160 y=103
+	LDA #LO(&4F40):LDY #HI(&4F40):JSR dot_0007
+}
+{
+	;x=151 y=104
+	LDA #LO(&51A8):LDY #HI(&51A8):JSR dot_0300
+}
+{
+	;x=142 y=109
+	LDA #LO(&5198):LDY #HI(&5198):JSR dot_0205
+}
+{
+	;x=135 y=116
+	LDA #LO(&5408):LDY #HI(&5408):JSR dot_0304
+}
+{
+	;x=131 y=124
+	LDA #LO(&5680):LDY #HI(&5680):JSR dot_0304
+}
+{
+	;x=129 y=134
+	LDA #LO(&5900):LDY #HI(&5900):JSR dot_0106
+}
+{
+	;x=131 y=143
+	LDA #LO(&5B80):LDY #HI(&5B80):JSR dot_0307
+}
+{
+	;x=135 y=152
+	LDA #LO(&6088):LDY #HI(&6088):JSR dot_0300
+}
+{
+	;x=142 y=158
+	LDA #LO(&6098):LDY #HI(&6098):JSR dot_0206
+}
+{
+	;x=151 y=163
+	LDA #LO(&6328):LDY #HI(&6328):JSR dot_0303
+}
+RTS
+.dot_circle_53
+{
+	;x=160 y=165
+	LDA #LO(&6340):LDY #HI(&6340):JSR dot_0005
+}
+{
+	;x=169 y=163
+	LDA #LO(&6350):LDY #HI(&6350):JSR dot_0103
+}
+{
+	;x=178 y=159
+	LDA #LO(&60E0):LDY #HI(&60E0):JSR dot_0207
+}
+{
+	;x=185 y=152
+	LDA #LO(&60F0):LDY #HI(&60F0):JSR dot_0100
+}
+{
+	;x=189 y=143
+	LDA #LO(&5BF8):LDY #HI(&5BF8):JSR dot_0107
+}
+{
+	;x=191 y=134
+	LDA #LO(&5978):LDY #HI(&5978):JSR dot_0306
+}
+{
+	;x=189 y=124
+	LDA #LO(&56F8):LDY #HI(&56F8):JSR dot_0104
+}
+{
+	;x=185 y=115
+	LDA #LO(&5470):LDY #HI(&5470):JSR dot_0103
+}
+{
+	;x=178 y=109
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0205
+}
+{
+	;x=169 y=104
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0100
+}
+{
+	;x=160 y=103
+	LDA #LO(&4F40):LDY #HI(&4F40):JSR dot_0007
+}
+{
+	;x=150 y=104
+	LDA #LO(&51A8):LDY #HI(&51A8):JSR dot_0200
+}
+{
+	;x=142 y=109
+	LDA #LO(&5198):LDY #HI(&5198):JSR dot_0205
+}
+{
+	;x=135 y=115
+	LDA #LO(&5408):LDY #HI(&5408):JSR dot_0303
+}
+{
+	;x=130 y=124
+	LDA #LO(&5680):LDY #HI(&5680):JSR dot_0204
+}
+{
+	;x=129 y=134
+	LDA #LO(&5900):LDY #HI(&5900):JSR dot_0106
+}
+{
+	;x=130 y=143
+	LDA #LO(&5B80):LDY #HI(&5B80):JSR dot_0207
+}
+{
+	;x=135 y=152
+	LDA #LO(&6088):LDY #HI(&6088):JSR dot_0300
+}
+{
+	;x=142 y=159
+	LDA #LO(&6098):LDY #HI(&6098):JSR dot_0207
+}
+{
+	;x=150 y=163
+	LDA #LO(&6328):LDY #HI(&6328):JSR dot_0203
+}
+RTS
+.dot_circle_54
+{
+	;x=160 y=165
+	LDA #LO(&6340):LDY #HI(&6340):JSR dot_0005
+}
+{
+	;x=169 y=164
+	LDA #LO(&6350):LDY #HI(&6350):JSR dot_0104
+}
+{
+	;x=178 y=159
+	LDA #LO(&60E0):LDY #HI(&60E0):JSR dot_0207
+}
+{
+	;x=185 y=152
+	LDA #LO(&60F0):LDY #HI(&60F0):JSR dot_0100
+}
+{
+	;x=190 y=144
+	LDA #LO(&5E78):LDY #HI(&5E78):JSR dot_0200
+}
+{
+	;x=191 y=134
+	LDA #LO(&5978):LDY #HI(&5978):JSR dot_0306
+}
+{
+	;x=190 y=124
+	LDA #LO(&56F8):LDY #HI(&56F8):JSR dot_0204
+}
+{
+	;x=185 y=115
+	LDA #LO(&5470):LDY #HI(&5470):JSR dot_0103
+}
+{
+	;x=178 y=108
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0204
+}
+{
+	;x=169 y=104
+	LDA #LO(&51D0):LDY #HI(&51D0):JSR dot_0100
+}
+{
+	;x=160 y=102
+	LDA #LO(&4F40):LDY #HI(&4F40):JSR dot_0006
+}
+{
+	;x=150 y=104
+	LDA #LO(&51A8):LDY #HI(&51A8):JSR dot_0200
+}
+{
+	;x=141 y=108
+	LDA #LO(&5198):LDY #HI(&5198):JSR dot_0104
+}
+{
+	;x=134 y=115
+	LDA #LO(&5408):LDY #HI(&5408):JSR dot_0203
+}
+{
+	;x=130 y=124
+	LDA #LO(&5680):LDY #HI(&5680):JSR dot_0204
+}
+{
+	;x=128 y=134
+	LDA #LO(&5900):LDY #HI(&5900):JSR dot_0006
+}
+{
+	;x=130 y=144
+	LDA #LO(&5E00):LDY #HI(&5E00):JSR dot_0200
+}
+{
+	;x=134 y=152
+	LDA #LO(&6088):LDY #HI(&6088):JSR dot_0200
+}
+{
+	;x=141 y=159
+	LDA #LO(&6098):LDY #HI(&6098):JSR dot_0107
+}
+{
+	;x=150 y=164
+	LDA #LO(&6328):LDY #HI(&6328):JSR dot_0204
+}
+RTS
+.dot_circle_55
+{
+	;x=160 y=166
+	LDA #LO(&6340):LDY #HI(&6340):JSR dot_0006
+}
+{
+	;x=169 y=164
+	LDA #LO(&6350):LDY #HI(&6350):JSR dot_0104
+}
+{
+	;x=178 y=160
+	LDA #LO(&6360):LDY #HI(&6360):JSR dot_0200
+}
+{
+	;x=185 y=153
+	LDA #LO(&60F0):LDY #HI(&60F0):JSR dot_0101
+}
+{
+	;x=190 y=144
+	LDA #LO(&5E78):LDY #HI(&5E78):JSR dot_0200
+}
+{
+	;x=192 y=134
+	LDA #LO(&5980):LDY #HI(&5980):JSR dot_0006
+}
+{
+	;x=190 y=124
+	LDA #LO(&56F8):LDY #HI(&56F8):JSR dot_0204
+}
+{
+	;x=185 y=115
+	LDA #LO(&5470):LDY #HI(&5470):JSR dot_0103
+}
+{
+	;x=178 y=108
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0204
+}
+{
+	;x=169 y=103
+	LDA #LO(&4F50):LDY #HI(&4F50):JSR dot_0107
+}
+{
+	;x=160 y=102
+	LDA #LO(&4F40):LDY #HI(&4F40):JSR dot_0006
+}
+{
+	;x=150 y=103
+	LDA #LO(&4F28):LDY #HI(&4F28):JSR dot_0207
+}
+{
+	;x=141 y=108
+	LDA #LO(&5198):LDY #HI(&5198):JSR dot_0104
+}
+{
+	;x=134 y=115
+	LDA #LO(&5408):LDY #HI(&5408):JSR dot_0203
+}
+{
+	;x=129 y=124
+	LDA #LO(&5680):LDY #HI(&5680):JSR dot_0104
+}
+{
+	;x=128 y=134
+	LDA #LO(&5900):LDY #HI(&5900):JSR dot_0006
+}
+{
+	;x=129 y=144
+	LDA #LO(&5E00):LDY #HI(&5E00):JSR dot_0100
+}
+{
+	;x=134 y=153
+	LDA #LO(&6088):LDY #HI(&6088):JSR dot_0201
+}
+{
+	;x=141 y=160
+	LDA #LO(&6318):LDY #HI(&6318):JSR dot_0100
+}
+{
+	;x=150 y=164
+	LDA #LO(&6328):LDY #HI(&6328):JSR dot_0204
+}
+RTS
+.dot_circle_56
+{
+	;x=159 y=166
+	LDA #LO(&6338):LDY #HI(&6338):JSR dot_0306
+}
+{
+	;x=169 y=165
+	LDA #LO(&6350):LDY #HI(&6350):JSR dot_0105
+}
+{
+	;x=178 y=160
+	LDA #LO(&6360):LDY #HI(&6360):JSR dot_0200
+}
+{
+	;x=186 y=153
+	LDA #LO(&60F0):LDY #HI(&60F0):JSR dot_0201
+}
+{
+	;x=190 y=144
+	LDA #LO(&5E78):LDY #HI(&5E78):JSR dot_0200
+}
+{
+	;x=192 y=134
+	LDA #LO(&5980):LDY #HI(&5980):JSR dot_0006
+}
+{
+	;x=190 y=124
+	LDA #LO(&56F8):LDY #HI(&56F8):JSR dot_0204
+}
+{
+	;x=186 y=115
+	LDA #LO(&5470):LDY #HI(&5470):JSR dot_0203
+}
+{
+	;x=178 y=108
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0204
+}
+{
+	;x=169 y=103
+	LDA #LO(&4F50):LDY #HI(&4F50):JSR dot_0107
+}
+{
+	;x=159 y=102
+	LDA #LO(&4F38):LDY #HI(&4F38):JSR dot_0306
+}
+{
+	;x=149 y=103
+	LDA #LO(&4F28):LDY #HI(&4F28):JSR dot_0107
+}
+{
+	;x=140 y=108
+	LDA #LO(&5198):LDY #HI(&5198):JSR dot_0004
+}
+{
+	;x=133 y=115
+	LDA #LO(&5408):LDY #HI(&5408):JSR dot_0103
+}
+{
+	;x=128 y=124
+	LDA #LO(&5680):LDY #HI(&5680):JSR dot_0004
+}
+{
+	;x=127 y=134
+	LDA #LO(&58F8):LDY #HI(&58F8):JSR dot_0306
+}
+{
+	;x=128 y=144
+	LDA #LO(&5E00):LDY #HI(&5E00):JSR dot_0000
+}
+{
+	;x=133 y=153
+	LDA #LO(&6088):LDY #HI(&6088):JSR dot_0101
+}
+{
+	;x=140 y=160
+	LDA #LO(&6318):LDY #HI(&6318):JSR dot_0000
+}
+{
+	;x=149 y=165
+	LDA #LO(&6328):LDY #HI(&6328):JSR dot_0105
+}
+RTS
+.dot_circle_57
+{
+	;x=159 y=167
+	LDA #LO(&6338):LDY #HI(&6338):JSR dot_0307
+}
+{
+	;x=169 y=165
+	LDA #LO(&6350):LDY #HI(&6350):JSR dot_0105
+}
+{
+	;x=178 y=161
+	LDA #LO(&6360):LDY #HI(&6360):JSR dot_0201
+}
+{
+	;x=186 y=153
+	LDA #LO(&60F0):LDY #HI(&60F0):JSR dot_0201
+}
+{
+	;x=190 y=144
+	LDA #LO(&5E78):LDY #HI(&5E78):JSR dot_0200
+}
+{
+	;x=192 y=134
+	LDA #LO(&5980):LDY #HI(&5980):JSR dot_0006
+}
+{
+	;x=190 y=124
+	LDA #LO(&56F8):LDY #HI(&56F8):JSR dot_0204
+}
+{
+	;x=186 y=115
+	LDA #LO(&5470):LDY #HI(&5470):JSR dot_0203
+}
+{
+	;x=178 y=107
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0203
+}
+{
+	;x=169 y=103
+	LDA #LO(&4F50):LDY #HI(&4F50):JSR dot_0107
+}
+{
+	;x=159 y=101
+	LDA #LO(&4F38):LDY #HI(&4F38):JSR dot_0305
+}
+{
+	;x=149 y=103
+	LDA #LO(&4F28):LDY #HI(&4F28):JSR dot_0107
+}
+{
+	;x=140 y=107
+	LDA #LO(&5198):LDY #HI(&5198):JSR dot_0003
+}
+{
+	;x=132 y=115
+	LDA #LO(&5408):LDY #HI(&5408):JSR dot_0003
+}
+{
+	;x=128 y=124
+	LDA #LO(&5680):LDY #HI(&5680):JSR dot_0004
+}
+{
+	;x=126 y=134
+	LDA #LO(&58F8):LDY #HI(&58F8):JSR dot_0206
+}
+{
+	;x=128 y=144
+	LDA #LO(&5E00):LDY #HI(&5E00):JSR dot_0000
+}
+{
+	;x=132 y=153
+	LDA #LO(&6088):LDY #HI(&6088):JSR dot_0001
+}
+{
+	;x=140 y=161
+	LDA #LO(&6318):LDY #HI(&6318):JSR dot_0001
+}
+{
+	;x=149 y=165
+	LDA #LO(&6328):LDY #HI(&6328):JSR dot_0105
+}
+RTS
+.dot_circle_58
+{
+	;x=159 y=168
+	LDA #LO(&65B8):LDY #HI(&65B8):JSR dot_0300
+}
+{
+	;x=169 y=166
+	LDA #LO(&6350):LDY #HI(&6350):JSR dot_0106
+}
+{
+	;x=179 y=161
+	LDA #LO(&6360):LDY #HI(&6360):JSR dot_0301
+}
+{
+	;x=186 y=154
+	LDA #LO(&60F0):LDY #HI(&60F0):JSR dot_0202
+}
+{
+	;x=191 y=145
+	LDA #LO(&5E78):LDY #HI(&5E78):JSR dot_0301
+}
+{
+	;x=192 y=134
+	LDA #LO(&5980):LDY #HI(&5980):JSR dot_0006
+}
+{
+	;x=191 y=124
+	LDA #LO(&56F8):LDY #HI(&56F8):JSR dot_0304
+}
+{
+	;x=186 y=115
+	LDA #LO(&5470):LDY #HI(&5470):JSR dot_0203
+}
+{
+	;x=179 y=107
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0303
+}
+{
+	;x=169 y=102
+	LDA #LO(&4F50):LDY #HI(&4F50):JSR dot_0106
+}
+{
+	;x=159 y=101
+	LDA #LO(&4F38):LDY #HI(&4F38):JSR dot_0305
+}
+{
+	;x=149 y=102
+	LDA #LO(&4F28):LDY #HI(&4F28):JSR dot_0106
+}
+{
+	;x=139 y=107
+	LDA #LO(&5190):LDY #HI(&5190):JSR dot_0303
+}
+{
+	;x=132 y=115
+	LDA #LO(&5408):LDY #HI(&5408):JSR dot_0003
+}
+{
+	;x=127 y=124
+	LDA #LO(&5678):LDY #HI(&5678):JSR dot_0304
+}
+{
+	;x=125 y=134
+	LDA #LO(&58F8):LDY #HI(&58F8):JSR dot_0106
+}
+{
+	;x=127 y=145
+	LDA #LO(&5DF8):LDY #HI(&5DF8):JSR dot_0301
+}
+{
+	;x=132 y=154
+	LDA #LO(&6088):LDY #HI(&6088):JSR dot_0002
+}
+{
+	;x=139 y=161
+	LDA #LO(&6310):LDY #HI(&6310):JSR dot_0301
+}
+{
+	;x=149 y=166
+	LDA #LO(&6328):LDY #HI(&6328):JSR dot_0106
+}
+RTS
+.dot_circle_59
+{
+	;x=159 y=168
+	LDA #LO(&65B8):LDY #HI(&65B8):JSR dot_0300
+}
+{
+	;x=169 y=167
+	LDA #LO(&6350):LDY #HI(&6350):JSR dot_0107
+}
+{
+	;x=179 y=162
+	LDA #LO(&6360):LDY #HI(&6360):JSR dot_0302
+}
+{
+	;x=186 y=154
+	LDA #LO(&60F0):LDY #HI(&60F0):JSR dot_0202
+}
+{
+	;x=191 y=145
+	LDA #LO(&5E78):LDY #HI(&5E78):JSR dot_0301
+}
+{
+	;x=193 y=134
+	LDA #LO(&5980):LDY #HI(&5980):JSR dot_0106
+}
+{
+	;x=191 y=124
+	LDA #LO(&56F8):LDY #HI(&56F8):JSR dot_0304
+}
+{
+	;x=186 y=114
+	LDA #LO(&5470):LDY #HI(&5470):JSR dot_0202
+}
+{
+	;x=179 y=107
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0303
+}
+{
+	;x=169 y=102
+	LDA #LO(&4F50):LDY #HI(&4F50):JSR dot_0106
+}
+{
+	;x=159 y=100
+	LDA #LO(&4F38):LDY #HI(&4F38):JSR dot_0304
+}
+{
+	;x=148 y=102
+	LDA #LO(&4F28):LDY #HI(&4F28):JSR dot_0006
+}
+{
+	;x=139 y=107
+	LDA #LO(&5190):LDY #HI(&5190):JSR dot_0303
+}
+{
+	;x=131 y=114
+	LDA #LO(&5400):LDY #HI(&5400):JSR dot_0302
+}
+{
+	;x=126 y=124
+	LDA #LO(&5678):LDY #HI(&5678):JSR dot_0204
+}
+{
+	;x=125 y=134
+	LDA #LO(&58F8):LDY #HI(&58F8):JSR dot_0106
+}
+{
+	;x=126 y=145
+	LDA #LO(&5DF8):LDY #HI(&5DF8):JSR dot_0201
+}
+{
+	;x=131 y=154
+	LDA #LO(&6080):LDY #HI(&6080):JSR dot_0302
+}
+{
+	;x=139 y=162
+	LDA #LO(&6310):LDY #HI(&6310):JSR dot_0302
+}
+{
+	;x=148 y=167
+	LDA #LO(&6328):LDY #HI(&6328):JSR dot_0007
+}
+RTS
+.dot_circle_60
+{
+	;x=159 y=169
+	LDA #LO(&65B8):LDY #HI(&65B8):JSR dot_0301
+}
+{
+	;x=169 y=167
+	LDA #LO(&6350):LDY #HI(&6350):JSR dot_0107
+}
+{
+	;x=179 y=162
+	LDA #LO(&6360):LDY #HI(&6360):JSR dot_0302
+}
+{
+	;x=186 y=155
+	LDA #LO(&60F0):LDY #HI(&60F0):JSR dot_0203
+}
+{
+	;x=191 y=145
+	LDA #LO(&5E78):LDY #HI(&5E78):JSR dot_0301
+}
+{
+	;x=193 y=134
+	LDA #LO(&5980):LDY #HI(&5980):JSR dot_0106
+}
+{
+	;x=191 y=124
+	LDA #LO(&56F8):LDY #HI(&56F8):JSR dot_0304
+}
+{
+	;x=186 y=114
+	LDA #LO(&5470):LDY #HI(&5470):JSR dot_0202
+}
+{
+	;x=179 y=106
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0302
+}
+{
+	;x=169 y=102
+	LDA #LO(&4F50):LDY #HI(&4F50):JSR dot_0106
+}
+{
+	;x=159 y=100
+	LDA #LO(&4F38):LDY #HI(&4F38):JSR dot_0304
+}
+{
+	;x=148 y=102
+	LDA #LO(&4F28):LDY #HI(&4F28):JSR dot_0006
+}
+{
+	;x=138 y=106
+	LDA #LO(&5190):LDY #HI(&5190):JSR dot_0202
+}
+{
+	;x=131 y=114
+	LDA #LO(&5400):LDY #HI(&5400):JSR dot_0302
+}
+{
+	;x=126 y=124
+	LDA #LO(&5678):LDY #HI(&5678):JSR dot_0204
+}
+{
+	;x=124 y=134
+	LDA #LO(&58F8):LDY #HI(&58F8):JSR dot_0006
+}
+{
+	;x=126 y=145
+	LDA #LO(&5DF8):LDY #HI(&5DF8):JSR dot_0201
+}
+{
+	;x=131 y=155
+	LDA #LO(&6080):LDY #HI(&6080):JSR dot_0303
+}
+{
+	;x=138 y=162
+	LDA #LO(&6310):LDY #HI(&6310):JSR dot_0202
+}
+{
+	;x=148 y=167
+	LDA #LO(&6328):LDY #HI(&6328):JSR dot_0007
+}
+RTS
+.dot_circle_61
+{
+	;x=158 y=169
+	LDA #LO(&65B8):LDY #HI(&65B8):JSR dot_0201
+}
+{
+	;x=169 y=168
+	LDA #LO(&65D0):LDY #HI(&65D0):JSR dot_0100
+}
+{
+	;x=179 y=163
+	LDA #LO(&6360):LDY #HI(&6360):JSR dot_0303
+}
+{
+	;x=187 y=155
+	LDA #LO(&60F0):LDY #HI(&60F0):JSR dot_0303
+}
+{
+	;x=192 y=145
+	LDA #LO(&5E80):LDY #HI(&5E80):JSR dot_0001
+}
+{
+	;x=193 y=134
+	LDA #LO(&5980):LDY #HI(&5980):JSR dot_0106
+}
+{
+	;x=192 y=124
+	LDA #LO(&5700):LDY #HI(&5700):JSR dot_0004
+}
+{
+	;x=187 y=114
+	LDA #LO(&5470):LDY #HI(&5470):JSR dot_0302
+}
+{
+	;x=179 y=106
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0302
+}
+{
+	;x=169 y=101
+	LDA #LO(&4F50):LDY #HI(&4F50):JSR dot_0105
+}
+{
+	;x=158 y=099
+	LDA #LO(&4F38):LDY #HI(&4F38):JSR dot_0203
+}
+{
+	;x=147 y=101
+	LDA #LO(&4F20):LDY #HI(&4F20):JSR dot_0305
+}
+{
+	;x=138 y=106
+	LDA #LO(&5190):LDY #HI(&5190):JSR dot_0202
+}
+{
+	;x=130 y=114
+	LDA #LO(&5400):LDY #HI(&5400):JSR dot_0202
+}
+{
+	;x=125 y=124
+	LDA #LO(&5678):LDY #HI(&5678):JSR dot_0104
+}
+{
+	;x=123 y=134
+	LDA #LO(&58F0):LDY #HI(&58F0):JSR dot_0306
+}
+{
+	;x=125 y=145
+	LDA #LO(&5DF8):LDY #HI(&5DF8):JSR dot_0101
+}
+{
+	;x=130 y=155
+	LDA #LO(&6080):LDY #HI(&6080):JSR dot_0203
+}
+{
+	;x=138 y=163
+	LDA #LO(&6310):LDY #HI(&6310):JSR dot_0203
+}
+{
+	;x=147 y=168
+	LDA #LO(&65A0):LDY #HI(&65A0):JSR dot_0300
+}
+RTS
+.dot_circle_62
+{
+	;x=158 y=170
+	LDA #LO(&65B8):LDY #HI(&65B8):JSR dot_0202
+}
+{
+	;x=169 y=168
+	LDA #LO(&65D0):LDY #HI(&65D0):JSR dot_0100
+}
+{
+	;x=179 y=163
+	LDA #LO(&6360):LDY #HI(&6360):JSR dot_0303
+}
+{
+	;x=187 y=155
+	LDA #LO(&60F0):LDY #HI(&60F0):JSR dot_0303
+}
+{
+	;x=192 y=145
+	LDA #LO(&5E80):LDY #HI(&5E80):JSR dot_0001
+}
+{
+	;x=194 y=134
+	LDA #LO(&5980):LDY #HI(&5980):JSR dot_0206
+}
+{
+	;x=192 y=123
+	LDA #LO(&5700):LDY #HI(&5700):JSR dot_0003
+}
+{
+	;x=187 y=114
+	LDA #LO(&5470):LDY #HI(&5470):JSR dot_0302
+}
+{
+	;x=179 y=106
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0302
+}
+{
+	;x=169 y=101
+	LDA #LO(&4F50):LDY #HI(&4F50):JSR dot_0105
+}
+{
+	;x=158 y=099
+	LDA #LO(&4F38):LDY #HI(&4F38):JSR dot_0203
+}
+{
+	;x=147 y=101
+	LDA #LO(&4F20):LDY #HI(&4F20):JSR dot_0305
+}
+{
+	;x=137 y=106
+	LDA #LO(&5190):LDY #HI(&5190):JSR dot_0102
+}
+{
+	;x=129 y=114
+	LDA #LO(&5400):LDY #HI(&5400):JSR dot_0102
+}
+{
+	;x=124 y=123
+	LDA #LO(&5678):LDY #HI(&5678):JSR dot_0003
+}
+{
+	;x=122 y=134
+	LDA #LO(&58F0):LDY #HI(&58F0):JSR dot_0206
+}
+{
+	;x=124 y=145
+	LDA #LO(&5DF8):LDY #HI(&5DF8):JSR dot_0001
+}
+{
+	;x=129 y=155
+	LDA #LO(&6080):LDY #HI(&6080):JSR dot_0103
+}
+{
+	;x=137 y=163
+	LDA #LO(&6310):LDY #HI(&6310):JSR dot_0103
+}
+{
+	;x=147 y=168
+	LDA #LO(&65A0):LDY #HI(&65A0):JSR dot_0300
+}
+RTS
+.dot_circle_63
+{
+	;x=158 y=171
+	LDA #LO(&65B8):LDY #HI(&65B8):JSR dot_0203
+}
+{
+	;x=169 y=169
+	LDA #LO(&65D0):LDY #HI(&65D0):JSR dot_0101
+}
+{
+	;x=179 y=164
+	LDA #LO(&6360):LDY #HI(&6360):JSR dot_0304
+}
+{
+	;x=187 y=156
+	LDA #LO(&60F0):LDY #HI(&60F0):JSR dot_0304
+}
+{
+	;x=192 y=146
+	LDA #LO(&5E80):LDY #HI(&5E80):JSR dot_0002
+}
+{
+	;x=194 y=135
+	LDA #LO(&5980):LDY #HI(&5980):JSR dot_0207
+}
+{
+	;x=192 y=123
+	LDA #LO(&5700):LDY #HI(&5700):JSR dot_0003
+}
+{
+	;x=187 y=113
+	LDA #LO(&5470):LDY #HI(&5470):JSR dot_0301
+}
+{
+	;x=179 y=105
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0301
+}
+{
+	;x=169 y=100
+	LDA #LO(&4F50):LDY #HI(&4F50):JSR dot_0104
+}
+{
+	;x=158 y=098
+	LDA #LO(&4F38):LDY #HI(&4F38):JSR dot_0202
+}
+{
+	;x=147 y=100
+	LDA #LO(&4F20):LDY #HI(&4F20):JSR dot_0304
+}
+{
+	;x=137 y=105
+	LDA #LO(&5190):LDY #HI(&5190):JSR dot_0101
+}
+{
+	;x=129 y=113
+	LDA #LO(&5400):LDY #HI(&5400):JSR dot_0101
+}
+{
+	;x=123 y=123
+	LDA #LO(&5670):LDY #HI(&5670):JSR dot_0303
+}
+{
+	;x=122 y=135
+	LDA #LO(&58F0):LDY #HI(&58F0):JSR dot_0207
+}
+{
+	;x=123 y=146
+	LDA #LO(&5DF0):LDY #HI(&5DF0):JSR dot_0302
+}
+{
+	;x=129 y=156
+	LDA #LO(&6080):LDY #HI(&6080):JSR dot_0104
+}
+{
+	;x=137 y=164
+	LDA #LO(&6310):LDY #HI(&6310):JSR dot_0104
+}
+{
+	;x=147 y=169
+	LDA #LO(&65A0):LDY #HI(&65A0):JSR dot_0301
+}
+RTS
+.dot_circle_64
+{
+	;x=158 y=171
+	LDA #LO(&65B8):LDY #HI(&65B8):JSR dot_0203
+}
+{
+	;x=169 y=170
+	LDA #LO(&65D0):LDY #HI(&65D0):JSR dot_0102
+}
+{
+	;x=179 y=164
+	LDA #LO(&6360):LDY #HI(&6360):JSR dot_0304
+}
+{
+	;x=187 y=156
+	LDA #LO(&60F0):LDY #HI(&60F0):JSR dot_0304
+}
+{
+	;x=193 y=146
+	LDA #LO(&5E80):LDY #HI(&5E80):JSR dot_0102
+}
+{
+	;x=194 y=135
+	LDA #LO(&5980):LDY #HI(&5980):JSR dot_0207
+}
+{
+	;x=193 y=123
+	LDA #LO(&5700):LDY #HI(&5700):JSR dot_0103
+}
+{
+	;x=187 y=113
+	LDA #LO(&5470):LDY #HI(&5470):JSR dot_0301
+}
+{
+	;x=179 y=105
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0301
+}
+{
+	;x=169 y=100
+	LDA #LO(&4F50):LDY #HI(&4F50):JSR dot_0104
+}
+{
+	;x=158 y=098
+	LDA #LO(&4F38):LDY #HI(&4F38):JSR dot_0202
+}
+{
+	;x=146 y=100
+	LDA #LO(&4F20):LDY #HI(&4F20):JSR dot_0204
+}
+{
+	;x=136 y=105
+	LDA #LO(&5190):LDY #HI(&5190):JSR dot_0001
+}
+{
+	;x=128 y=113
+	LDA #LO(&5400):LDY #HI(&5400):JSR dot_0001
+}
+{
+	;x=123 y=123
+	LDA #LO(&5670):LDY #HI(&5670):JSR dot_0303
+}
+{
+	;x=121 y=135
+	LDA #LO(&58F0):LDY #HI(&58F0):JSR dot_0107
+}
+{
+	;x=123 y=146
+	LDA #LO(&5DF0):LDY #HI(&5DF0):JSR dot_0302
+}
+{
+	;x=128 y=156
+	LDA #LO(&6080):LDY #HI(&6080):JSR dot_0004
+}
+{
+	;x=136 y=164
+	LDA #LO(&6310):LDY #HI(&6310):JSR dot_0004
+}
+{
+	;x=146 y=170
+	LDA #LO(&65A0):LDY #HI(&65A0):JSR dot_0202
+}
+RTS
+.dot_circle_65
+{
+	;x=157 y=172
+	LDA #LO(&65B8):LDY #HI(&65B8):JSR dot_0104
+}
+{
+	;x=169 y=170
+	LDA #LO(&65D0):LDY #HI(&65D0):JSR dot_0102
+}
+{
+	;x=179 y=165
+	LDA #LO(&6360):LDY #HI(&6360):JSR dot_0305
+}
+{
+	;x=188 y=157
+	LDA #LO(&60F8):LDY #HI(&60F8):JSR dot_0005
+}
+{
+	;x=193 y=146
+	LDA #LO(&5E80):LDY #HI(&5E80):JSR dot_0102
+}
+{
+	;x=195 y=135
+	LDA #LO(&5980):LDY #HI(&5980):JSR dot_0307
+}
+{
+	;x=193 y=123
+	LDA #LO(&5700):LDY #HI(&5700):JSR dot_0103
+}
+{
+	;x=188 y=113
+	LDA #LO(&5478):LDY #HI(&5478):JSR dot_0001
+}
+{
+	;x=179 y=104
+	LDA #LO(&51E0):LDY #HI(&51E0):JSR dot_0300
+}
+{
+	;x=169 y=099
+	LDA #LO(&4F50):LDY #HI(&4F50):JSR dot_0103
+}
+{
+	;x=157 y=097
+	LDA #LO(&4F38):LDY #HI(&4F38):JSR dot_0101
+}
+{
+	;x=146 y=099
+	LDA #LO(&4F20):LDY #HI(&4F20):JSR dot_0203
+}
+{
+	;x=135 y=104
+	LDA #LO(&5188):LDY #HI(&5188):JSR dot_0300
+}
+{
+	;x=127 y=113
+	LDA #LO(&53F8):LDY #HI(&53F8):JSR dot_0301
+}
+{
+	;x=122 y=123
+	LDA #LO(&5670):LDY #HI(&5670):JSR dot_0203
+}
+{
+	;x=120 y=135
+	LDA #LO(&58F0):LDY #HI(&58F0):JSR dot_0007
+}
+{
+	;x=122 y=146
+	LDA #LO(&5DF0):LDY #HI(&5DF0):JSR dot_0202
+}
+{
+	;x=127 y=157
+	LDA #LO(&6078):LDY #HI(&6078):JSR dot_0305
+}
+{
+	;x=135 y=165
+	LDA #LO(&6308):LDY #HI(&6308):JSR dot_0305
+}
+{
+	;x=146 y=170
+	LDA #LO(&65A0):LDY #HI(&65A0):JSR dot_0202
+}
+RTS
+.dot_circle_66
+{
+	;x=157 y=173
+	LDA #LO(&65B8):LDY #HI(&65B8):JSR dot_0105
+}
+{
+	;x=169 y=171
+	LDA #LO(&65D0):LDY #HI(&65D0):JSR dot_0103
+}
+{
+	;x=180 y=166
+	LDA #LO(&6368):LDY #HI(&6368):JSR dot_0006
+}
+{
+	;x=188 y=157
+	LDA #LO(&60F8):LDY #HI(&60F8):JSR dot_0005
+}
+{
+	;x=193 y=147
+	LDA #LO(&5E80):LDY #HI(&5E80):JSR dot_0103
+}
+{
+	;x=195 y=135
+	LDA #LO(&5980):LDY #HI(&5980):JSR dot_0307
+}
+{
+	;x=193 y=123
+	LDA #LO(&5700):LDY #HI(&5700):JSR dot_0103
+}
+{
+	;x=188 y=112
+	LDA #LO(&5478):LDY #HI(&5478):JSR dot_0000
+}
+{
+	;x=180 y=104
+	LDA #LO(&51E8):LDY #HI(&51E8):JSR dot_0000
+}
+{
+	;x=169 y=099
+	LDA #LO(&4F50):LDY #HI(&4F50):JSR dot_0103
+}
+{
+	;x=157 y=097
+	LDA #LO(&4F38):LDY #HI(&4F38):JSR dot_0101
+}
+{
+	;x=145 y=099
+	LDA #LO(&4F20):LDY #HI(&4F20):JSR dot_0103
+}
+{
+	;x=135 y=104
+	LDA #LO(&5188):LDY #HI(&5188):JSR dot_0300
+}
+{
+	;x=126 y=112
+	LDA #LO(&53F8):LDY #HI(&53F8):JSR dot_0200
+}
+{
+	;x=121 y=123
+	LDA #LO(&5670):LDY #HI(&5670):JSR dot_0103
+}
+{
+	;x=119 y=135
+	LDA #LO(&58E8):LDY #HI(&58E8):JSR dot_0307
+}
+{
+	;x=121 y=147
+	LDA #LO(&5DF0):LDY #HI(&5DF0):JSR dot_0103
+}
+{
+	;x=126 y=157
+	LDA #LO(&6078):LDY #HI(&6078):JSR dot_0205
+}
+{
+	;x=135 y=166
+	LDA #LO(&6308):LDY #HI(&6308):JSR dot_0306
+}
+{
+	;x=145 y=171
+	LDA #LO(&65A0):LDY #HI(&65A0):JSR dot_0103
+}
+RTS
+.dot_circle_67
+{
+	;x=157 y=174
+	LDA #LO(&65B8):LDY #HI(&65B8):JSR dot_0106
+}
+{
+	;x=169 y=172
+	LDA #LO(&65D0):LDY #HI(&65D0):JSR dot_0104
+}
+{
+	;x=180 y=166
+	LDA #LO(&6368):LDY #HI(&6368):JSR dot_0006
+}
+{
+	;x=188 y=158
+	LDA #LO(&60F8):LDY #HI(&60F8):JSR dot_0006
+}
+{
+	;x=194 y=147
+	LDA #LO(&5E80):LDY #HI(&5E80):JSR dot_0203
+}
+{
+	;x=196 y=135
+	LDA #LO(&5988):LDY #HI(&5988):JSR dot_0007
+}
+{
+	;x=194 y=123
+	LDA #LO(&5700):LDY #HI(&5700):JSR dot_0203
+}
+{
+	;x=188 y=112
+	LDA #LO(&5478):LDY #HI(&5478):JSR dot_0000
+}
+{
+	;x=180 y=103
+	LDA #LO(&4F68):LDY #HI(&4F68):JSR dot_0007
+}
+{
+	;x=169 y=098
+	LDA #LO(&4F50):LDY #HI(&4F50):JSR dot_0102
+}
+{
+	;x=157 y=096
+	LDA #LO(&4F38):LDY #HI(&4F38):JSR dot_0100
+}
+{
+	;x=145 y=098
+	LDA #LO(&4F20):LDY #HI(&4F20):JSR dot_0102
+}
+{
+	;x=134 y=103
+	LDA #LO(&4F08):LDY #HI(&4F08):JSR dot_0207
+}
+{
+	;x=126 y=112
+	LDA #LO(&53F8):LDY #HI(&53F8):JSR dot_0200
+}
+{
+	;x=120 y=123
+	LDA #LO(&5670):LDY #HI(&5670):JSR dot_0003
+}
+{
+	;x=118 y=135
+	LDA #LO(&58E8):LDY #HI(&58E8):JSR dot_0207
+}
+{
+	;x=120 y=147
+	LDA #LO(&5DF0):LDY #HI(&5DF0):JSR dot_0003
+}
+{
+	;x=126 y=158
+	LDA #LO(&6078):LDY #HI(&6078):JSR dot_0206
+}
+{
+	;x=134 y=166
+	LDA #LO(&6308):LDY #HI(&6308):JSR dot_0206
+}
+{
+	;x=145 y=172
+	LDA #LO(&65A0):LDY #HI(&65A0):JSR dot_0104
+}
+RTS
+.dot_circle_68
+{
+	;x=157 y=174
+	LDA #LO(&65B8):LDY #HI(&65B8):JSR dot_0106
+}
+{
+	;x=169 y=172
+	LDA #LO(&65D0):LDY #HI(&65D0):JSR dot_0104
+}
+{
+	;x=180 y=167
+	LDA #LO(&6368):LDY #HI(&6368):JSR dot_0007
+}
+{
+	;x=189 y=158
+	LDA #LO(&60F8):LDY #HI(&60F8):JSR dot_0106
+}
+{
+	;x=194 y=147
+	LDA #LO(&5E80):LDY #HI(&5E80):JSR dot_0203
+}
+{
+	;x=196 y=135
+	LDA #LO(&5988):LDY #HI(&5988):JSR dot_0007
+}
+{
+	;x=194 y=123
+	LDA #LO(&5700):LDY #HI(&5700):JSR dot_0203
+}
+{
+	;x=189 y=112
+	LDA #LO(&5478):LDY #HI(&5478):JSR dot_0100
+}
+{
+	;x=180 y=103
+	LDA #LO(&4F68):LDY #HI(&4F68):JSR dot_0007
+}
+{
+	;x=169 y=097
+	LDA #LO(&4F50):LDY #HI(&4F50):JSR dot_0101
+}
+{
+	;x=157 y=095
+	LDA #LO(&4CB8):LDY #HI(&4CB8):JSR dot_0107
+}
+{
+	;x=144 y=097
+	LDA #LO(&4F20):LDY #HI(&4F20):JSR dot_0001
+}
+{
+	;x=133 y=103
+	LDA #LO(&4F08):LDY #HI(&4F08):JSR dot_0107
+}
+{
+	;x=125 y=112
+	LDA #LO(&53F8):LDY #HI(&53F8):JSR dot_0100
+}
+{
+	;x=119 y=123
+	LDA #LO(&5668):LDY #HI(&5668):JSR dot_0303
+}
+{
+	;x=117 y=135
+	LDA #LO(&58E8):LDY #HI(&58E8):JSR dot_0107
+}
+{
+	;x=119 y=147
+	LDA #LO(&5DE8):LDY #HI(&5DE8):JSR dot_0303
+}
+{
+	;x=125 y=158
+	LDA #LO(&6078):LDY #HI(&6078):JSR dot_0106
+}
+{
+	;x=133 y=167
+	LDA #LO(&6308):LDY #HI(&6308):JSR dot_0107
+}
+{
+	;x=144 y=172
+	LDA #LO(&65A0):LDY #HI(&65A0):JSR dot_0004
+}
+RTS
+.dot_circle_69
+{
+	;x=156 y=175
+	LDA #LO(&65B8):LDY #HI(&65B8):JSR dot_0007
+}
+{
+	;x=169 y=173
+	LDA #LO(&65D0):LDY #HI(&65D0):JSR dot_0105
+}
+{
+	;x=180 y=167
+	LDA #LO(&6368):LDY #HI(&6368):JSR dot_0007
+}
+{
+	;x=189 y=159
+	LDA #LO(&60F8):LDY #HI(&60F8):JSR dot_0107
+}
+{
+	;x=195 y=147
+	LDA #LO(&5E80):LDY #HI(&5E80):JSR dot_0303
+}
+{
+	;x=197 y=135
+	LDA #LO(&5988):LDY #HI(&5988):JSR dot_0107
+}
+{
+	;x=195 y=122
+	LDA #LO(&5700):LDY #HI(&5700):JSR dot_0302
+}
+{
+	;x=189 y=111
+	LDA #LO(&51F8):LDY #HI(&51F8):JSR dot_0107
+}
+{
+	;x=180 y=102
+	LDA #LO(&4F68):LDY #HI(&4F68):JSR dot_0006
+}
+{
+	;x=169 y=097
+	LDA #LO(&4F50):LDY #HI(&4F50):JSR dot_0101
+}
+{
+	;x=156 y=095
+	LDA #LO(&4CB8):LDY #HI(&4CB8):JSR dot_0007
+}
+{
+	;x=144 y=097
+	LDA #LO(&4F20):LDY #HI(&4F20):JSR dot_0001
+}
+{
+	;x=133 y=102
+	LDA #LO(&4F08):LDY #HI(&4F08):JSR dot_0106
+}
+{
+	;x=124 y=111
+	LDA #LO(&5178):LDY #HI(&5178):JSR dot_0007
+}
+{
+	;x=118 y=122
+	LDA #LO(&5668):LDY #HI(&5668):JSR dot_0202
+}
+{
+	;x=116 y=135
+	LDA #LO(&58E8):LDY #HI(&58E8):JSR dot_0007
+}
+{
+	;x=118 y=147
+	LDA #LO(&5DE8):LDY #HI(&5DE8):JSR dot_0203
+}
+{
+	;x=124 y=159
+	LDA #LO(&6078):LDY #HI(&6078):JSR dot_0007
+}
+{
+	;x=133 y=167
+	LDA #LO(&6308):LDY #HI(&6308):JSR dot_0107
+}
+{
+	;x=144 y=173
+	LDA #LO(&65A0):LDY #HI(&65A0):JSR dot_0005
+}
+RTS
+.dot_circle_70
+{
+	;x=156 y=176
+	LDA #LO(&6838):LDY #HI(&6838):JSR dot_0000
+}
+{
+	;x=169 y=174
+	LDA #LO(&65D0):LDY #HI(&65D0):JSR dot_0106
+}
+{
+	;x=180 y=168
+	LDA #LO(&65E8):LDY #HI(&65E8):JSR dot_0000
+}
+{
+	;x=189 y=159
+	LDA #LO(&60F8):LDY #HI(&60F8):JSR dot_0107
+}
+{
+	;x=195 y=148
+	LDA #LO(&5E80):LDY #HI(&5E80):JSR dot_0304
+}
+{
+	;x=197 y=135
+	LDA #LO(&5988):LDY #HI(&5988):JSR dot_0107
+}
+{
+	;x=195 y=122
+	LDA #LO(&5700):LDY #HI(&5700):JSR dot_0302
+}
+{
+	;x=189 y=111
+	LDA #LO(&51F8):LDY #HI(&51F8):JSR dot_0107
+}
+{
+	;x=180 y=102
+	LDA #LO(&4F68):LDY #HI(&4F68):JSR dot_0006
+}
+{
+	;x=169 y=096
+	LDA #LO(&4F50):LDY #HI(&4F50):JSR dot_0100
+}
+{
+	;x=156 y=094
+	LDA #LO(&4CB8):LDY #HI(&4CB8):JSR dot_0006
+}
+{
+	;x=143 y=096
+	LDA #LO(&4F18):LDY #HI(&4F18):JSR dot_0300
+}
+{
+	;x=132 y=102
+	LDA #LO(&4F08):LDY #HI(&4F08):JSR dot_0006
+}
+{
+	;x=123 y=111
+	LDA #LO(&5170):LDY #HI(&5170):JSR dot_0307
+}
+{
+	;x=117 y=122
+	LDA #LO(&5668):LDY #HI(&5668):JSR dot_0102
+}
+{
+	;x=115 y=135
+	LDA #LO(&58E0):LDY #HI(&58E0):JSR dot_0307
+}
+{
+	;x=117 y=148
+	LDA #LO(&5DE8):LDY #HI(&5DE8):JSR dot_0104
+}
+{
+	;x=123 y=159
+	LDA #LO(&6070):LDY #HI(&6070):JSR dot_0307
+}
+{
+	;x=132 y=168
+	LDA #LO(&6588):LDY #HI(&6588):JSR dot_0000
+}
+{
+	;x=143 y=174
+	LDA #LO(&6598):LDY #HI(&6598):JSR dot_0306
+}
+RTS
+.dot_circle_71
+{
+	;x=156 y=177
+	LDA #LO(&6838):LDY #HI(&6838):JSR dot_0001
+}
+{
+	;x=169 y=175
+	LDA #LO(&65D0):LDY #HI(&65D0):JSR dot_0107
+}
+{
+	;x=180 y=169
+	LDA #LO(&65E8):LDY #HI(&65E8):JSR dot_0001
+}
+{
+	;x=190 y=159
+	LDA #LO(&60F8):LDY #HI(&60F8):JSR dot_0207
+}
+{
+	;x=195 y=148
+	LDA #LO(&5E80):LDY #HI(&5E80):JSR dot_0304
+}
+{
+	;x=198 y=135
+	LDA #LO(&5988):LDY #HI(&5988):JSR dot_0207
+}
+{
+	;x=195 y=122
+	LDA #LO(&5700):LDY #HI(&5700):JSR dot_0302
+}
+{
+	;x=190 y=110
+	LDA #LO(&51F8):LDY #HI(&51F8):JSR dot_0206
+}
+{
+	;x=180 y=101
+	LDA #LO(&4F68):LDY #HI(&4F68):JSR dot_0005
+}
+{
+	;x=169 y=095
+	LDA #LO(&4CD0):LDY #HI(&4CD0):JSR dot_0107
+}
+{
+	;x=156 y=093
+	LDA #LO(&4CB8):LDY #HI(&4CB8):JSR dot_0005
+}
+{
+	;x=143 y=095
+	LDA #LO(&4C98):LDY #HI(&4C98):JSR dot_0307
+}
+{
+	;x=131 y=101
+	LDA #LO(&4F00):LDY #HI(&4F00):JSR dot_0305
+}
+{
+	;x=122 y=110
+	LDA #LO(&5170):LDY #HI(&5170):JSR dot_0206
+}
+{
+	;x=116 y=122
+	LDA #LO(&5668):LDY #HI(&5668):JSR dot_0002
+}
+{
+	;x=114 y=135
+	LDA #LO(&58E0):LDY #HI(&58E0):JSR dot_0207
+}
+{
+	;x=116 y=148
+	LDA #LO(&5DE8):LDY #HI(&5DE8):JSR dot_0004
+}
+{
+	;x=122 y=159
+	LDA #LO(&6070):LDY #HI(&6070):JSR dot_0207
+}
+{
+	;x=131 y=169
+	LDA #LO(&6580):LDY #HI(&6580):JSR dot_0301
+}
+{
+	;x=143 y=175
+	LDA #LO(&6598):LDY #HI(&6598):JSR dot_0307
+}
+RTS
+.dot_circle_72
+{
+	;x=156 y=178
+	LDA #LO(&6838):LDY #HI(&6838):JSR dot_0002
+}
+{
+	;x=169 y=175
+	LDA #LO(&65D0):LDY #HI(&65D0):JSR dot_0107
+}
+{
+	;x=181 y=169
+	LDA #LO(&65E8):LDY #HI(&65E8):JSR dot_0101
+}
+{
+	;x=190 y=160
+	LDA #LO(&6378):LDY #HI(&6378):JSR dot_0200
+}
+{
+	;x=196 y=148
+	LDA #LO(&5E88):LDY #HI(&5E88):JSR dot_0004
+}
+{
+	;x=198 y=135
+	LDA #LO(&5988):LDY #HI(&5988):JSR dot_0207
+}
+{
+	;x=196 y=122
+	LDA #LO(&5708):LDY #HI(&5708):JSR dot_0002
+}
+{
+	;x=190 y=110
+	LDA #LO(&51F8):LDY #HI(&51F8):JSR dot_0206
+}
+{
+	;x=181 y=101
+	LDA #LO(&4F68):LDY #HI(&4F68):JSR dot_0105
+}
+{
+	;x=169 y=095
+	LDA #LO(&4CD0):LDY #HI(&4CD0):JSR dot_0107
+}
+{
+	;x=156 y=093
+	LDA #LO(&4CB8):LDY #HI(&4CB8):JSR dot_0005
+}
+{
+	;x=142 y=095
+	LDA #LO(&4C98):LDY #HI(&4C98):JSR dot_0207
+}
+{
+	;x=131 y=101
+	LDA #LO(&4F00):LDY #HI(&4F00):JSR dot_0305
+}
+{
+	;x=121 y=110
+	LDA #LO(&5170):LDY #HI(&5170):JSR dot_0106
+}
+{
+	;x=115 y=122
+	LDA #LO(&5660):LDY #HI(&5660):JSR dot_0302
+}
+{
+	;x=113 y=135
+	LDA #LO(&58E0):LDY #HI(&58E0):JSR dot_0107
+}
+{
+	;x=115 y=148
+	LDA #LO(&5DE0):LDY #HI(&5DE0):JSR dot_0304
+}
+{
+	;x=121 y=160
+	LDA #LO(&62F0):LDY #HI(&62F0):JSR dot_0100
+}
+{
+	;x=131 y=169
+	LDA #LO(&6580):LDY #HI(&6580):JSR dot_0301
+}
+{
+	;x=142 y=175
+	LDA #LO(&6598):LDY #HI(&6598):JSR dot_0207
+}
+RTS
+.dot_circle_73
+{
+	;x=155 y=178
+	LDA #LO(&6830):LDY #HI(&6830):JSR dot_0302
+}
+{
+	;x=169 y=176
+	LDA #LO(&6850):LDY #HI(&6850):JSR dot_0100
+}
+{
+	;x=181 y=170
+	LDA #LO(&65E8):LDY #HI(&65E8):JSR dot_0102
+}
+{
+	;x=190 y=161
+	LDA #LO(&6378):LDY #HI(&6378):JSR dot_0201
+}
+{
+	;x=196 y=148
+	LDA #LO(&5E88):LDY #HI(&5E88):JSR dot_0004
+}
+{
+	;x=199 y=135
+	LDA #LO(&5988):LDY #HI(&5988):JSR dot_0307
+}
+{
+	;x=196 y=122
+	LDA #LO(&5708):LDY #HI(&5708):JSR dot_0002
+}
+{
+	;x=190 y=110
+	LDA #LO(&51F8):LDY #HI(&51F8):JSR dot_0206
+}
+{
+	;x=181 y=100
+	LDA #LO(&4F68):LDY #HI(&4F68):JSR dot_0104
+}
+{
+	;x=169 y=094
+	LDA #LO(&4CD0):LDY #HI(&4CD0):JSR dot_0106
+}
+{
+	;x=155 y=092
+	LDA #LO(&4CB0):LDY #HI(&4CB0):JSR dot_0304
+}
+{
+	;x=142 y=094
+	LDA #LO(&4C98):LDY #HI(&4C98):JSR dot_0206
+}
+{
+	;x=130 y=100
+	LDA #LO(&4F00):LDY #HI(&4F00):JSR dot_0204
+}
+{
+	;x=120 y=110
+	LDA #LO(&5170):LDY #HI(&5170):JSR dot_0006
+}
+{
+	;x=114 y=122
+	LDA #LO(&5660):LDY #HI(&5660):JSR dot_0202
+}
+{
+	;x=112 y=135
+	LDA #LO(&58E0):LDY #HI(&58E0):JSR dot_0007
+}
+{
+	;x=114 y=148
+	LDA #LO(&5DE0):LDY #HI(&5DE0):JSR dot_0204
+}
+{
+	;x=120 y=161
+	LDA #LO(&62F0):LDY #HI(&62F0):JSR dot_0001
+}
+{
+	;x=130 y=170
+	LDA #LO(&6580):LDY #HI(&6580):JSR dot_0202
+}
+{
+	;x=142 y=176
+	LDA #LO(&6818):LDY #HI(&6818):JSR dot_0200
+}
+RTS
+.dot_circle_74
+{
+	;x=155 y=179
+	LDA #LO(&6830):LDY #HI(&6830):JSR dot_0303
+}
+{
+	;x=169 y=177
+	LDA #LO(&6850):LDY #HI(&6850):JSR dot_0101
+}
+{
+	;x=181 y=171
+	LDA #LO(&65E8):LDY #HI(&65E8):JSR dot_0103
+}
+{
+	;x=191 y=161
+	LDA #LO(&6378):LDY #HI(&6378):JSR dot_0301
+}
+{
+	;x=197 y=149
+	LDA #LO(&5E88):LDY #HI(&5E88):JSR dot_0105
+}
+{
+	;x=199 y=135
+	LDA #LO(&5988):LDY #HI(&5988):JSR dot_0307
+}
+{
+	;x=197 y=121
+	LDA #LO(&5708):LDY #HI(&5708):JSR dot_0101
+}
+{
+	;x=191 y=109
+	LDA #LO(&51F8):LDY #HI(&51F8):JSR dot_0305
+}
+{
+	;x=181 y=099
+	LDA #LO(&4F68):LDY #HI(&4F68):JSR dot_0103
+}
+{
+	;x=169 y=093
+	LDA #LO(&4CD0):LDY #HI(&4CD0):JSR dot_0105
+}
+{
+	;x=155 y=091
+	LDA #LO(&4CB0):LDY #HI(&4CB0):JSR dot_0303
+}
+{
+	;x=141 y=093
+	LDA #LO(&4C98):LDY #HI(&4C98):JSR dot_0105
+}
+{
+	;x=129 y=099
+	LDA #LO(&4F00):LDY #HI(&4F00):JSR dot_0103
+}
+{
+	;x=119 y=109
+	LDA #LO(&5168):LDY #HI(&5168):JSR dot_0305
+}
+{
+	;x=113 y=121
+	LDA #LO(&5660):LDY #HI(&5660):JSR dot_0101
+}
+{
+	;x=111 y=135
+	LDA #LO(&58D8):LDY #HI(&58D8):JSR dot_0307
+}
+{
+	;x=113 y=149
+	LDA #LO(&5DE0):LDY #HI(&5DE0):JSR dot_0105
+}
+{
+	;x=119 y=161
+	LDA #LO(&62E8):LDY #HI(&62E8):JSR dot_0301
+}
+{
+	;x=129 y=171
+	LDA #LO(&6580):LDY #HI(&6580):JSR dot_0103
+}
+{
+	;x=141 y=177
+	LDA #LO(&6818):LDY #HI(&6818):JSR dot_0101
+}
+RTS
+.dot_circle_75
+{
+	;x=155 y=180
+	LDA #LO(&6830):LDY #HI(&6830):JSR dot_0304
+}
+{
+	;x=169 y=178
+	LDA #LO(&6850):LDY #HI(&6850):JSR dot_0102
+}
+{
+	;x=181 y=172
+	LDA #LO(&65E8):LDY #HI(&65E8):JSR dot_0104
+}
+{
+	;x=191 y=162
+	LDA #LO(&6378):LDY #HI(&6378):JSR dot_0302
+}
+{
+	;x=198 y=149
+	LDA #LO(&5E88):LDY #HI(&5E88):JSR dot_0205
+}
+{
+	;x=200 y=135
+	LDA #LO(&5990):LDY #HI(&5990):JSR dot_0007
+}
+{
+	;x=198 y=121
+	LDA #LO(&5708):LDY #HI(&5708):JSR dot_0201
+}
+{
+	;x=191 y=109
+	LDA #LO(&51F8):LDY #HI(&51F8):JSR dot_0305
+}
+{
+	;x=181 y=099
+	LDA #LO(&4F68):LDY #HI(&4F68):JSR dot_0103
+}
+{
+	;x=169 y=092
+	LDA #LO(&4CD0):LDY #HI(&4CD0):JSR dot_0104
+}
+{
+	;x=155 y=090
+	LDA #LO(&4CB0):LDY #HI(&4CB0):JSR dot_0302
+}
+{
+	;x=141 y=092
+	LDA #LO(&4C98):LDY #HI(&4C98):JSR dot_0104
+}
+{
+	;x=128 y=099
+	LDA #LO(&4F00):LDY #HI(&4F00):JSR dot_0003
+}
+{
+	;x=118 y=109
+	LDA #LO(&5168):LDY #HI(&5168):JSR dot_0205
+}
+{
+	;x=112 y=121
+	LDA #LO(&5660):LDY #HI(&5660):JSR dot_0001
+}
+{
+	;x=109 y=135
+	LDA #LO(&58D8):LDY #HI(&58D8):JSR dot_0107
+}
+{
+	;x=112 y=149
+	LDA #LO(&5DE0):LDY #HI(&5DE0):JSR dot_0005
+}
+{
+	;x=118 y=162
+	LDA #LO(&62E8):LDY #HI(&62E8):JSR dot_0202
+}
+{
+	;x=128 y=172
+	LDA #LO(&6580):LDY #HI(&6580):JSR dot_0004
+}
+{
+	;x=141 y=178
+	LDA #LO(&6818):LDY #HI(&6818):JSR dot_0102
+}
+RTS
+.dot_circle_76
+{
+	;x=154 y=181
+	LDA #LO(&6830):LDY #HI(&6830):JSR dot_0205
+}
+{
+	;x=169 y=179
+	LDA #LO(&6850):LDY #HI(&6850):JSR dot_0103
+}
+{
+	;x=181 y=172
+	LDA #LO(&65E8):LDY #HI(&65E8):JSR dot_0104
+}
+{
+	;x=192 y=162
+	LDA #LO(&6380):LDY #HI(&6380):JSR dot_0002
+}
+{
+	;x=198 y=149
+	LDA #LO(&5E88):LDY #HI(&5E88):JSR dot_0205
+}
+{
+	;x=200 y=135
+	LDA #LO(&5990):LDY #HI(&5990):JSR dot_0007
+}
+{
+	;x=198 y=121
+	LDA #LO(&5708):LDY #HI(&5708):JSR dot_0201
+}
+{
+	;x=192 y=108
+	LDA #LO(&5200):LDY #HI(&5200):JSR dot_0004
+}
+{
+	;x=181 y=098
+	LDA #LO(&4F68):LDY #HI(&4F68):JSR dot_0102
+}
+{
+	;x=169 y=091
+	LDA #LO(&4CD0):LDY #HI(&4CD0):JSR dot_0103
+}
+{
+	;x=154 y=089
+	LDA #LO(&4CB0):LDY #HI(&4CB0):JSR dot_0201
+}
+{
+	;x=140 y=091
+	LDA #LO(&4C98):LDY #HI(&4C98):JSR dot_0003
+}
+{
+	;x=127 y=098
+	LDA #LO(&4EF8):LDY #HI(&4EF8):JSR dot_0302
+}
+{
+	;x=117 y=108
+	LDA #LO(&5168):LDY #HI(&5168):JSR dot_0104
+}
+{
+	;x=110 y=121
+	LDA #LO(&5658):LDY #HI(&5658):JSR dot_0201
+}
+{
+	;x=108 y=135
+	LDA #LO(&58D8):LDY #HI(&58D8):JSR dot_0007
+}
+{
+	;x=110 y=149
+	LDA #LO(&5DD8):LDY #HI(&5DD8):JSR dot_0205
+}
+{
+	;x=117 y=162
+	LDA #LO(&62E8):LDY #HI(&62E8):JSR dot_0102
+}
+{
+	;x=127 y=172
+	LDA #LO(&6578):LDY #HI(&6578):JSR dot_0304
+}
+{
+	;x=140 y=179
+	LDA #LO(&6818):LDY #HI(&6818):JSR dot_0003
+}
+RTS
+.dot_circle_77
+{
+	;x=154 y=182
+	LDA #LO(&6830):LDY #HI(&6830):JSR dot_0206
+}
+{
+	;x=169 y=180
+	LDA #LO(&6850):LDY #HI(&6850):JSR dot_0104
+}
+{
+	;x=182 y=173
+	LDA #LO(&65E8):LDY #HI(&65E8):JSR dot_0205
+}
+{
+	;x=192 y=163
+	LDA #LO(&6380):LDY #HI(&6380):JSR dot_0003
+}
+{
+	;x=199 y=150
+	LDA #LO(&5E88):LDY #HI(&5E88):JSR dot_0306
+}
+{
+	;x=201 y=135
+	LDA #LO(&5990):LDY #HI(&5990):JSR dot_0107
+}
+{
+	;x=199 y=121
+	LDA #LO(&5708):LDY #HI(&5708):JSR dot_0301
+}
+{
+	;x=192 y=107
+	LDA #LO(&5200):LDY #HI(&5200):JSR dot_0003
+}
+{
+	;x=182 y=097
+	LDA #LO(&4F68):LDY #HI(&4F68):JSR dot_0201
+}
+{
+	;x=169 y=090
+	LDA #LO(&4CD0):LDY #HI(&4CD0):JSR dot_0102
+}
+{
+	;x=154 y=088
+	LDA #LO(&4CB0):LDY #HI(&4CB0):JSR dot_0200
+}
+{
+	;x=139 y=090
+	LDA #LO(&4C90):LDY #HI(&4C90):JSR dot_0302
+}
+{
+	;x=126 y=097
+	LDA #LO(&4EF8):LDY #HI(&4EF8):JSR dot_0201
+}
+{
+	;x=116 y=107
+	LDA #LO(&5168):LDY #HI(&5168):JSR dot_0003
+}
+{
+	;x=109 y=121
+	LDA #LO(&5658):LDY #HI(&5658):JSR dot_0101
+}
+{
+	;x=107 y=135
+	LDA #LO(&58D0):LDY #HI(&58D0):JSR dot_0307
+}
+{
+	;x=109 y=150
+	LDA #LO(&5DD8):LDY #HI(&5DD8):JSR dot_0106
+}
+{
+	;x=116 y=163
+	LDA #LO(&62E8):LDY #HI(&62E8):JSR dot_0003
+}
+{
+	;x=126 y=173
+	LDA #LO(&6578):LDY #HI(&6578):JSR dot_0205
+}
+{
+	;x=139 y=180
+	LDA #LO(&6810):LDY #HI(&6810):JSR dot_0304
+}
+RTS
+.dot_circle_78
+{
+	;x=154 y=183
+	LDA #LO(&6830):LDY #HI(&6830):JSR dot_0207
+}
+{
+	;x=168 y=181
+	LDA #LO(&6850):LDY #HI(&6850):JSR dot_0005
+}
+{
+	;x=182 y=174
+	LDA #LO(&65E8):LDY #HI(&65E8):JSR dot_0206
+}
+{
+	;x=193 y=163
+	LDA #LO(&6380):LDY #HI(&6380):JSR dot_0103
+}
+{
+	;x=199 y=150
+	LDA #LO(&5E88):LDY #HI(&5E88):JSR dot_0306
+}
+{
+	;x=202 y=135
+	LDA #LO(&5990):LDY #HI(&5990):JSR dot_0207
+}
+{
+	;x=199 y=120
+	LDA #LO(&5708):LDY #HI(&5708):JSR dot_0300
+}
+{
+	;x=193 y=107
+	LDA #LO(&5200):LDY #HI(&5200):JSR dot_0103
+}
+{
+	;x=182 y=096
+	LDA #LO(&4F68):LDY #HI(&4F68):JSR dot_0200
+}
+{
+	;x=168 y=089
+	LDA #LO(&4CD0):LDY #HI(&4CD0):JSR dot_0001
+}
+{
+	;x=154 y=087
+	LDA #LO(&4A30):LDY #HI(&4A30):JSR dot_0207
+}
+{
+	;x=139 y=089
+	LDA #LO(&4C90):LDY #HI(&4C90):JSR dot_0301
+}
+{
+	;x=125 y=096
+	LDA #LO(&4EF8):LDY #HI(&4EF8):JSR dot_0100
+}
+{
+	;x=115 y=107
+	LDA #LO(&5160):LDY #HI(&5160):JSR dot_0303
+}
+{
+	;x=108 y=120
+	LDA #LO(&5658):LDY #HI(&5658):JSR dot_0000
+}
+{
+	;x=106 y=135
+	LDA #LO(&58D0):LDY #HI(&58D0):JSR dot_0207
+}
+{
+	;x=108 y=150
+	LDA #LO(&5DD8):LDY #HI(&5DD8):JSR dot_0006
+}
+{
+	;x=115 y=163
+	LDA #LO(&62E0):LDY #HI(&62E0):JSR dot_0303
+}
+{
+	;x=125 y=174
+	LDA #LO(&6578):LDY #HI(&6578):JSR dot_0106
+}
+{
+	;x=139 y=181
+	LDA #LO(&6810):LDY #HI(&6810):JSR dot_0305
+}
+RTS
+.dot_circle_79
+{
+	;x=153 y=184
+	LDA #LO(&6AB0):LDY #HI(&6AB0):JSR dot_0100
+}
+{
+	;x=168 y=182
+	LDA #LO(&6850):LDY #HI(&6850):JSR dot_0006
+}
+{
+	;x=182 y=175
+	LDA #LO(&65E8):LDY #HI(&65E8):JSR dot_0207
+}
+{
+	;x=193 y=164
+	LDA #LO(&6380):LDY #HI(&6380):JSR dot_0104
+}
+{
+	;x=200 y=150
+	LDA #LO(&5E90):LDY #HI(&5E90):JSR dot_0006
+}
+{
+	;x=202 y=135
+	LDA #LO(&5990):LDY #HI(&5990):JSR dot_0207
+}
+{
+	;x=200 y=120
+	LDA #LO(&5710):LDY #HI(&5710):JSR dot_0000
+}
+{
+	;x=193 y=106
+	LDA #LO(&5200):LDY #HI(&5200):JSR dot_0102
+}
+{
+	;x=182 y=095
+	LDA #LO(&4CE8):LDY #HI(&4CE8):JSR dot_0207
+}
+{
+	;x=168 y=088
+	LDA #LO(&4CD0):LDY #HI(&4CD0):JSR dot_0000
+}
+{
+	;x=153 y=086
+	LDA #LO(&4A30):LDY #HI(&4A30):JSR dot_0106
+}
+{
+	;x=138 y=088
+	LDA #LO(&4C90):LDY #HI(&4C90):JSR dot_0200
+}
+{
+	;x=124 y=095
+	LDA #LO(&4C78):LDY #HI(&4C78):JSR dot_0007
+}
+{
+	;x=114 y=106
+	LDA #LO(&5160):LDY #HI(&5160):JSR dot_0202
+}
+{
+	;x=107 y=120
+	LDA #LO(&5650):LDY #HI(&5650):JSR dot_0300
+}
+{
+	;x=104 y=135
+	LDA #LO(&58D0):LDY #HI(&58D0):JSR dot_0007
+}
+{
+	;x=107 y=150
+	LDA #LO(&5DD0):LDY #HI(&5DD0):JSR dot_0306
+}
+{
+	;x=114 y=164
+	LDA #LO(&62E0):LDY #HI(&62E0):JSR dot_0204
+}
+{
+	;x=124 y=175
+	LDA #LO(&6578):LDY #HI(&6578):JSR dot_0007
+}
+{
+	;x=138 y=182
+	LDA #LO(&6810):LDY #HI(&6810):JSR dot_0206
+}
+RTS
+.dot_circle_80
+{
+	;x=153 y=185
+	LDA #LO(&6AB0):LDY #HI(&6AB0):JSR dot_0101
+}
+{
+	;x=168 y=183
+	LDA #LO(&6850):LDY #HI(&6850):JSR dot_0007
+}
+{
+	;x=182 y=176
+	LDA #LO(&6868):LDY #HI(&6868):JSR dot_0200
+}
+{
+	;x=194 y=165
+	LDA #LO(&6380):LDY #HI(&6380):JSR dot_0205
+}
+{
+	;x=201 y=151
+	LDA #LO(&5E90):LDY #HI(&5E90):JSR dot_0107
+}
+{
+	;x=203 y=135
+	LDA #LO(&5990):LDY #HI(&5990):JSR dot_0307
+}
+{
+	;x=201 y=120
+	LDA #LO(&5710):LDY #HI(&5710):JSR dot_0100
+}
+{
+	;x=194 y=106
+	LDA #LO(&5200):LDY #HI(&5200):JSR dot_0202
+}
+{
+	;x=182 y=094
+	LDA #LO(&4CE8):LDY #HI(&4CE8):JSR dot_0206
+}
+{
+	;x=168 y=087
+	LDA #LO(&4A50):LDY #HI(&4A50):JSR dot_0007
+}
+{
+	;x=153 y=085
+	LDA #LO(&4A30):LDY #HI(&4A30):JSR dot_0105
+}
+{
+	;x=137 y=087
+	LDA #LO(&4A10):LDY #HI(&4A10):JSR dot_0107
+}
+{
+	;x=123 y=094
+	LDA #LO(&4C70):LDY #HI(&4C70):JSR dot_0306
+}
+{
+	;x=112 y=106
+	LDA #LO(&5160):LDY #HI(&5160):JSR dot_0002
+}
+{
+	;x=105 y=120
+	LDA #LO(&5650):LDY #HI(&5650):JSR dot_0100
+}
+{
+	;x=103 y=135
+	LDA #LO(&58C8):LDY #HI(&58C8):JSR dot_0307
+}
+{
+	;x=105 y=151
+	LDA #LO(&5DD0):LDY #HI(&5DD0):JSR dot_0107
+}
+{
+	;x=112 y=165
+	LDA #LO(&62E0):LDY #HI(&62E0):JSR dot_0005
+}
+{
+	;x=123 y=176
+	LDA #LO(&67F0):LDY #HI(&67F0):JSR dot_0300
+}
+{
+	;x=137 y=183
+	LDA #LO(&6810):LDY #HI(&6810):JSR dot_0107
+}
+RTS
+.dot_circle_81
+{
+	;x=153 y=187
+	LDA #LO(&6AB0):LDY #HI(&6AB0):JSR dot_0103
+}
+{
+	;x=168 y=184
+	LDA #LO(&6AD0):LDY #HI(&6AD0):JSR dot_0000
+}
+{
+	;x=183 y=177
+	LDA #LO(&6868):LDY #HI(&6868):JSR dot_0301
+}
+{
+	;x=194 y=165
+	LDA #LO(&6380):LDY #HI(&6380):JSR dot_0205
+}
+{
+	;x=201 y=151
+	LDA #LO(&5E90):LDY #HI(&5E90):JSR dot_0107
+}
+{
+	;x=204 y=135
+	LDA #LO(&5998):LDY #HI(&5998):JSR dot_0007
+}
+{
+	;x=201 y=119
+	LDA #LO(&5490):LDY #HI(&5490):JSR dot_0107
+}
+{
+	;x=194 y=105
+	LDA #LO(&5200):LDY #HI(&5200):JSR dot_0201
+}
+{
+	;x=183 y=093
+	LDA #LO(&4CE8):LDY #HI(&4CE8):JSR dot_0305
+}
+{
+	;x=168 y=086
+	LDA #LO(&4A50):LDY #HI(&4A50):JSR dot_0006
+}
+{
+	;x=153 y=084
+	LDA #LO(&4A30):LDY #HI(&4A30):JSR dot_0104
+}
+{
+	;x=137 y=086
+	LDA #LO(&4A10):LDY #HI(&4A10):JSR dot_0106
+}
+{
+	;x=122 y=093
+	LDA #LO(&4C70):LDY #HI(&4C70):JSR dot_0205
+}
+{
+	;x=111 y=105
+	LDA #LO(&5158):LDY #HI(&5158):JSR dot_0301
+}
+{
+	;x=104 y=119
+	LDA #LO(&53D0):LDY #HI(&53D0):JSR dot_0007
+}
+{
+	;x=101 y=135
+	LDA #LO(&58C8):LDY #HI(&58C8):JSR dot_0107
+}
+{
+	;x=104 y=151
+	LDA #LO(&5DD0):LDY #HI(&5DD0):JSR dot_0007
+}
+{
+	;x=111 y=165
+	LDA #LO(&62D8):LDY #HI(&62D8):JSR dot_0305
+}
+{
+	;x=122 y=177
+	LDA #LO(&67F0):LDY #HI(&67F0):JSR dot_0201
+}
+{
+	;x=137 y=184
+	LDA #LO(&6A90):LDY #HI(&6A90):JSR dot_0100
+}
+RTS
+.dot_circle_82
+{
+	;x=152 y=188
+	LDA #LO(&6AB0):LDY #HI(&6AB0):JSR dot_0004
+}
+{
+	;x=168 y=185
+	LDA #LO(&6AD0):LDY #HI(&6AD0):JSR dot_0001
+}
+{
+	;x=183 y=178
+	LDA #LO(&6868):LDY #HI(&6868):JSR dot_0302
+}
+{
+	;x=195 y=166
+	LDA #LO(&6380):LDY #HI(&6380):JSR dot_0306
+}
+{
+	;x=202 y=151
+	LDA #LO(&5E90):LDY #HI(&5E90):JSR dot_0207
+}
+{
+	;x=205 y=135
+	LDA #LO(&5998):LDY #HI(&5998):JSR dot_0107
+}
+{
+	;x=202 y=119
+	LDA #LO(&5490):LDY #HI(&5490):JSR dot_0207
+}
+{
+	;x=195 y=104
+	LDA #LO(&5200):LDY #HI(&5200):JSR dot_0300
+}
+{
+	;x=183 y=092
+	LDA #LO(&4CE8):LDY #HI(&4CE8):JSR dot_0304
+}
+{
+	;x=168 y=085
+	LDA #LO(&4A50):LDY #HI(&4A50):JSR dot_0005
+}
+{
+	;x=152 y=082
+	LDA #LO(&4A30):LDY #HI(&4A30):JSR dot_0002
+}
+{
+	;x=136 y=085
+	LDA #LO(&4A10):LDY #HI(&4A10):JSR dot_0005
+}
+{
+	;x=121 y=092
+	LDA #LO(&4C70):LDY #HI(&4C70):JSR dot_0104
+}
+{
+	;x=110 y=104
+	LDA #LO(&5158):LDY #HI(&5158):JSR dot_0200
+}
+{
+	;x=102 y=119
+	LDA #LO(&53C8):LDY #HI(&53C8):JSR dot_0207
+}
+{
+	;x=099 y=135
+	LDA #LO(&58C0):LDY #HI(&58C0):JSR dot_0307
+}
+{
+	;x=102 y=151
+	LDA #LO(&5DC8):LDY #HI(&5DC8):JSR dot_0207
+}
+{
+	;x=110 y=166
+	LDA #LO(&62D8):LDY #HI(&62D8):JSR dot_0206
+}
+{
+	;x=121 y=178
+	LDA #LO(&67F0):LDY #HI(&67F0):JSR dot_0102
+}
+{
+	;x=136 y=185
+	LDA #LO(&6A90):LDY #HI(&6A90):JSR dot_0001
+}
+RTS
+.dot_circle_83
+{
+	;x=152 y=189
+	LDA #LO(&6AB0):LDY #HI(&6AB0):JSR dot_0005
+}
+{
+	;x=168 y=186
+	LDA #LO(&6AD0):LDY #HI(&6AD0):JSR dot_0002
+}
+{
+	;x=183 y=179
+	LDA #LO(&6868):LDY #HI(&6868):JSR dot_0303
+}
+{
+	;x=195 y=167
+	LDA #LO(&6380):LDY #HI(&6380):JSR dot_0307
+}
+{
+	;x=203 y=152
+	LDA #LO(&6110):LDY #HI(&6110):JSR dot_0300
+}
+{
+	;x=206 y=135
+	LDA #LO(&5998):LDY #HI(&5998):JSR dot_0207
+}
+{
+	;x=203 y=118
+	LDA #LO(&5490):LDY #HI(&5490):JSR dot_0306
+}
+{
+	;x=195 y=103
+	LDA #LO(&4F80):LDY #HI(&4F80):JSR dot_0307
+}
+{
+	;x=183 y=091
+	LDA #LO(&4CE8):LDY #HI(&4CE8):JSR dot_0303
+}
+{
+	;x=168 y=084
+	LDA #LO(&4A50):LDY #HI(&4A50):JSR dot_0004
+}
+{
+	;x=152 y=081
+	LDA #LO(&4A30):LDY #HI(&4A30):JSR dot_0001
+}
+{
+	;x=135 y=084
+	LDA #LO(&4A08):LDY #HI(&4A08):JSR dot_0304
+}
+{
+	;x=120 y=091
+	LDA #LO(&4C70):LDY #HI(&4C70):JSR dot_0003
+}
+{
+	;x=108 y=103
+	LDA #LO(&4ED8):LDY #HI(&4ED8):JSR dot_0007
+}
+{
+	;x=100 y=118
+	LDA #LO(&53C8):LDY #HI(&53C8):JSR dot_0006
+}
+{
+	;x=098 y=135
+	LDA #LO(&58C0):LDY #HI(&58C0):JSR dot_0207
+}
+{
+	;x=100 y=152
+	LDA #LO(&6048):LDY #HI(&6048):JSR dot_0000
+}
+{
+	;x=108 y=167
+	LDA #LO(&62D8):LDY #HI(&62D8):JSR dot_0007
+}
+{
+	;x=120 y=179
+	LDA #LO(&67F0):LDY #HI(&67F0):JSR dot_0003
+}
+{
+	;x=135 y=186
+	LDA #LO(&6A88):LDY #HI(&6A88):JSR dot_0302
+}
+RTS
+.dot_circle_84
+{
+	;x=151 y=190
+	LDA #LO(&6AA8):LDY #HI(&6AA8):JSR dot_0306
+}
+{
+	;x=168 y=188
+	LDA #LO(&6AD0):LDY #HI(&6AD0):JSR dot_0004
+}
+{
+	;x=184 y=180
+	LDA #LO(&6870):LDY #HI(&6870):JSR dot_0004
+}
+{
+	;x=196 y=168
+	LDA #LO(&6608):LDY #HI(&6608):JSR dot_0000
+}
+{
+	;x=204 y=152
+	LDA #LO(&6118):LDY #HI(&6118):JSR dot_0000
+}
+{
+	;x=207 y=135
+	LDA #LO(&5998):LDY #HI(&5998):JSR dot_0307
+}
+{
+	;x=204 y=118
+	LDA #LO(&5498):LDY #HI(&5498):JSR dot_0006
+}
+{
+	;x=196 y=102
+	LDA #LO(&4F88):LDY #HI(&4F88):JSR dot_0006
+}
+{
+	;x=184 y=090
+	LDA #LO(&4CF0):LDY #HI(&4CF0):JSR dot_0002
+}
+{
+	;x=168 y=082
+	LDA #LO(&4A50):LDY #HI(&4A50):JSR dot_0002
+}
+{
+	;x=151 y=080
+	LDA #LO(&4A28):LDY #HI(&4A28):JSR dot_0300
+}
+{
+	;x=134 y=082
+	LDA #LO(&4A08):LDY #HI(&4A08):JSR dot_0202
+}
+{
+	;x=119 y=090
+	LDA #LO(&4C68):LDY #HI(&4C68):JSR dot_0302
+}
+{
+	;x=107 y=102
+	LDA #LO(&4ED0):LDY #HI(&4ED0):JSR dot_0306
+}
+{
+	;x=099 y=118
+	LDA #LO(&53C0):LDY #HI(&53C0):JSR dot_0306
+}
+{
+	;x=096 y=135
+	LDA #LO(&58C0):LDY #HI(&58C0):JSR dot_0007
+}
+{
+	;x=099 y=152
+	LDA #LO(&6040):LDY #HI(&6040):JSR dot_0300
+}
+{
+	;x=107 y=168
+	LDA #LO(&6550):LDY #HI(&6550):JSR dot_0300
+}
+{
+	;x=119 y=180
+	LDA #LO(&67E8):LDY #HI(&67E8):JSR dot_0304
+}
+{
+	;x=134 y=188
+	LDA #LO(&6A88):LDY #HI(&6A88):JSR dot_0204
+}
+RTS
+.dot_circle_85
+{
+	;x=151 y=192
+	LDA #LO(&6D28):LDY #HI(&6D28):JSR dot_0300
+}
+{
+	;x=168 y=189
+	LDA #LO(&6AD0):LDY #HI(&6AD0):JSR dot_0005
+}
+{
+	;x=184 y=181
+	LDA #LO(&6870):LDY #HI(&6870):JSR dot_0005
+}
+{
+	;x=197 y=168
+	LDA #LO(&6608):LDY #HI(&6608):JSR dot_0100
+}
+{
+	;x=205 y=152
+	LDA #LO(&6118):LDY #HI(&6118):JSR dot_0100
+}
+{
+	;x=208 y=135
+	LDA #LO(&59A0):LDY #HI(&59A0):JSR dot_0007
+}
+{
+	;x=205 y=117
+	LDA #LO(&5498):LDY #HI(&5498):JSR dot_0105
+}
+{
+	;x=197 y=102
+	LDA #LO(&4F88):LDY #HI(&4F88):JSR dot_0106
+}
+{
+	;x=184 y=089
+	LDA #LO(&4CF0):LDY #HI(&4CF0):JSR dot_0001
+}
+{
+	;x=168 y=081
+	LDA #LO(&4A50):LDY #HI(&4A50):JSR dot_0001
+}
+{
+	;x=151 y=078
+	LDA #LO(&47A8):LDY #HI(&47A8):JSR dot_0306
+}
+{
+	;x=133 y=081
+	LDA #LO(&4A08):LDY #HI(&4A08):JSR dot_0101
+}
+{
+	;x=118 y=089
+	LDA #LO(&4C68):LDY #HI(&4C68):JSR dot_0201
+}
+{
+	;x=105 y=102
+	LDA #LO(&4ED0):LDY #HI(&4ED0):JSR dot_0106
+}
+{
+	;x=097 y=117
+	LDA #LO(&53C0):LDY #HI(&53C0):JSR dot_0105
+}
+{
+	;x=094 y=135
+	LDA #LO(&58B8):LDY #HI(&58B8):JSR dot_0207
+}
+{
+	;x=097 y=152
+	LDA #LO(&6040):LDY #HI(&6040):JSR dot_0100
+}
+{
+	;x=105 y=168
+	LDA #LO(&6550):LDY #HI(&6550):JSR dot_0100
+}
+{
+	;x=118 y=181
+	LDA #LO(&67E8):LDY #HI(&67E8):JSR dot_0205
+}
+{
+	;x=133 y=189
+	LDA #LO(&6A88):LDY #HI(&6A88):JSR dot_0105
+}
+RTS
+.dot_circle_86
+{
+	;x=150 y=193
+	LDA #LO(&6D28):LDY #HI(&6D28):JSR dot_0201
+}
+{
+	;x=168 y=190
+	LDA #LO(&6AD0):LDY #HI(&6AD0):JSR dot_0006
+}
+{
+	;x=185 y=182
+	LDA #LO(&6870):LDY #HI(&6870):JSR dot_0106
+}
+{
+	;x=198 y=169
+	LDA #LO(&6608):LDY #HI(&6608):JSR dot_0201
+}
+{
+	;x=206 y=153
+	LDA #LO(&6118):LDY #HI(&6118):JSR dot_0201
+}
+{
+	;x=209 y=135
+	LDA #LO(&59A0):LDY #HI(&59A0):JSR dot_0107
+}
+{
+	;x=206 y=117
+	LDA #LO(&5498):LDY #HI(&5498):JSR dot_0205
+}
+{
+	;x=198 y=101
+	LDA #LO(&4F88):LDY #HI(&4F88):JSR dot_0205
+}
+{
+	;x=185 y=088
+	LDA #LO(&4CF0):LDY #HI(&4CF0):JSR dot_0100
+}
+{
+	;x=168 y=079
+	LDA #LO(&47D0):LDY #HI(&47D0):JSR dot_0007
+}
+{
+	;x=150 y=077
+	LDA #LO(&47A8):LDY #HI(&47A8):JSR dot_0205
+}
+{
+	;x=132 y=079
+	LDA #LO(&4788):LDY #HI(&4788):JSR dot_0007
+}
+{
+	;x=116 y=088
+	LDA #LO(&4C68):LDY #HI(&4C68):JSR dot_0000
+}
+{
+	;x=103 y=101
+	LDA #LO(&4EC8):LDY #HI(&4EC8):JSR dot_0305
+}
+{
+	;x=095 y=117
+	LDA #LO(&53B8):LDY #HI(&53B8):JSR dot_0305
+}
+{
+	;x=092 y=135
+	LDA #LO(&58B8):LDY #HI(&58B8):JSR dot_0007
+}
+{
+	;x=095 y=153
+	LDA #LO(&6038):LDY #HI(&6038):JSR dot_0301
+}
+{
+	;x=103 y=169
+	LDA #LO(&6548):LDY #HI(&6548):JSR dot_0301
+}
+{
+	;x=116 y=182
+	LDA #LO(&67E8):LDY #HI(&67E8):JSR dot_0006
+}
+{
+	;x=132 y=190
+	LDA #LO(&6A88):LDY #HI(&6A88):JSR dot_0006
+}
+RTS
+.dot_circle_87
+{
+	;x=150 y=195
+	LDA #LO(&6D28):LDY #HI(&6D28):JSR dot_0203
+}
+{
+	;x=169 y=192
+	LDA #LO(&6D50):LDY #HI(&6D50):JSR dot_0100
+}
+{
+	;x=185 y=183
+	LDA #LO(&6870):LDY #HI(&6870):JSR dot_0107
+}
+{
+	;x=198 y=170
+	LDA #LO(&6608):LDY #HI(&6608):JSR dot_0202
+}
+{
+	;x=207 y=153
+	LDA #LO(&6118):LDY #HI(&6118):JSR dot_0301
+}
+{
+	;x=210 y=135
+	LDA #LO(&59A0):LDY #HI(&59A0):JSR dot_0207
+}
+{
+	;x=207 y=116
+	LDA #LO(&5498):LDY #HI(&5498):JSR dot_0304
+}
+{
+	;x=198 y=100
+	LDA #LO(&4F88):LDY #HI(&4F88):JSR dot_0204
+}
+{
+	;x=185 y=086
+	LDA #LO(&4A70):LDY #HI(&4A70):JSR dot_0106
+}
+{
+	;x=169 y=078
+	LDA #LO(&47D0):LDY #HI(&47D0):JSR dot_0106
+}
+{
+	;x=150 y=075
+	LDA #LO(&47A8):LDY #HI(&47A8):JSR dot_0203
+}
+{
+	;x=132 y=078
+	LDA #LO(&4788):LDY #HI(&4788):JSR dot_0006
+}
+{
+	;x=115 y=086
+	LDA #LO(&49E0):LDY #HI(&49E0):JSR dot_0306
+}
+{
+	;x=102 y=100
+	LDA #LO(&4EC8):LDY #HI(&4EC8):JSR dot_0204
+}
+{
+	;x=093 y=116
+	LDA #LO(&53B8):LDY #HI(&53B8):JSR dot_0104
+}
+{
+	;x=090 y=135
+	LDA #LO(&58B0):LDY #HI(&58B0):JSR dot_0207
+}
+{
+	;x=093 y=153
+	LDA #LO(&6038):LDY #HI(&6038):JSR dot_0101
+}
+{
+	;x=102 y=170
+	LDA #LO(&6548):LDY #HI(&6548):JSR dot_0202
+}
+{
+	;x=115 y=183
+	LDA #LO(&67E0):LDY #HI(&67E0):JSR dot_0307
+}
+{
+	;x=132 y=192
+	LDA #LO(&6D08):LDY #HI(&6D08):JSR dot_0000
+}
+RTS
+.dot_circle_88
+{
+	;x=150 y=196
+	LDA #LO(&6D28):LDY #HI(&6D28):JSR dot_0204
+}
+{
+	;x=169 y=193
+	LDA #LO(&6D50):LDY #HI(&6D50):JSR dot_0101
+}
+{
+	;x=186 y=185
+	LDA #LO(&6AF0):LDY #HI(&6AF0):JSR dot_0201
+}
+{
+	;x=199 y=171
+	LDA #LO(&6608):LDY #HI(&6608):JSR dot_0303
+}
+{
+	;x=208 y=154
+	LDA #LO(&6120):LDY #HI(&6120):JSR dot_0002
+}
+{
+	;x=211 y=135
+	LDA #LO(&59A0):LDY #HI(&59A0):JSR dot_0307
+}
+{
+	;x=208 y=116
+	LDA #LO(&54A0):LDY #HI(&54A0):JSR dot_0004
+}
+{
+	;x=199 y=099
+	LDA #LO(&4F88):LDY #HI(&4F88):JSR dot_0303
+}
+{
+	;x=186 y=085
+	LDA #LO(&4A70):LDY #HI(&4A70):JSR dot_0205
+}
+{
+	;x=169 y=076
+	LDA #LO(&47D0):LDY #HI(&47D0):JSR dot_0104
+}
+{
+	;x=150 y=073
+	LDA #LO(&47A8):LDY #HI(&47A8):JSR dot_0201
+}
+{
+	;x=131 y=076
+	LDA #LO(&4780):LDY #HI(&4780):JSR dot_0304
+}
+{
+	;x=113 y=085
+	LDA #LO(&49E0):LDY #HI(&49E0):JSR dot_0105
+}
+{
+	;x=100 y=099
+	LDA #LO(&4EC8):LDY #HI(&4EC8):JSR dot_0003
+}
+{
+	;x=091 y=116
+	LDA #LO(&53B0):LDY #HI(&53B0):JSR dot_0304
+}
+{
+	;x=088 y=135
+	LDA #LO(&58B0):LDY #HI(&58B0):JSR dot_0007
+}
+{
+	;x=091 y=154
+	LDA #LO(&6030):LDY #HI(&6030):JSR dot_0302
+}
+{
+	;x=100 y=171
+	LDA #LO(&6548):LDY #HI(&6548):JSR dot_0003
+}
+{
+	;x=113 y=185
+	LDA #LO(&6A60):LDY #HI(&6A60):JSR dot_0101
+}
+{
+	;x=131 y=193
+	LDA #LO(&6D00):LDY #HI(&6D00):JSR dot_0301
+}
+RTS
+.dot_circle_89
+{
+	;x=149 y=198
+	LDA #LO(&6D28):LDY #HI(&6D28):JSR dot_0106
+}
+{
+	;x=169 y=195
+	LDA #LO(&6D50):LDY #HI(&6D50):JSR dot_0103
+}
+{
+	;x=186 y=186
+	LDA #LO(&6AF0):LDY #HI(&6AF0):JSR dot_0202
+}
+{
+	;x=200 y=172
+	LDA #LO(&6610):LDY #HI(&6610):JSR dot_0004
+}
+{
+	;x=209 y=154
+	LDA #LO(&6120):LDY #HI(&6120):JSR dot_0102
+}
+{
+	;x=212 y=135
+	LDA #LO(&59A8):LDY #HI(&59A8):JSR dot_0007
+}
+{
+	;x=209 y=115
+	LDA #LO(&54A0):LDY #HI(&54A0):JSR dot_0103
+}
+{
+	;x=200 y=097
+	LDA #LO(&4F90):LDY #HI(&4F90):JSR dot_0001
+}
+{
+	;x=186 y=083
+	LDA #LO(&4A70):LDY #HI(&4A70):JSR dot_0203
+}
+{
+	;x=169 y=074
+	LDA #LO(&47D0):LDY #HI(&47D0):JSR dot_0102
+}
+{
+	;x=149 y=071
+	LDA #LO(&4528):LDY #HI(&4528):JSR dot_0107
+}
+{
+	;x=129 y=074
+	LDA #LO(&4780):LDY #HI(&4780):JSR dot_0102
+}
+{
+	;x=112 y=083
+	LDA #LO(&49E0):LDY #HI(&49E0):JSR dot_0003
+}
+{
+	;x=098 y=097
+	LDA #LO(&4EC0):LDY #HI(&4EC0):JSR dot_0201
+}
+{
+	;x=089 y=115
+	LDA #LO(&53B0):LDY #HI(&53B0):JSR dot_0103
+}
+{
+	;x=086 y=135
+	LDA #LO(&58A8):LDY #HI(&58A8):JSR dot_0207
+}
+{
+	;x=089 y=154
+	LDA #LO(&6030):LDY #HI(&6030):JSR dot_0102
+}
+{
+	;x=098 y=172
+	LDA #LO(&6540):LDY #HI(&6540):JSR dot_0204
+}
+{
+	;x=112 y=186
+	LDA #LO(&6A60):LDY #HI(&6A60):JSR dot_0002
+}
+{
+	;x=129 y=195
+	LDA #LO(&6D00):LDY #HI(&6D00):JSR dot_0103
+}
+RTS
+.dot_circle_90
+{
+	;x=149 y=200
+	LDA #LO(&6FA8):LDY #HI(&6FA8):JSR dot_0100
+}
+{
+	;x=169 y=197
+	LDA #LO(&6D50):LDY #HI(&6D50):JSR dot_0105
+}
+{
+	;x=187 y=187
+	LDA #LO(&6AF0):LDY #HI(&6AF0):JSR dot_0303
+}
+{
+	;x=201 y=173
+	LDA #LO(&6610):LDY #HI(&6610):JSR dot_0105
+}
+{
+	;x=211 y=155
+	LDA #LO(&6120):LDY #HI(&6120):JSR dot_0303
+}
+{
+	;x=214 y=135
+	LDA #LO(&59A8):LDY #HI(&59A8):JSR dot_0207
+}
+{
+	;x=211 y=114
+	LDA #LO(&54A0):LDY #HI(&54A0):JSR dot_0302
+}
+{
+	;x=201 y=096
+	LDA #LO(&4F90):LDY #HI(&4F90):JSR dot_0100
+}
+{
+	;x=187 y=082
+	LDA #LO(&4A70):LDY #HI(&4A70):JSR dot_0302
+}
+{
+	;x=169 y=073
+	LDA #LO(&47D0):LDY #HI(&47D0):JSR dot_0101
+}
+{
+	;x=149 y=069
+	LDA #LO(&4528):LDY #HI(&4528):JSR dot_0105
+}
+{
+	;x=128 y=073
+	LDA #LO(&4780):LDY #HI(&4780):JSR dot_0001
+}
+{
+	;x=110 y=082
+	LDA #LO(&49D8):LDY #HI(&49D8):JSR dot_0202
+}
+{
+	;x=096 y=096
+	LDA #LO(&4EC0):LDY #HI(&4EC0):JSR dot_0000
+}
+{
+	;x=087 y=114
+	LDA #LO(&53A8):LDY #HI(&53A8):JSR dot_0302
+}
+{
+	;x=083 y=135
+	LDA #LO(&58A0):LDY #HI(&58A0):JSR dot_0307
+}
+{
+	;x=087 y=155
+	LDA #LO(&6028):LDY #HI(&6028):JSR dot_0303
+}
+{
+	;x=096 y=173
+	LDA #LO(&6540):LDY #HI(&6540):JSR dot_0005
+}
+{
+	;x=110 y=187
+	LDA #LO(&6A58):LDY #HI(&6A58):JSR dot_0203
+}
+{
+	;x=128 y=197
+	LDA #LO(&6D00):LDY #HI(&6D00):JSR dot_0005
+}
+RTS
+.dot_circle_91
+{
+	;x=148 y=202
+	LDA #LO(&6FA8):LDY #HI(&6FA8):JSR dot_0002
+}
+{
+	;x=169 y=198
+	LDA #LO(&6D50):LDY #HI(&6D50):JSR dot_0106
+}
+{
+	;x=187 y=189
+	LDA #LO(&6AF0):LDY #HI(&6AF0):JSR dot_0305
+}
+{
+	;x=202 y=174
+	LDA #LO(&6610):LDY #HI(&6610):JSR dot_0206
+}
+{
+	;x=212 y=155
+	LDA #LO(&6128):LDY #HI(&6128):JSR dot_0003
+}
+{
+	;x=215 y=134
+	LDA #LO(&59A8):LDY #HI(&59A8):JSR dot_0306
+}
+{
+	;x=212 y=114
+	LDA #LO(&54A8):LDY #HI(&54A8):JSR dot_0002
+}
+{
+	;x=202 y=095
+	LDA #LO(&4D10):LDY #HI(&4D10):JSR dot_0207
+}
+{
+	;x=187 y=080
+	LDA #LO(&4A70):LDY #HI(&4A70):JSR dot_0300
+}
+{
+	;x=169 y=071
+	LDA #LO(&4550):LDY #HI(&4550):JSR dot_0107
+}
+{
+	;x=148 y=067
+	LDA #LO(&4528):LDY #HI(&4528):JSR dot_0003
+}
+{
+	;x=127 y=071
+	LDA #LO(&44F8):LDY #HI(&44F8):JSR dot_0307
+}
+{
+	;x=109 y=080
+	LDA #LO(&49D8):LDY #HI(&49D8):JSR dot_0100
+}
+{
+	;x=094 y=095
+	LDA #LO(&4C38):LDY #HI(&4C38):JSR dot_0207
+}
+{
+	;x=084 y=114
+	LDA #LO(&53A8):LDY #HI(&53A8):JSR dot_0002
+}
+{
+	;x=081 y=134
+	LDA #LO(&58A0):LDY #HI(&58A0):JSR dot_0106
+}
+{
+	;x=084 y=155
+	LDA #LO(&6028):LDY #HI(&6028):JSR dot_0003
+}
+{
+	;x=094 y=174
+	LDA #LO(&6538):LDY #HI(&6538):JSR dot_0206
+}
+{
+	;x=109 y=189
+	LDA #LO(&6A58):LDY #HI(&6A58):JSR dot_0105
+}
+{
+	;x=127 y=198
+	LDA #LO(&6CF8):LDY #HI(&6CF8):JSR dot_0306
+}
+RTS
+.dot_circle_92
+{
+	;x=147 y=204
+	LDA #LO(&6FA0):LDY #HI(&6FA0):JSR dot_0304
+}
+{
+	;x=169 y=200
+	LDA #LO(&6FD0):LDY #HI(&6FD0):JSR dot_0100
+}
+{
+	;x=188 y=190
+	LDA #LO(&6AF8):LDY #HI(&6AF8):JSR dot_0006
+}
+{
+	;x=203 y=175
+	LDA #LO(&6610):LDY #HI(&6610):JSR dot_0307
+}
+{
+	;x=213 y=156
+	LDA #LO(&6128):LDY #HI(&6128):JSR dot_0104
+}
+{
+	;x=217 y=134
+	LDA #LO(&59B0):LDY #HI(&59B0):JSR dot_0106
+}
+{
+	;x=213 y=113
+	LDA #LO(&54A8):LDY #HI(&54A8):JSR dot_0101
+}
+{
+	;x=203 y=094
+	LDA #LO(&4D10):LDY #HI(&4D10):JSR dot_0306
+}
+{
+	;x=188 y=078
+	LDA #LO(&47F8):LDY #HI(&47F8):JSR dot_0006
+}
+{
+	;x=169 y=068
+	LDA #LO(&4550):LDY #HI(&4550):JSR dot_0104
+}
+{
+	;x=147 y=065
+	LDA #LO(&4520):LDY #HI(&4520):JSR dot_0301
+}
+{
+	;x=126 y=068
+	LDA #LO(&44F8):LDY #HI(&44F8):JSR dot_0204
+}
+{
+	;x=107 y=078
+	LDA #LO(&4750):LDY #HI(&4750):JSR dot_0306
+}
+{
+	;x=091 y=094
+	LDA #LO(&4C30):LDY #HI(&4C30):JSR dot_0306
+}
+{
+	;x=082 y=113
+	LDA #LO(&53A0):LDY #HI(&53A0):JSR dot_0201
+}
+{
+	;x=078 y=134
+	LDA #LO(&5898):LDY #HI(&5898):JSR dot_0206
+}
+{
+	;x=082 y=156
+	LDA #LO(&6020):LDY #HI(&6020):JSR dot_0204
+}
+{
+	;x=091 y=175
+	LDA #LO(&6530):LDY #HI(&6530):JSR dot_0307
+}
+{
+	;x=107 y=190
+	LDA #LO(&6A50):LDY #HI(&6A50):JSR dot_0306
+}
+{
+	;x=126 y=200
+	LDA #LO(&6F78):LDY #HI(&6F78):JSR dot_0200
+}
+RTS
+.dot_circle_93
+{
+	;x=147 y=206
+	LDA #LO(&6FA0):LDY #HI(&6FA0):JSR dot_0306
+}
+{
+	;x=169 y=202
+	LDA #LO(&6FD0):LDY #HI(&6FD0):JSR dot_0102
+}
+{
+	;x=189 y=192
+	LDA #LO(&6D78):LDY #HI(&6D78):JSR dot_0100
+}
+{
+	;x=205 y=176
+	LDA #LO(&6898):LDY #HI(&6898):JSR dot_0100
+}
+{
+	;x=215 y=156
+	LDA #LO(&6128):LDY #HI(&6128):JSR dot_0304
+}
+{
+	;x=218 y=134
+	LDA #LO(&59B0):LDY #HI(&59B0):JSR dot_0206
+}
+{
+	;x=215 y=112
+	LDA #LO(&54A8):LDY #HI(&54A8):JSR dot_0300
+}
+{
+	;x=205 y=092
+	LDA #LO(&4D18):LDY #HI(&4D18):JSR dot_0104
+}
+{
+	;x=189 y=076
+	LDA #LO(&47F8):LDY #HI(&47F8):JSR dot_0104
+}
+{
+	;x=169 y=066
+	LDA #LO(&4550):LDY #HI(&4550):JSR dot_0102
+}
+{
+	;x=147 y=063
+	LDA #LO(&42A0):LDY #HI(&42A0):JSR dot_0307
+}
+{
+	;x=125 y=066
+	LDA #LO(&44F8):LDY #HI(&44F8):JSR dot_0102
+}
+{
+	;x=105 y=076
+	LDA #LO(&4750):LDY #HI(&4750):JSR dot_0104
+}
+{
+	;x=089 y=092
+	LDA #LO(&4C30):LDY #HI(&4C30):JSR dot_0104
+}
+{
+	;x=079 y=112
+	LDA #LO(&5398):LDY #HI(&5398):JSR dot_0300
+}
+{
+	;x=075 y=134
+	LDA #LO(&5890):LDY #HI(&5890):JSR dot_0306
+}
+{
+	;x=079 y=156
+	LDA #LO(&6018):LDY #HI(&6018):JSR dot_0304
+}
+{
+	;x=089 y=176
+	LDA #LO(&67B0):LDY #HI(&67B0):JSR dot_0100
+}
+{
+	;x=105 y=192
+	LDA #LO(&6CD0):LDY #HI(&6CD0):JSR dot_0100
+}
+{
+	;x=125 y=202
+	LDA #LO(&6F78):LDY #HI(&6F78):JSR dot_0102
+}
+RTS
+.dot_circle_94
+{
+	;x=146 y=208
+	LDA #LO(&7220):LDY #HI(&7220):JSR dot_0200
+}
+{
+	;x=169 y=204
+	LDA #LO(&6FD0):LDY #HI(&6FD0):JSR dot_0104
+}
+{
+	;x=190 y=194
+	LDA #LO(&6D78):LDY #HI(&6D78):JSR dot_0202
+}
+{
+	;x=206 y=177
+	LDA #LO(&6898):LDY #HI(&6898):JSR dot_0201
+}
+{
+	;x=217 y=157
+	LDA #LO(&6130):LDY #HI(&6130):JSR dot_0105
+}
+{
+	;x=220 y=134
+	LDA #LO(&59B8):LDY #HI(&59B8):JSR dot_0006
+}
+{
+	;x=217 y=111
+	LDA #LO(&5230):LDY #HI(&5230):JSR dot_0107
+}
+{
+	;x=206 y=091
+	LDA #LO(&4D18):LDY #HI(&4D18):JSR dot_0203
+}
+{
+	;x=190 y=074
+	LDA #LO(&47F8):LDY #HI(&47F8):JSR dot_0202
+}
+{
+	;x=169 y=064
+	LDA #LO(&4550):LDY #HI(&4550):JSR dot_0100
+}
+{
+	;x=146 y=060
+	LDA #LO(&42A0):LDY #HI(&42A0):JSR dot_0204
+}
+{
+	;x=123 y=064
+	LDA #LO(&44F0):LDY #HI(&44F0):JSR dot_0300
+}
+{
+	;x=103 y=074
+	LDA #LO(&4748):LDY #HI(&4748):JSR dot_0302
+}
+{
+	;x=086 y=091
+	LDA #LO(&4C28):LDY #HI(&4C28):JSR dot_0203
+}
+{
+	;x=076 y=111
+	LDA #LO(&5118):LDY #HI(&5118):JSR dot_0007
+}
+{
+	;x=072 y=134
+	LDA #LO(&5890):LDY #HI(&5890):JSR dot_0006
+}
+{
+	;x=076 y=157
+	LDA #LO(&6018):LDY #HI(&6018):JSR dot_0005
+}
+{
+	;x=086 y=177
+	LDA #LO(&67A8):LDY #HI(&67A8):JSR dot_0201
+}
+{
+	;x=103 y=194
+	LDA #LO(&6CC8):LDY #HI(&6CC8):JSR dot_0302
+}
+{
+	;x=123 y=204
+	LDA #LO(&6F70):LDY #HI(&6F70):JSR dot_0304
+}
+RTS
+.dot_circle_95
+{
+	;x=146 y=210
+	LDA #LO(&7220):LDY #HI(&7220):JSR dot_0202
+}
+{
+	;x=169 y=207
+	LDA #LO(&6FD0):LDY #HI(&6FD0):JSR dot_0107
+}
+{
+	;x=191 y=196
+	LDA #LO(&6D78):LDY #HI(&6D78):JSR dot_0304
+}
+{
+	;x=207 y=179
+	LDA #LO(&6898):LDY #HI(&6898):JSR dot_0303
+}
+{
+	;x=218 y=158
+	LDA #LO(&6130):LDY #HI(&6130):JSR dot_0206
+}
+{
+	;x=222 y=134
+	LDA #LO(&59B8):LDY #HI(&59B8):JSR dot_0206
+}
+{
+	;x=218 y=110
+	LDA #LO(&5230):LDY #HI(&5230):JSR dot_0206
+}
+{
+	;x=207 y=089
+	LDA #LO(&4D18):LDY #HI(&4D18):JSR dot_0301
+}
+{
+	;x=191 y=072
+	LDA #LO(&47F8):LDY #HI(&47F8):JSR dot_0300
+}
+{
+	;x=169 y=061
+	LDA #LO(&42D0):LDY #HI(&42D0):JSR dot_0105
+}
+{
+	;x=146 y=057
+	LDA #LO(&42A0):LDY #HI(&42A0):JSR dot_0201
+}
+{
+	;x=122 y=061
+	LDA #LO(&4270):LDY #HI(&4270):JSR dot_0205
+}
+{
+	;x=101 y=072
+	LDA #LO(&4748):LDY #HI(&4748):JSR dot_0100
+}
+{
+	;x=084 y=089
+	LDA #LO(&4C28):LDY #HI(&4C28):JSR dot_0001
+}
+{
+	;x=073 y=110
+	LDA #LO(&5110):LDY #HI(&5110):JSR dot_0106
+}
+{
+	;x=069 y=134
+	LDA #LO(&5888):LDY #HI(&5888):JSR dot_0106
+}
+{
+	;x=073 y=158
+	LDA #LO(&6010):LDY #HI(&6010):JSR dot_0106
+}
+{
+	;x=084 y=179
+	LDA #LO(&67A8):LDY #HI(&67A8):JSR dot_0003
+}
+{
+	;x=101 y=196
+	LDA #LO(&6CC8):LDY #HI(&6CC8):JSR dot_0104
+}
+{
+	;x=122 y=207
+	LDA #LO(&6F70):LDY #HI(&6F70):JSR dot_0207
+}
+RTS
+.dot_circle_96
+{
+	;x=145 y=213
+	LDA #LO(&7220):LDY #HI(&7220):JSR dot_0105
+}
+{
+	;x=169 y=209
+	LDA #LO(&7250):LDY #HI(&7250):JSR dot_0101
+}
+{
+	;x=191 y=198
+	LDA #LO(&6D78):LDY #HI(&6D78):JSR dot_0306
+}
+{
+	;x=209 y=180
+	LDA #LO(&68A0):LDY #HI(&68A0):JSR dot_0104
+}
+{
+	;x=220 y=158
+	LDA #LO(&6138):LDY #HI(&6138):JSR dot_0006
+}
+{
+	;x=224 y=134
+	LDA #LO(&59C0):LDY #HI(&59C0):JSR dot_0006
+}
+{
+	;x=220 y=109
+	LDA #LO(&5238):LDY #HI(&5238):JSR dot_0005
+}
+{
+	;x=209 y=087
+	LDA #LO(&4AA0):LDY #HI(&4AA0):JSR dot_0107
+}
+{
+	;x=191 y=070
+	LDA #LO(&4578):LDY #HI(&4578):JSR dot_0306
+}
+{
+	;x=169 y=058
+	LDA #LO(&42D0):LDY #HI(&42D0):JSR dot_0102
+}
+{
+	;x=145 y=054
+	LDA #LO(&4020):LDY #HI(&4020):JSR dot_0106
+}
+{
+	;x=120 y=058
+	LDA #LO(&4270):LDY #HI(&4270):JSR dot_0002
+}
+{
+	;x=098 y=070
+	LDA #LO(&44C0):LDY #HI(&44C0):JSR dot_0206
+}
+{
+	;x=081 y=087
+	LDA #LO(&49A0):LDY #HI(&49A0):JSR dot_0107
+}
+{
+	;x=069 y=109
+	LDA #LO(&5108):LDY #HI(&5108):JSR dot_0105
+}
+{
+	;x=066 y=134
+	LDA #LO(&5880):LDY #HI(&5880):JSR dot_0206
+}
+{
+	;x=069 y=158
+	LDA #LO(&6008):LDY #HI(&6008):JSR dot_0106
+}
+{
+	;x=081 y=180
+	LDA #LO(&67A0):LDY #HI(&67A0):JSR dot_0104
+}
+{
+	;x=098 y=198
+	LDA #LO(&6CC0):LDY #HI(&6CC0):JSR dot_0206
+}
+{
+	;x=120 y=209
+	LDA #LO(&71F0):LDY #HI(&71F0):JSR dot_0001
+}
+RTS
+.dot_circle_97
+{
+	;x=144 y=216
+	LDA #LO(&74A0):LDY #HI(&74A0):JSR dot_0000
+}
+{
+	;x=170 y=212
+	LDA #LO(&7250):LDY #HI(&7250):JSR dot_0204
+}
+{
+	;x=193 y=200
+	LDA #LO(&7000):LDY #HI(&7000):JSR dot_0100
+}
+{
+	;x=211 y=182
+	LDA #LO(&68A0):LDY #HI(&68A0):JSR dot_0306
+}
+{
+	;x=222 y=159
+	LDA #LO(&6138):LDY #HI(&6138):JSR dot_0207
+}
+{
+	;x=226 y=133
+	LDA #LO(&59C0):LDY #HI(&59C0):JSR dot_0205
+}
+{
+	;x=222 y=108
+	LDA #LO(&5238):LDY #HI(&5238):JSR dot_0204
+}
+{
+	;x=211 y=085
+	LDA #LO(&4AA0):LDY #HI(&4AA0):JSR dot_0305
+}
+{
+	;x=193 y=067
+	LDA #LO(&4580):LDY #HI(&4580):JSR dot_0103
+}
+{
+	;x=170 y=055
+	LDA #LO(&4050):LDY #HI(&4050):JSR dot_0207
+}
+{
+	;x=144 y=051
+	LDA #LO(&4020):LDY #HI(&4020):JSR dot_0003
+}
+{
+	;x=119 y=055
+	LDA #LO(&3FE8):LDY #HI(&3FE8):JSR dot_0307
+}
+{
+	;x=096 y=067
+	LDA #LO(&44C0):LDY #HI(&44C0):JSR dot_0003
+}
+{
+	;x=078 y=085
+	LDA #LO(&4998):LDY #HI(&4998):JSR dot_0205
+}
+{
+	;x=066 y=108
+	LDA #LO(&5100):LDY #HI(&5100):JSR dot_0204
+}
+{
+	;x=062 y=133
+	LDA #LO(&5878):LDY #HI(&5878):JSR dot_0205
+}
+{
+	;x=066 y=159
+	LDA #LO(&6000):LDY #HI(&6000):JSR dot_0207
+}
+{
+	;x=078 y=182
+	LDA #LO(&6798):LDY #HI(&6798):JSR dot_0206
+}
+{
+	;x=096 y=200
+	LDA #LO(&6F40):LDY #HI(&6F40):JSR dot_0000
+}
+{
+	;x=119 y=212
+	LDA #LO(&71E8):LDY #HI(&71E8):JSR dot_0304
+}
+RTS
+.dot_circle_98
+{
+	;x=143 y=219
+	LDA #LO(&7498):LDY #HI(&7498):JSR dot_0303
+}
+{
+	;x=170 y=214
+	LDA #LO(&7250):LDY #HI(&7250):JSR dot_0206
+}
+{
+	;x=194 y=202
+	LDA #LO(&7000):LDY #HI(&7000):JSR dot_0202
+}
+{
+	;x=213 y=183
+	LDA #LO(&68A8):LDY #HI(&68A8):JSR dot_0107
+}
+{
+	;x=225 y=160
+	LDA #LO(&63C0):LDY #HI(&63C0):JSR dot_0100
+}
+{
+	;x=229 y=133
+	LDA #LO(&59C8):LDY #HI(&59C8):JSR dot_0105
+}
+{
+	;x=225 y=107
+	LDA #LO(&5240):LDY #HI(&5240):JSR dot_0103
+}
+{
+	;x=213 y=083
+	LDA #LO(&4AA8):LDY #HI(&4AA8):JSR dot_0103
+}
+{
+	;x=194 y=064
+	LDA #LO(&4580):LDY #HI(&4580):JSR dot_0200
+}
+{
+	;x=170 y=052
+	LDA #LO(&4050):LDY #HI(&4050):JSR dot_0204
+}
+{
+	;x=143 y=048
+	LDA #LO(&4018):LDY #HI(&4018):JSR dot_0300
+}
+{
+	;x=117 y=052
+	LDA #LO(&3FE8):LDY #HI(&3FE8):JSR dot_0104
+}
+{
+	;x=093 y=064
+	LDA #LO(&44B8):LDY #HI(&44B8):JSR dot_0100
+}
+{
+	;x=074 y=083
+	LDA #LO(&4990):LDY #HI(&4990):JSR dot_0203
+}
+{
+	;x=062 y=107
+	LDA #LO(&50F8):LDY #HI(&50F8):JSR dot_0203
+}
+{
+	;x=058 y=133
+	LDA #LO(&5870):LDY #HI(&5870):JSR dot_0205
+}
+{
+	;x=062 y=160
+	LDA #LO(&6278):LDY #HI(&6278):JSR dot_0200
+}
+{
+	;x=074 y=183
+	LDA #LO(&6790):LDY #HI(&6790):JSR dot_0207
+}
+{
+	;x=093 y=202
+	LDA #LO(&6F38):LDY #HI(&6F38):JSR dot_0102
+}
+{
+	;x=117 y=214
+	LDA #LO(&71E8):LDY #HI(&71E8):JSR dot_0106
+}
+RTS
+.dot_circle_99
+{
+	;x=143 y=222
+	LDA #LO(&7498):LDY #HI(&7498):JSR dot_0306
+}
+{
+	;x=170 y=218
+	LDA #LO(&74D0):LDY #HI(&74D0):JSR dot_0202
+}
+{
+	;x=195 y=205
+	LDA #LO(&7000):LDY #HI(&7000):JSR dot_0305
+}
+{
+	;x=215 y=185
+	LDA #LO(&6B28):LDY #HI(&6B28):JSR dot_0301
+}
+{
+	;x=227 y=160
+	LDA #LO(&63C0):LDY #HI(&63C0):JSR dot_0300
+}
+{
+	;x=231 y=133
+	LDA #LO(&59C8):LDY #HI(&59C8):JSR dot_0305
+}
+{
+	;x=227 y=106
+	LDA #LO(&5240):LDY #HI(&5240):JSR dot_0302
+}
+{
+	;x=215 y=081
+	LDA #LO(&4AA8):LDY #HI(&4AA8):JSR dot_0301
+}
+{
+	;x=195 y=061
+	LDA #LO(&4300):LDY #HI(&4300):JSR dot_0305
+}
+{
+	;x=170 y=048
+	LDA #LO(&4050):LDY #HI(&4050):JSR dot_0200
+}
+{
+	;x=143 y=044
+	LDA #LO(&3D98):LDY #HI(&3D98):JSR dot_0304
+}
+{
+	;x=115 y=048
+	LDA #LO(&3FE0):LDY #HI(&3FE0):JSR dot_0300
+}
+{
+	;x=090 y=061
+	LDA #LO(&4230):LDY #HI(&4230):JSR dot_0205
+}
+{
+	;x=071 y=081
+	LDA #LO(&4988):LDY #HI(&4988):JSR dot_0301
+}
+{
+	;x=058 y=106
+	LDA #LO(&50F0):LDY #HI(&50F0):JSR dot_0202
+}
+{
+	;x=054 y=133
+	LDA #LO(&5868):LDY #HI(&5868):JSR dot_0205
+}
+{
+	;x=058 y=160
+	LDA #LO(&6270):LDY #HI(&6270):JSR dot_0200
+}
+{
+	;x=071 y=185
+	LDA #LO(&6A08):LDY #HI(&6A08):JSR dot_0301
+}
+{
+	;x=090 y=205
+	LDA #LO(&6F30):LDY #HI(&6F30):JSR dot_0205
+}
+{
+	;x=115 y=218
+	LDA #LO(&7460):LDY #HI(&7460):JSR dot_0302
+}
+RTS
+.dot_circle_100
+{
+	;x=142 y=225
+	LDA #LO(&7718):LDY #HI(&7718):JSR dot_0201
+}
+{
+	;x=170 y=221
+	LDA #LO(&74D0):LDY #HI(&74D0):JSR dot_0205
+}
+{
+	;x=196 y=208
+	LDA #LO(&7288):LDY #HI(&7288):JSR dot_0000
+}
+{
+	;x=217 y=187
+	LDA #LO(&6B30):LDY #HI(&6B30):JSR dot_0103
+}
+{
+	;x=230 y=161
+	LDA #LO(&63C8):LDY #HI(&63C8):JSR dot_0201
+}
+{
+	;x=234 y=133
+	LDA #LO(&59D0):LDY #HI(&59D0):JSR dot_0205
+}
+{
+	;x=230 y=104
+	LDA #LO(&5248):LDY #HI(&5248):JSR dot_0200
+}
+{
+	;x=217 y=078
+	LDA #LO(&4830):LDY #HI(&4830):JSR dot_0106
+}
+{
+	;x=196 y=058
+	LDA #LO(&4308):LDY #HI(&4308):JSR dot_0002
+}
+{
+	;x=170 y=045
+	LDA #LO(&3DD0):LDY #HI(&3DD0):JSR dot_0205
+}
+{
+	;x=142 y=040
+	LDA #LO(&3D98):LDY #HI(&3D98):JSR dot_0200
+}
+{
+	;x=113 y=045
+	LDA #LO(&3D60):LDY #HI(&3D60):JSR dot_0105
+}
+{
+	;x=087 y=058
+	LDA #LO(&4228):LDY #HI(&4228):JSR dot_0302
+}
+{
+	;x=067 y=078
+	LDA #LO(&4700):LDY #HI(&4700):JSR dot_0306
+}
+{
+	;x=054 y=104
+	LDA #LO(&50E8):LDY #HI(&50E8):JSR dot_0200
+}
+{
+	;x=049 y=133
+	LDA #LO(&5860):LDY #HI(&5860):JSR dot_0105
+}
+{
+	;x=054 y=161
+	LDA #LO(&6268):LDY #HI(&6268):JSR dot_0201
+}
+{
+	;x=067 y=187
+	LDA #LO(&6A00):LDY #HI(&6A00):JSR dot_0303
+}
+{
+	;x=087 y=208
+	LDA #LO(&71A8):LDY #HI(&71A8):JSR dot_0300
+}
+{
+	;x=113 y=221
+	LDA #LO(&7460):LDY #HI(&7460):JSR dot_0105
+}
+RTS
+.dot_circle_101
+{
+	;x=141 y=229
+	LDA #LO(&7718):LDY #HI(&7718):JSR dot_0105
+}
+{
+	;x=171 y=224
+	LDA #LO(&7750):LDY #HI(&7750):JSR dot_0300
+}
+{
+	;x=198 y=211
+	LDA #LO(&7288):LDY #HI(&7288):JSR dot_0203
+}
+{
+	;x=219 y=189
+	LDA #LO(&6B30):LDY #HI(&6B30):JSR dot_0305
+}
+{
+	;x=233 y=162
+	LDA #LO(&63D0):LDY #HI(&63D0):JSR dot_0102
+}
+{
+	;x=237 y=132
+	LDA #LO(&59D8):LDY #HI(&59D8):JSR dot_0104
+}
+{
+	;x=233 y=103
+	LDA #LO(&4FD0):LDY #HI(&4FD0):JSR dot_0107
+}
+{
+	;x=219 y=076
+	LDA #LO(&4830):LDY #HI(&4830):JSR dot_0304
+}
+{
+	;x=198 y=054
+	LDA #LO(&4088):LDY #HI(&4088):JSR dot_0206
+}
+{
+	;x=171 y=040
+	LDA #LO(&3DD0):LDY #HI(&3DD0):JSR dot_0300
+}
+{
+	;x=141 y=036
+	LDA #LO(&3B18):LDY #HI(&3B18):JSR dot_0104
+}
+{
+	;x=111 y=040
+	LDA #LO(&3D58):LDY #HI(&3D58):JSR dot_0300
+}
+{
+	;x=084 y=054
+	LDA #LO(&3FA8):LDY #HI(&3FA8):JSR dot_0006
+}
+{
+	;x=063 y=076
+	LDA #LO(&46F8):LDY #HI(&46F8):JSR dot_0304
+}
+{
+	;x=049 y=103
+	LDA #LO(&4E60):LDY #HI(&4E60):JSR dot_0107
+}
+{
+	;x=044 y=132
+	LDA #LO(&5858):LDY #HI(&5858):JSR dot_0004
+}
+{
+	;x=049 y=162
+	LDA #LO(&6260):LDY #HI(&6260):JSR dot_0102
+}
+{
+	;x=063 y=189
+	LDA #LO(&69F8):LDY #HI(&69F8):JSR dot_0305
+}
+{
+	;x=084 y=211
+	LDA #LO(&71A8):LDY #HI(&71A8):JSR dot_0003
+}
+{
+	;x=111 y=224
+	LDA #LO(&76D8):LDY #HI(&76D8):JSR dot_0300
+}
+RTS
+.dot_circle_102
+{
+	;x=140 y=233
+	LDA #LO(&7998):LDY #HI(&7998):JSR dot_0001
+}
+{
+	;x=171 y=228
+	LDA #LO(&7750):LDY #HI(&7750):JSR dot_0304
+}
+{
+	;x=199 y=214
+	LDA #LO(&7288):LDY #HI(&7288):JSR dot_0306
+}
+{
+	;x=222 y=192
+	LDA #LO(&6DB8):LDY #HI(&6DB8):JSR dot_0200
+}
+{
+	;x=236 y=163
+	LDA #LO(&63D8):LDY #HI(&63D8):JSR dot_0003
+}
+{
+	;x=241 y=132
+	LDA #LO(&59E0):LDY #HI(&59E0):JSR dot_0104
+}
+{
+	;x=236 y=101
+	LDA #LO(&4FD8):LDY #HI(&4FD8):JSR dot_0005
+}
+{
+	;x=222 y=073
+	LDA #LO(&4838):LDY #HI(&4838):JSR dot_0201
+}
+{
+	;x=199 y=050
+	LDA #LO(&4088):LDY #HI(&4088):JSR dot_0302
+}
+{
+	;x=171 y=036
+	LDA #LO(&3B50):LDY #HI(&3B50):JSR dot_0304
+}
+{
+	;x=140 y=031
+	LDA #LO(&3898):LDY #HI(&3898):JSR dot_0007
+}
+{
+	;x=109 y=036
+	LDA #LO(&3AD8):LDY #HI(&3AD8):JSR dot_0104
+}
+{
+	;x=080 y=050
+	LDA #LO(&3FA0):LDY #HI(&3FA0):JSR dot_0002
+}
+{
+	;x=058 y=073
+	LDA #LO(&46F0):LDY #HI(&46F0):JSR dot_0201
+}
+{
+	;x=044 y=101
+	LDA #LO(&4E58):LDY #HI(&4E58):JSR dot_0005
+}
+{
+	;x=039 y=132
+	LDA #LO(&5848):LDY #HI(&5848):JSR dot_0304
+}
+{
+	;x=044 y=163
+	LDA #LO(&6258):LDY #HI(&6258):JSR dot_0003
+}
+{
+	;x=058 y=192
+	LDA #LO(&6C70):LDY #HI(&6C70):JSR dot_0200
+}
+{
+	;x=080 y=214
+	LDA #LO(&71A0):LDY #HI(&71A0):JSR dot_0006
+}
+{
+	;x=109 y=228
+	LDA #LO(&76D8):LDY #HI(&76D8):JSR dot_0104
+}
+RTS
+.dot_circle_103
+{
+	;x=139 y=238
+	LDA #LO(&7990):LDY #HI(&7990):JSR dot_0306
+}
+{
+	;x=171 y=233
+	LDA #LO(&79D0):LDY #HI(&79D0):JSR dot_0301
+}
+{
+	;x=201 y=217
+	LDA #LO(&7510):LDY #HI(&7510):JSR dot_0101
+}
+{
+	;x=224 y=194
+	LDA #LO(&6DC0):LDY #HI(&6DC0):JSR dot_0002
+}
+{
+	;x=240 y=164
+	LDA #LO(&63E0):LDY #HI(&63E0):JSR dot_0004
+}
+{
+	;x=245 y=132
+	LDA #LO(&59E8):LDY #HI(&59E8):JSR dot_0104
+}
+{
+	;x=240 y=099
+	LDA #LO(&4FE0):LDY #HI(&4FE0):JSR dot_0003
+}
+{
+	;x=224 y=069
+	LDA #LO(&45C0):LDY #HI(&45C0):JSR dot_0005
+}
+{
+	;x=201 y=046
+	LDA #LO(&3E10):LDY #HI(&3E10):JSR dot_0106
+}
+{
+	;x=171 y=031
+	LDA #LO(&38D0):LDY #HI(&38D0):JSR dot_0307
+}
+{
+	;x=139 y=026
+	LDA #LO(&3890):LDY #HI(&3890):JSR dot_0302
+}
+{
+	;x=106 y=031
+	LDA #LO(&3850):LDY #HI(&3850):JSR dot_0207
+}
+{
+	;x=076 y=046
+	LDA #LO(&3D18):LDY #HI(&3D18):JSR dot_0006
+}
+{
+	;x=053 y=069
+	LDA #LO(&4468):LDY #HI(&4468):JSR dot_0105
+}
+{
+	;x=038 y=099
+	LDA #LO(&4E48):LDY #HI(&4E48):JSR dot_0203
+}
+{
+	;x=033 y=132
+	LDA #LO(&5840):LDY #HI(&5840):JSR dot_0104
+}
+{
+	;x=038 y=164
+	LDA #LO(&6248):LDY #HI(&6248):JSR dot_0204
+}
+{
+	;x=053 y=194
+	LDA #LO(&6C68):LDY #HI(&6C68):JSR dot_0102
+}
+{
+	;x=076 y=217
+	LDA #LO(&7418):LDY #HI(&7418):JSR dot_0001
+}
+{
+	;x=106 y=233
+	LDA #LO(&7950):LDY #HI(&7950):JSR dot_0201
+}
+RTS
+.dot_circle_104
+{
+	;x=138 y=243
+	LDA #LO(&7C10):LDY #HI(&7C10):JSR dot_0203
+}
+{
+	;x=172 y=237
+	LDA #LO(&79D8):LDY #HI(&79D8):JSR dot_0005
+}
+{
+	;x=203 y=221
+	LDA #LO(&7510):LDY #HI(&7510):JSR dot_0305
+}
+{
+	;x=228 y=197
+	LDA #LO(&6DC8):LDY #HI(&6DC8):JSR dot_0005
+}
+{
+	;x=243 y=166
+	LDA #LO(&63E0):LDY #HI(&63E0):JSR dot_0306
+}
+{
+	;x=249 y=131
+	LDA #LO(&59F0):LDY #HI(&59F0):JSR dot_0103
+}
+{
+	;x=243 y=097
+	LDA #LO(&4FE0):LDY #HI(&4FE0):JSR dot_0301
+}
+{
+	;x=228 y=066
+	LDA #LO(&45C8):LDY #HI(&45C8):JSR dot_0002
+}
+{
+	;x=203 y=041
+	LDA #LO(&3E10):LDY #HI(&3E10):JSR dot_0301
+}
+{
+	;x=172 y=025
+	LDA #LO(&38D8):LDY #HI(&38D8):JSR dot_0001
+}
+{
+	;x=138 y=020
+	LDA #LO(&3610):LDY #HI(&3610):JSR dot_0204
+}
+{
+	;x=103 y=025
+	LDA #LO(&3848):LDY #HI(&3848):JSR dot_0301
+}
+{
+	;x=072 y=041
+	LDA #LO(&3D10):LDY #HI(&3D10):JSR dot_0001
+}
+{
+	;x=047 y=066
+	LDA #LO(&4458):LDY #HI(&4458):JSR dot_0302
+}
+{
+	;x=032 y=097
+	LDA #LO(&4E40):LDY #HI(&4E40):JSR dot_0001
+}
+{
+	;x=026 y=131
+	LDA #LO(&5830):LDY #HI(&5830):JSR dot_0203
+}
+{
+	;x=032 y=166
+	LDA #LO(&6240):LDY #HI(&6240):JSR dot_0006
+}
+{
+	;x=047 y=197
+	LDA #LO(&6C58):LDY #HI(&6C58):JSR dot_0305
+}
+{
+	;x=072 y=221
+	LDA #LO(&7410):LDY #HI(&7410):JSR dot_0005
+}
+{
+	;x=103 y=237
+	LDA #LO(&7948):LDY #HI(&7948):JSR dot_0305
+}
+RTS
+.dot_circle_105
+{
+	;x=136 y=248
+	LDA #LO(&7E90):LDY #HI(&7E90):JSR dot_0000
+}
+{
+	;x=173 y=242
+	LDA #LO(&7C58):LDY #HI(&7C58):JSR dot_0102
+}
+{
+	;x=205 y=226
+	LDA #LO(&7798):LDY #HI(&7798):JSR dot_0102
+}
+{
+	;x=231 y=200
+	LDA #LO(&7048):LDY #HI(&7048):JSR dot_0300
+}
+{
+	;x=248 y=167
+	LDA #LO(&63F0):LDY #HI(&63F0):JSR dot_0007
+}
+{
+	;x=254 y=131
+	LDA #LO(&59F8):LDY #HI(&59F8):JSR dot_0203
+}
+{
+	;x=248 y=095
+	LDA #LO(&4D70):LDY #HI(&4D70):JSR dot_0007
+}
+{
+	;x=231 y=062
+	LDA #LO(&4348):LDY #HI(&4348):JSR dot_0306
+}
+{
+	;x=205 y=036
+	LDA #LO(&3B98):LDY #HI(&3B98):JSR dot_0104
+}
+{
+	;x=173 y=019
+	LDA #LO(&3658):LDY #HI(&3658):JSR dot_0103
+}
+{
+	;x=136 y=014
+	LDA #LO(&3390):LDY #HI(&3390):JSR dot_0006
+}
+{
+	;x=100 y=019
+	LDA #LO(&35C8):LDY #HI(&35C8):JSR dot_0003
+}
+{
+	;x=067 y=036
+	LDA #LO(&3A80):LDY #HI(&3A80):JSR dot_0304
+}
+{
+	;x=041 y=062
+	LDA #LO(&41D0):LDY #HI(&41D0):JSR dot_0106
+}
+{
+	;x=025 y=095
+	LDA #LO(&4BB0):LDY #HI(&4BB0):JSR dot_0107
+}
+{
+	;x=019 y=131
+	LDA #LO(&5820):LDY #HI(&5820):JSR dot_0303
+}
+{
+	;x=025 y=167
+	LDA #LO(&6230):LDY #HI(&6230):JSR dot_0107
+}
+{
+	;x=041 y=200
+	LDA #LO(&6ED0):LDY #HI(&6ED0):JSR dot_0100
+}
+{
+	;x=067 y=226
+	LDA #LO(&7680):LDY #HI(&7680):JSR dot_0302
+}
+{
+	;x=100 y=242
+	LDA #LO(&7BC8):LDY #HI(&7BC8):JSR dot_0002
+}
+RTS
+.dot_circle_106
+{
+	;x=135 y=254
+	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0306
+}
+{
+	;x=173 y=248
+	LDA #LO(&7ED8):LDY #HI(&7ED8):JSR dot_0100
+}
+{
+	;x=208 y=231
+	LDA #LO(&77A0):LDY #HI(&77A0):JSR dot_0007
+}
+{
+	;x=235 y=203
+	LDA #LO(&7050):LDY #HI(&7050):JSR dot_0303
+}
+{
+	;x=253 y=169
+	LDA #LO(&6678):LDY #HI(&6678):JSR dot_0101
+}
+{
+	;x=259 y=130
+	LDA #LO(&5A00):LDY #HI(&5A00):JSR dot_0302
+}
+{
+	;x=253 y=092
+	LDA #LO(&4D78):LDY #HI(&4D78):JSR dot_0104
+}
+{
+	;x=235 y=057
+	LDA #LO(&4350):LDY #HI(&4350):JSR dot_0301
+}
+{
+	;x=208 y=030
+	LDA #LO(&3920):LDY #HI(&3920):JSR dot_0006
+}
+{
+	;x=173 y=012
+	LDA #LO(&33D8):LDY #HI(&33D8):JSR dot_0104
+}
+{
+	;x=135 y=006
+	LDA #LO(&3108):LDY #HI(&3108):JSR dot_0306
+}
+{
+	;x=097 y=012
+	LDA #LO(&3340):LDY #HI(&3340):JSR dot_0104
+}
+{
+	;x=062 y=030
+	LDA #LO(&37F8):LDY #HI(&37F8):JSR dot_0206
+}
+{
+	;x=035 y=057
+	LDA #LO(&41C0):LDY #HI(&41C0):JSR dot_0301
+}
+{
+	;x=017 y=092
+	LDA #LO(&4BA0):LDY #HI(&4BA0):JSR dot_0104
+}
+{
+	;x=011 y=130
+	LDA #LO(&5810):LDY #HI(&5810):JSR dot_0302
+}
+{
+	;x=017 y=169
+	LDA #LO(&64A0):LDY #HI(&64A0):JSR dot_0101
+}
+{
+	;x=035 y=203
+	LDA #LO(&6EC0):LDY #HI(&6EC0):JSR dot_0303
+}
+{
+	;x=062 y=231
+	LDA #LO(&7678):LDY #HI(&7678):JSR dot_0207
+}
+{
+	;x=097 y=248
+	LDA #LO(&7E40):LDY #HI(&7E40):JSR dot_0100
+}
+RTS
+.dot_circle_107
+{
+	;x=133 y=261
+	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0105
+}
+{
+	;x=174 y=255
 	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0207
 }
 {
-	;x=-28 y=-45
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0003
+	;x=211 y=236
+	LDA #LO(&7A20):LDY #HI(&7A20):JSR dot_0304
 }
 {
-	;x=-74 y=025
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0201
+	;x=240 y=207
+	LDA #LO(&7060):LDY #HI(&7060):JSR dot_0007
 }
 {
-	;x=-95 y=106
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0102
+	;x=258 y=170
+	LDA #LO(&6680):LDY #HI(&6680):JSR dot_0202
 }
 {
-	;x=-88 y=190
+	;x=265 y=130
+	LDA #LO(&5A10):LDY #HI(&5A10):JSR dot_0102
+}
+{
+	;x=258 y=089
+	LDA #LO(&4D80):LDY #HI(&4D80):JSR dot_0201
+}
+{
+	;x=240 y=053
+	LDA #LO(&40E0):LDY #HI(&40E0):JSR dot_0005
+}
+{
+	;x=211 y=023
+	LDA #LO(&36A0):LDY #HI(&36A0):JSR dot_0307
+}
+{
+	;x=174 y=005
+	LDA #LO(&3158):LDY #HI(&3158):JSR dot_0205
+}
+{
+	;x=133 y=-01
+	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0107
+}
+{
+	;x=093 y=005
+	LDA #LO(&30B8):LDY #HI(&30B8):JSR dot_0105
+}
+{
+	;x=056 y=023
+	LDA #LO(&3570):LDY #HI(&3570):JSR dot_0007
+}
+{
+	;x=027 y=053
+	LDA #LO(&3F30):LDY #HI(&3F30):JSR dot_0305
+}
+{
+	;x=008 y=089
+	LDA #LO(&4B90):LDY #HI(&4B90):JSR dot_0001
+}
+{
+	;x=002 y=130
+	LDA #LO(&5800):LDY #HI(&5800):JSR dot_0202
+}
+{
+	;x=008 y=170
+	LDA #LO(&6490):LDY #HI(&6490):JSR dot_0002
+}
+{
+	;x=027 y=207
+	LDA #LO(&6EB0):LDY #HI(&6EB0):JSR dot_0307
+}
+{
+	;x=056 y=236
+	LDA #LO(&78F0):LDY #HI(&78F0):JSR dot_0004
+}
+{
+	;x=093 y=255
+	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0107
+}
+RTS
+.dot_circle_108
+{
+	;x=132 y=269
+	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0005
+}
+{
+	;x=175 y=262
+	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0306
+}
+{
+	;x=214 y=242
+	LDA #LO(&7CA8):LDY #HI(&7CA8):JSR dot_0202
+}
+{
+	;x=245 y=211
+	LDA #LO(&72E8):LDY #HI(&72E8):JSR dot_0103
+}
+{
+	;x=264 y=172
+	LDA #LO(&6690):LDY #HI(&6690):JSR dot_0004
+}
+{
+	;x=271 y=129
+	LDA #LO(&5A18):LDY #HI(&5A18):JSR dot_0301
+}
+{
+	;x=264 y=086
+	LDA #LO(&4B10):LDY #HI(&4B10):JSR dot_0006
+}
+{
+	;x=245 y=047
+	LDA #LO(&3E68):LDY #HI(&3E68):JSR dot_0107
+}
+{
+	;x=214 y=016
+	LDA #LO(&36A8):LDY #HI(&36A8):JSR dot_0200
+}
+{
+	;x=175 y=-03
+	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0305
+}
+{
+	;x=132 y=-10
 	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0006
 }
 {
-	;x=-54 y=268
+	;x=088 y=-03
+	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0005
+}
+{
+	;x=050 y=016
+	LDA #LO(&3560):LDY #HI(&3560):JSR dot_0200
+}
+{
+	;x=019 y=047
+	LDA #LO(&3CA0):LDY #HI(&3CA0):JSR dot_0307
+}
+{
+	;x=000 y=086
+	LDA #LO(&4900):LDY #HI(&4900):JSR dot_0006
+}
+{
+	;x=-07 y=129
+	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0101
+}
+{
+	;x=000 y=172
+	LDA #LO(&6480):LDY #HI(&6480):JSR dot_0004
+}
+{
+	;x=019 y=211
+	LDA #LO(&7120):LDY #HI(&7120):JSR dot_0303
+}
+{
+	;x=050 y=242
+	LDA #LO(&7B60):LDY #HI(&7B60):JSR dot_0202
+}
+{
+	;x=088 y=262
+	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0006
+}
+RTS
+.dot_circle_109
+{
+	;x=130 y=278
+	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0206
+}
+{
+	;x=176 y=270
+	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0006
+}
+{
+	;x=217 y=249
+	LDA #LO(&7F30):LDY #HI(&7F30):JSR dot_0101
+}
+{
+	;x=250 y=216
+	LDA #LO(&7570):LDY #HI(&7570):JSR dot_0200
+}
+{
+	;x=272 y=174
+	LDA #LO(&66A0):LDY #HI(&66A0):JSR dot_0006
+}
+{
+	;x=279 y=128
+	LDA #LO(&5A28):LDY #HI(&5A28):JSR dot_0300
+}
+{
+	;x=272 y=082
+	LDA #LO(&4B20):LDY #HI(&4B20):JSR dot_0002
+}
+{
+	;x=250 y=041
+	LDA #LO(&3E70):LDY #HI(&3E70):JSR dot_0201
+}
+{
+	;x=217 y=008
+	LDA #LO(&3430):LDY #HI(&3430):JSR dot_0100
+}
+{
+	;x=176 y=-13
+	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0003
+}
+{
+	;x=130 y=-20
 	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0204
 }
 {
-	;x=002 y=330
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0202
+	;x=084 y=-13
+	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0003
 }
 {
-	;x=076 y=370
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0002
+	;x=042 y=008
+	LDA #LO(&32D0):LDY #HI(&32D0):JSR dot_0200
 }
 {
-	;x=159 y=384
-	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0300
+	;x=009 y=041
+	LDA #LO(&3C90):LDY #HI(&3C90):JSR dot_0101
+}
+{
+	;x=-11 y=082
+	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0102
+}
+{
+	;x=-18 y=128
+	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0200
+}
+{
+	;x=-11 y=174
+	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0106
+}
+{
+	;x=009 y=216
+	LDA #LO(&7390):LDY #HI(&7390):JSR dot_0100
+}
+{
+	;x=042 y=249
+	LDA #LO(&7DD0):LDY #HI(&7DD0):JSR dot_0201
+}
+{
+	;x=084 y=270
+	LDA #LO(&2AF0):LDY #HI(&2AF0):JSR dot_0006
 }
 RTS

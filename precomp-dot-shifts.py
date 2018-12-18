@@ -12,8 +12,8 @@ DISPLAY_DOT_HEIGHT = 8
 DOT_PIXEL_WIDTH = 5
 DOT_PIXEL_HEIGHT = 4
 
-PIXEL_DATA_ROW_0 = 0b01110000
-PIXEL_DATA_ROW_1 = 0b11111000
+PIXEL_DATA_ROW_0 = 0            #0b01110000
+PIXEL_DATA_ROW_1 = 0b11000000   #0b11111000
 
 import sys
 import math
@@ -58,6 +58,7 @@ class Dot():
         
         data00 = ((PIXEL_DATA_ROW_0 >> pixel_shift) & 0xf0) >> 4
         data01 = (PIXEL_DATA_ROW_0 >> pixel_shift) & 0x0f
+
         data10 = ((PIXEL_DATA_ROW_1 >> pixel_shift) & 0xf0) >> 4
         data11 = (PIXEL_DATA_ROW_1 >> pixel_shift) & 0x0f
 
@@ -100,7 +101,7 @@ class Dot():
             output_file.write('EOR (screen_ptr), Y\n')
             output_file.write('STA (screen_ptr), Y\n')
 
-        if data01 != 0:
+        if data11 != 0:
             output_file.write('LDY #' + str(row_offset + 8) + '\n')
             output_file.write('LDA #&' + '{:02X}'.format(data11 | data11<<4) + '\n')
             output_file.write('EOR (screen_ptr), Y\n')
@@ -128,7 +129,7 @@ class Dot():
             output_file.write('EOR (screen_ptr), Y\n')
             output_file.write('STA (screen_ptr), Y\n')
 
-        if data01 != 0:
+        if data11 != 0:
             output_file.write('LDY #' + str(row_offset + 8) + '\n')
             output_file.write('LDA #&' + '{:02X}'.format(data11 | data11<<4) + '\n')
             output_file.write('EOR (screen_ptr), Y\n')
@@ -136,7 +137,7 @@ class Dot():
 
         # Increment row
 
-        if (row_offset == 7):
+        if (row_offset == 7 and data00 !=0 and data01 !=0):
             output_file.write('CLC\n')
             output_file.write('LDA screen_ptr\n')
             output_file.write('ADC #LO(640)\n')
