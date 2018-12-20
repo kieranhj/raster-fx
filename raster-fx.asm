@@ -3,7 +3,7 @@
 \ ******************************************************************
 
 _DEBUG_RASTERS = FALSE
-_STABLE_RASTER = TRUE
+_STABLE_RASTER = FALSE
 
 \ ******************************************************************
 \ *	OS defines
@@ -45,7 +45,11 @@ MACRO SET_PAL col, pal
 	LDA #col + pal
 	STA &FE21
 	EOR #&10: STA &FE21
+	EOR #&20: STA &FE21
+	EOR #&10: STA &FE21
 	EOR #&40: STA &FE21
+	EOR #&10: STA &FE21
+	EOR #&30: STA &FE21
 	EOR #&10: STA &FE21
 ENDMACRO
 
@@ -54,7 +58,7 @@ ENDMACRO
 \ ******************************************************************
 
 ; Default screen address
-screen_addr = &3000
+screen_addr = &5800
 SCREEN_SIZE_BYTES = &8000 - screen_addr
 
 ; Exact time for a 50Hz frame less latch load time
@@ -83,8 +87,6 @@ WAVE_TOTAL_BYTES = WAVE_GLYPH_BYTES * WAVE_NUM_GLYPHS
 
 glyph_base_addr = &8000 - WAVE_TOTAL_BYTES
 
-TUNNEL_STEP = 10
-
 \ ******************************************************************
 \ *	ZERO PAGE
 \ ******************************************************************
@@ -108,6 +110,16 @@ GUARD &9F
 
 .tunnel_buffer			SKIP 1
 .tunnel_frame			SKIP 2
+.tunnel_path			SKIP 2
+
+.dot_tmp				SKIP 1
+.tunnel_tmp				SKIP 1
+.tunnel_count			SKIP 1
+.tunnel_idx				SKIP 1
+
+.circle_x				SKIP 1
+.circle_y				SKIP 1
+
 
 \ ******************************************************************
 \ *	CODE START
@@ -155,7 +167,7 @@ INCLUDE "lib/disksys.asm"
 
 	LDA #22
 	JSR oswrch
-	LDA #1
+	LDA #4
 	JSR oswrch
 
 	\\ Turn off cursor
@@ -163,10 +175,13 @@ INCLUDE "lib/disksys.asm"
 	LDA #10: STA &FE00
 	LDA #32: STA &FE01
 
+	LDA #1: STA &FE00
+	LDA #32: STA &FE01
+
 	\\ Set Colour 2 to White - MODE 1 requires 4x writes to ULA Palette Register
 
-	SET_PAL MODE1_COL1, PAL_blue
-	SET_PAL MODE1_COL2, PAL_cyan
+;	SET_PAL MODE1_COL1, PAL_blue
+;	SET_PAL MODE1_COL2, PAL_cyan
 
 	\\ Initialise system modules here!
 
@@ -413,13 +428,6 @@ ENDIF
 
 .fx_init_function
 {
-	LDX #TUNNEL_DOT_LENGTH-1
-	LDA #0
-	.loop
-	STA dot_fb, X
-	DEX
-	BPL loop
-
 	LDA #4
 	STA &F4
 	STA &FE30
@@ -427,7 +435,7 @@ ENDIF
 	LDX #LO(filename)
 	LDY #HI(filename)
 	LDA #HI(bank_start)
-	JSR disksys_load_file
+;	JSR disksys_load_file
 
 	LDA #0
 	LDX #0
@@ -438,10 +446,11 @@ ENDIF
 	INC clear_loop+2
 	BPL clear_loop
 
-	\ need to draw first frame on both screen buffers
-
 	LDX #1
 	STX tunnel_frame
+	LDY #1
+	STY tunnel_path
+
 	JSR plot_dot_tunnel
 
 \ Ensure SHADOW RAM is writeable
@@ -450,7 +459,12 @@ ENDIF
 
 	LDX #0
 	STX tunnel_frame+1
+	LDY #0
+	STY tunnel_path+1
 	JSR plot_dot_tunnel
+
+	LDX #1		; last plotted
+	STX tunnel_buffer
 
 	\ set up double buffered mode with CRTC
     ; we set bits 0 and 2 of ACCCON, so that display=Main RAM, and shadow ram is selected as main memory
@@ -458,9 +472,6 @@ ENDIF
     and #255-1  ; set D to 0
     ora #4    	; set X to 1
     sta &fe34
-
-	LDX #1		; last plotted
-	STX tunnel_buffer
 
 	RTS
 }
@@ -511,16 +522,6 @@ ENDIF
 \ A FULL AND VALID 312 line PAL signal before exiting!
 \ ******************************************************************
 
-MACRO FRAME_UPDATE_X
-{
-	INX
-	CPX #TUNNEL_DOT_LENGTH
-	BCC ok
-	LDX #0
-	.ok
-}
-ENDMACRO
-
 .fx_draw_function
 {
 	\\ Raster is displaying row 0
@@ -529,59 +530,157 @@ ENDMACRO
 	SET_PAL MODE1_COL0, PAL_red
 	ENDIF
 
-	; plotted frame
 	LDY tunnel_buffer
 	LDX tunnel_frame, Y
+	LDA tunnel_path, Y
+	TAY
 
-	; erase old circle
 	JSR plot_dot_tunnel
 
-	; visible frame
 	LDA tunnel_buffer
 	EOR #1
 	TAY
+
 	LDX tunnel_frame, Y
-
-	; increment frame
-	FRAME_UPDATE_X
-
+	INX
+	CPX #TUNNEL_FRAMES
+	BCC ok
+	LDX #0
+	.ok
 	LDY tunnel_buffer
 	STX tunnel_frame, Y
 
-	; plot new circle
+	LDA tunnel_buffer
+	EOR #1
+	TAY
+	LDA tunnel_path, Y
+	SEC
+	SBC #1
+	LDY tunnel_buffer
+	STA tunnel_path, Y
+	TAY
+
 	JSR plot_dot_tunnel
 
 	IF _DEBUG_RASTERS
 	SET_PAL MODE1_COL0, PAL_black
 	ENDIF
 
-
 	\\ Cross fingers
 
     RTS
 }
 
-.plot_dot_tunnel
+CIRCLE_DEPTHS = 64
+TUNNEL_STEP = 8
+TUNNEL_FRAMES = CIRCLE_DEPTHS / TUNNEL_STEP
+
+.plot_dot_tunnel		; X=starting depth; Y=tunnel path
 {
-	FOR n,1,110,TUNNEL_STEP
-		JSR plot_dot_col
-		FOR i,1,TUNNEL_STEP
-			FRAME_UPDATE_X
-		NEXT
-	NEXT
+	LDA #TUNNEL_FRAMES
+	STA tunnel_count
+
+	STY tunnel_idx
+
+	.loop
+	STX tunnel_tmp
+
+	LDY tunnel_idx
+	LDA tunnel_centre_X, Y
+	STA circle_x
+
+	LDA tunnel_centre_Y, Y
+	STA circle_y
+
+	JSR plot_dot_circle
+
+	LDA tunnel_tmp
+	CLC
+	ADC #TUNNEL_STEP
+	CMP #CIRCLE_DEPTHS
+	BCC ok
+	SBC #CIRCLE_DEPTHS
+	.ok
+	TAX
+
+	CLC
+	LDA tunnel_idx
+	ADC #TUNNEL_STEP
+	STA tunnel_idx
+
+	DEC tunnel_count
+	BNE loop
+
 	RTS
 }
 
-.plot_dot_col		; A = byte, X = col
+CIRCLE_DOTS = 20
+
+.plot_dot_circle				; at depth X
 {
-	LDA dot_circle_table_LO, X
-	STA plot_dot_jump+1
+	LDA tunnel_x_LO, X
+	STA circle_X+1
+	LDA tunnel_x_HI, X
+	STA circle_X+2
 
-	LDA dot_circle_table_HI, X
-	STA plot_dot_jump+2
+	LDA tunnel_y_LO, X
+	STA circle_Y+1
+	LDA tunnel_y_HI, X
+	STA circle_Y+2
 
-	.plot_dot_jump
-	JMP &FFFF
+	LDX #0
+	.loop
+	STX dot_tmp
+
+	CLC
+	.circle_Y
+	LDA dot_circle_Y, X
+	ADC circle_y
+	TAY
+
+	CLC
+	.circle_X
+	LDA dot_circle_X, X
+	ADC circle_x
+	TAX
+
+	JSR plot_dot
+
+	LDX dot_tmp
+	.skip
+	INX
+	CPX #CIRCLE_DOTS
+	BCC loop
+
+	RTS
+}
+
+.plot_dot		; X,Y
+{
+	; convert Y to LO byte
+	LDA dot_screen_address_LO, Y	;4c
+	STA screen_ptr					;3c
+
+	; convert Y to HI byte
+	LDA dot_screen_address_HI, Y	;4c
+	STA screen_ptr+1				;3c
+
+	; X AND &F8
+	TXA								;2c
+	AND #&F8						;2c
+	TAY								;2c
+
+	TXA								;2c
+	AND #7							;2c
+	TAX								;2c
+
+	LDA dot_pixels, X				;4c
+	EOR (screen_ptr), Y				;5c
+	STA (screen_ptr), Y				;6c
+
+	\\ Total = 41c / pixel
+
+	RTS
 }
 
 \ ******************************************************************
@@ -664,6 +763,85 @@ ALIGN &100
 .glyph_data
 INCBIN "square_font_90_deg_cw.bin"
 
+ALIGN &100
+.dot_screen_address_LO
+FOR y,0,255,1
+EQUB LO(screen_addr + (y DIV 8) * 256 + (y MOD 8))
+NEXT
+
+.dot_screen_address_HI
+FOR y,0,255,1
+EQUB HI(screen_addr + (y DIV 8) * 256 + (y MOD 8))
+NEXT
+
+.dot_screen_column_X
+FOR x,0,255,1
+EQUB x AND &F8
+NEXT
+
+.dot_pixels
+EQUB 128,64,32,16,8,4,2,1
+
+.dot_depth_tables
+.dot_circle_X
+.dot_circle_Y
+FOR d,0,CIRCLE_DEPTHS-1,1
+z = 640 * (1 - (d / CIRCLE_DEPTHS))
+cz = -160
+r = 128
+
+PRINT "d=",d," z=",z," cz=",cz," r=",r
+
+PRINT "x values:"
+FOR n,0,CIRCLE_DOTS-1,1
+x = SIN(2 * PI * n / CIRCLE_DOTS) * r
+xd =  160 * (x - 0) / (z - cz)
+EQUB xd
+NEXT
+
+PRINT "y values:"
+FOR n,0,CIRCLE_DOTS-1,1
+y = COS(2 * PI * n / CIRCLE_DOTS) * r
+yd =  160 * (y - 0) / (z - cz)
+EQUB yd
+NEXT
+
+NEXT
+
+.tunnel_x_LO
+FOR d,0,CIRCLE_DEPTHS-1,1
+circle_X = dot_depth_tables + d * CIRCLE_DOTS * 2
+EQUB LO(circle_X)
+NEXT
+
+.tunnel_x_HI
+FOR d,0,CIRCLE_DEPTHS-1,1
+circle_X = dot_depth_tables + d * CIRCLE_DOTS * 2
+EQUB HI(circle_X)
+NEXT
+
+.tunnel_y_LO
+FOR d,0,CIRCLE_DEPTHS-1,1
+circle_Y = dot_depth_tables + d * CIRCLE_DOTS * 2 + CIRCLE_DOTS
+EQUB LO(circle_Y)
+NEXT
+
+.tunnel_y_HI
+FOR d,0,CIRCLE_DEPTHS-1,1
+circle_Y = dot_depth_tables + d * CIRCLE_DOTS * 2 + CIRCLE_DOTS
+EQUB HI(circle_Y)
+NEXT
+
+.tunnel_centre_X
+FOR n,0,255,1
+EQUB 128; + 32 * SIN(4 * PI * n / 256)
+NEXT
+
+.tunnel_centre_Y
+FOR n,0,255,1
+EQUB 128 + 32 * COS(4 * PI * n / 256)
+NEXT
+
 .data_end
 
 \ ******************************************************************
@@ -712,7 +890,7 @@ ORG &8000
 GUARD &C000
 .bank_start
 ;INCLUDE "dot_code.asm"
-INCLUDE "dot_column_code.asm"
+;INCLUDE "dot_column_code.asm"
 
 .bank_end
 

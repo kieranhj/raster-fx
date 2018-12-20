@@ -87,3 +87,23 @@ Say 8 'frames' between circles
 320 visible dots / 20 dots in a circle (say) = 16 circles visible
 But generate 16 * 8 circles in code (assuming space)
 Equivalent to 2560 dots
+(Ended up as 20 dots in circle * 110 circles at step of 10 = 11 circles visible)
+
+Done this but doesn't look good as tunnel is fixed animation - could do this with palette cycling!
+Need to be able to plot circles quickly and precalc a nice path for them
+Assume the circles are the sprites and generate code for each radius <=> depth?
+But need to be able to plot them at any (x,y) coordinate
+Can't have 32x combinations x 100 depth values
+Could generate code that works across character row boundaries?
+Could move to MODE 4 and plot single pixels for dots? (8x combos)
+Clipping is a challenge for pre-computed circle plotting at arbitrary positions
+Or super-fast single pixel plot in MODE4S by jump table on character row?
+
+Alternatively have a table of (x,y) pixel positions to form a cirlce for given depth (radius)
+Then it's a case of computing the centre point, adding the offset for each pixel and plotting individually :\
+Suggest doing this the long-winded way to get the effect correct then optimise
+Definitely restrict to 256x256 screen for simplicity
+
+For tunnel, plot from back to front. Starting at index 0 draw tunnel depth 64
+(but only actually plot every 8 circles) increasing the index each time.
+Next frame, decrement the index but draw the tunnel starting from the next depth
