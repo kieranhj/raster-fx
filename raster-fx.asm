@@ -119,7 +119,13 @@ GUARD &9F
 
 .circle_x				SKIP 1
 .circle_y				SKIP 1
+.circle_ptr				SKIP 2
 
+.off_x					SKIP 1
+.off_y					SKIP 1
+.tmp_x					SKIP 1
+.tmp_y					SKIP 1
+.clip_flags				SKIP 1
 
 \ ******************************************************************
 \ *	CODE START
@@ -543,7 +549,7 @@ ENDIF
 
 	LDX tunnel_frame, Y
 	INX
-	CPX #TUNNEL_FRAMES
+	CPX #CIRCLE_DEPTHS;TUNNEL_FRAMES
 	BCC ok
 	LDX #0
 	.ok
@@ -616,35 +622,50 @@ TUNNEL_FRAMES = CIRCLE_DEPTHS / TUNNEL_STEP
 
 CIRCLE_DOTS = 20
 
+MACRO PLOT_DOT
+{
+	LDA dot_screen_address_LO, Y	;4c
+	STA screen_ptr					;3c
+	LDA dot_screen_address_HI, Y	;4c
+	STA screen_ptr+1				;3c
+	LDY dot_screen_column_X, X		;4c
+	LDA dot_pixels, X				;4c
+	EOR (screen_ptr), Y				;5c
+	STA (screen_ptr), Y				;6c
+} ;33c
+ENDMACRO
+
+IF 0
 .plot_dot_circle				; at depth X
 {
 	LDA tunnel_x_LO, X
-	STA circle_X+1
+	STA circle_load_X+1
 	LDA tunnel_x_HI, X
-	STA circle_X+2
+	STA circle_load_X+2
 
 	LDA tunnel_y_LO, X
-	STA circle_Y+1
+	STA circle_load_Y+1
 	LDA tunnel_y_HI, X
-	STA circle_Y+2
+	STA circle_load_Y+2
 
 	LDX #0
 	.loop
 	STX dot_tmp
 
 	CLC
-	.circle_Y
+	.circle_load_Y
 	LDA dot_circle_Y, X
 	ADC circle_y
 	TAY
 
 	CLC
-	.circle_X
+	.circle_load_X
 	LDA dot_circle_X, X
 	ADC circle_x
 	TAX
 
-	JSR plot_dot
+	;JSR plot_dot
+	PLOT_DOT
 
 	LDX dot_tmp
 	.skip
@@ -654,6 +675,147 @@ CIRCLE_DOTS = 20
 
 	RTS
 }
+ELSE
+.plot_dot_circle
+{
+	LDA tunnel_x_LO, X
+	STA circle_ptr
+	LDA tunnel_x_HI, X
+	STA circle_ptr+1
+
+	\\ x0
+	LDX circle_x			; x0=0
+
+	\\ y0
+	LDY #5
+	LDA (circle_ptr), Y		; y0
+	STA off_y				; radius
+	CLC
+	ADC circle_y
+	\ clip here
+	BCS clip_bottom
+	TAY
+	JSR plot_dot			; x0,y0
+
+	.clip_bottom
+	SEC
+	LDA circle_y
+	SBC off_y
+	\ clip here
+	BCC clip_top
+	TAY
+	JSR plot_dot			; x10,y10
+
+	.clip_top
+	CLC
+	LDA circle_x
+	ADC off_y				; radius
+	BCS clip_right
+	TAX
+
+	LDY circle_y
+	JSR plot_dot
+
+	.clip_right
+	SEC
+	LDA circle_x
+	SBC off_y				; radius
+	BCC clip_left
+
+	TAX
+	LDY circle_y
+	\ clip here
+	JSR plot_dot
+
+	.clip_left
+
+	FOR n,1,4,1
+	{
+		LDA #0
+		STA clip_flags
+
+		\\ x1
+		LDY #n
+		LDA (circle_ptr), Y		; x1
+		STA off_x
+		CLC
+		ADC circle_x
+		STA tmp_x
+		TAX
+
+		ROL clip_flags			; clip right r/0
+
+		\\ y1
+		LDY #(5-n)
+		LDA (circle_ptr), Y		; y1
+		STA off_y
+		CLC
+		ADC circle_y
+		STA tmp_y
+		TAY
+
+		\ clip here
+		ROL clip_flags			; clip top rt/00
+		LDA clip_flags
+		BNE clip_tr
+
+		JSR plot_dot			; x1,y1
+
+		.clip_tr
+
+		\\ Reflect x
+		LDA circle_x
+		SEC
+		SBC off_x
+		TAX
+
+		\ clip here
+		ROL clip_flags			; clip left rtl/001
+		LDA clip_flags
+		AND #1+2				; left+top
+		CMP #1
+		BNE clip_tl
+
+		LDY tmp_y
+		JSR plot_dot			; x19,y19
+
+		.clip_tl
+
+		\\ Reflect y
+		LDA circle_y
+		SEC
+		SBC off_y
+		STA tmp_y
+		TAY
+
+		\ clip here
+		ROL clip_flags			; clip bottom rtlb/0011
+		LDA clip_flags
+		AND #1+2				; bottom+left
+		CMP #3
+		BNE clip_bl
+
+		; X preserved
+		JSR plot_dot			; x11,y11
+
+		.clip_bl
+		\ clip here
+		LDA clip_flags
+		AND #1+8				; bottom+right
+		CMP #1
+		BNE clip_br
+
+		LDX tmp_x
+		LDY tmp_y
+		JSR plot_dot			; x9,y9
+
+		.clip_br
+	}
+	NEXT
+
+	RTS
+}
+ENDIF
 
 .plot_dot		; X,Y
 {
@@ -666,13 +828,14 @@ CIRCLE_DOTS = 20
 	STA screen_ptr+1				;3c
 
 	; X AND &F8
-	TXA								;2c
-	AND #&F8						;2c
-	TAY								;2c
+;	TXA								;2c
+;	AND #&F8						;2c
+;	TAY								;2c
+	LDY dot_screen_column_X, X
 
-	TXA								;2c
-	AND #7							;2c
-	TAX								;2c
+;	TXA								;2c
+;	AND #7							;2c
+;	TAX								;2c
 
 	LDA dot_pixels, X				;4c
 	EOR (screen_ptr), Y				;5c
@@ -721,7 +884,7 @@ CIRCLE_DOTS = 20
 .fx_end
 
 .dot_code_start
-INCLUDE "dot_plot_code.asm"
+;INCLUDE "dot_plot_code.asm"
 .dot_code_end
 
 \ ******************************************************************
@@ -780,15 +943,18 @@ EQUB x AND &F8
 NEXT
 
 .dot_pixels
+FOR n,0,255,8
 EQUB 128,64,32,16,8,4,2,1
+NEXT
 
 .dot_depth_tables
 .dot_circle_X
 .dot_circle_Y
+
 FOR d,0,CIRCLE_DEPTHS-1,1
-z = 640 * (1 - (d / CIRCLE_DEPTHS))
+z = 1000 * (1 - (d / CIRCLE_DEPTHS))
 cz = -160
-r = 128
+r = 192
 
 PRINT "d=",d," z=",z," cz=",cz," r=",r
 
@@ -810,31 +976,31 @@ NEXT
 
 .tunnel_x_LO
 FOR d,0,CIRCLE_DEPTHS-1,1
-circle_X = dot_depth_tables + d * CIRCLE_DOTS * 2
-EQUB LO(circle_X)
+circle_tab_X = dot_depth_tables + d * CIRCLE_DOTS * 2
+EQUB LO(circle_tab_X)
 NEXT
 
 .tunnel_x_HI
 FOR d,0,CIRCLE_DEPTHS-1,1
-circle_X = dot_depth_tables + d * CIRCLE_DOTS * 2
-EQUB HI(circle_X)
+circle_tab_X = dot_depth_tables + d * CIRCLE_DOTS * 2
+EQUB HI(circle_tab_X)
 NEXT
 
 .tunnel_y_LO
 FOR d,0,CIRCLE_DEPTHS-1,1
-circle_Y = dot_depth_tables + d * CIRCLE_DOTS * 2 + CIRCLE_DOTS
-EQUB LO(circle_Y)
+circle_tab_Y = dot_depth_tables + d * CIRCLE_DOTS * 2 + CIRCLE_DOTS
+EQUB LO(circle_tab_Y)
 NEXT
 
 .tunnel_y_HI
 FOR d,0,CIRCLE_DEPTHS-1,1
-circle_Y = dot_depth_tables + d * CIRCLE_DOTS * 2 + CIRCLE_DOTS
-EQUB HI(circle_Y)
+circle_tab_Y = dot_depth_tables + d * CIRCLE_DOTS * 2 + CIRCLE_DOTS
+EQUB HI(circle_tab_Y)
 NEXT
 
 .tunnel_centre_X
 FOR n,0,255,1
-EQUB 128; + 32 * SIN(4 * PI * n / 256)
+EQUB 128 + 32 * SIN(4 * PI * n / 256)
 NEXT
 
 .tunnel_centre_Y

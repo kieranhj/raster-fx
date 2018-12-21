@@ -107,3 +107,52 @@ Definitely restrict to 256x256 screen for simplicity
 For tunnel, plot from back to front. Starting at index 0 draw tunnel depth 64
 (but only actually plot every 8 circles) increasing the index each time.
 Next frame, decrement the index but draw the tunnel starting from the next depth
+
+Calculate circle points from smaller table:
+x values: 
+     24E0   00
+     24E1   25
+     24E2   46
+     24E3   61
+     24E4   72
+     24E5   78
+     24E6   72
+     24E7   61
+     24E8   46
+     24E9   25
+     24EA   00
+     24EB   DB
+     24EC   BA
+     24ED   9F
+     24EE   8E
+     24EF   88
+     24F0   8E
+     24F1   9F
+     24F2   BA
+     24F3   DB
+y values: 
+     24F4   78
+     24F5   72
+     24F6   61
+     24F7   46
+     24F8   25
+     24F9   00
+     24FA   DB
+     24FB   BA
+     24FC   9F
+     24FD   8E
+     24FE   88
+     24FF   8E
+     2500   9F
+     2501   BA
+     2502   DB
+     2503   00
+     2504   25
+     2505   46
+     2506   61
+     2507   72
+Values are just reversed and repeated of course.
+Add and subtract x,y offsets for each pixel (and clip)
+Unroll the loop based on the number of dots and just read the table values as required
+Can easily have more depths this way and go up to 255 radius
+Avoiding multiplies and division
