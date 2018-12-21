@@ -127,6 +127,9 @@ GUARD &9F
 .tmp_y					SKIP 1
 .clip_flags				SKIP 1
 
+.path_index				SKIP 1
+.path_frame				SKIP 1
+
 \ ******************************************************************
 \ *	CODE START
 \ ******************************************************************
@@ -452,21 +455,16 @@ ENDIF
 	INC clear_loop+2
 	BPL clear_loop
 
-	LDX #1
-	STX tunnel_frame
-	LDY #1
-	STY tunnel_path
-
+	LDA #1
+	STA tunnel_path
 	JSR plot_dot_tunnel
 
 \ Ensure SHADOW RAM is writeable
 
     LDA &FE34:ORA #&4:STA &FE34
 
-	LDX #0
-	STX tunnel_frame+1
-	LDY #0
-	STY tunnel_path+1
+	LDA #1
+	STA tunnel_path+1
 	JSR plot_dot_tunnel
 
 	LDX #1		; last plotted
@@ -537,9 +535,7 @@ ENDIF
 	ENDIF
 
 	LDY tunnel_buffer
-	LDX tunnel_frame, Y
 	LDA tunnel_path, Y
-	TAY
 
 	JSR plot_dot_tunnel
 
@@ -547,24 +543,14 @@ ENDIF
 	EOR #1
 	TAY
 
-	LDX tunnel_frame, Y
-	INX
-	CPX #CIRCLE_DEPTHS;TUNNEL_FRAMES
-	BCC ok
-	LDX #0
-	.ok
-	LDY tunnel_buffer
-	STX tunnel_frame, Y
-
 	LDA tunnel_buffer
 	EOR #1
 	TAY
 	LDA tunnel_path, Y
-	SEC
-	SBC #1
+	CLC
+	ADC #1
 	LDY tunnel_buffer
 	STA tunnel_path, Y
-	TAY
 
 	JSR plot_dot_tunnel
 
@@ -577,10 +563,12 @@ ENDIF
     RTS
 }
 
-CIRCLE_DEPTHS = 64
-TUNNEL_STEP = 8
-TUNNEL_FRAMES = CIRCLE_DEPTHS / TUNNEL_STEP
+CIRCLE_DOTS = 20
+TUNNEL_DEPTHS = 64
+TUNNEL_STEP = 4
+TUNNEL_FRAMES = TUNNEL_DEPTHS / TUNNEL_STEP
 
+IF 0
 .plot_dot_tunnel		; X=starting depth; Y=tunnel path
 {
 	LDA #TUNNEL_FRAMES
@@ -603,9 +591,9 @@ TUNNEL_FRAMES = CIRCLE_DEPTHS / TUNNEL_STEP
 	LDA tunnel_tmp
 	CLC
 	ADC #TUNNEL_STEP
-	CMP #CIRCLE_DEPTHS
+	CMP #TUNNEL_DEPTHS
 	BCC ok
-	SBC #CIRCLE_DEPTHS
+	SBC #TUNNEL_DEPTHS
 	.ok
 	TAX
 
@@ -619,8 +607,47 @@ TUNNEL_FRAMES = CIRCLE_DEPTHS / TUNNEL_STEP
 
 	RTS
 }
+ELSE
+.plot_dot_tunnel
+{
+	; A = starting index
 
-CIRCLE_DOTS = 20
+	STA tunnel_idx
+
+	AND #(TUNNEL_STEP-1)
+	TAX
+
+	CLC
+	ADC tunnel_idx
+	TAY
+
+	.loop
+	STX tunnel_tmp
+	STY tunnel_idx
+
+	LDA tunnel_centre_X, Y
+	STA circle_x
+
+	LDA tunnel_centre_Y, Y
+	STA circle_y
+
+	JSR plot_dot_circle
+
+	CLC
+	LDA tunnel_idx 
+	ADC #TUNNEL_STEP
+	TAY
+
+	CLC
+	LDA tunnel_tmp
+	ADC #TUNNEL_STEP
+	TAX
+	CPX #TUNNEL_DEPTHS
+	BCC loop
+
+	RTS
+}
+ENDIF
 
 MACRO PLOT_DOT
 {
@@ -695,7 +722,8 @@ ELSE
 	\ clip here
 	BCS clip_bottom
 	TAY
-	JSR plot_dot			; x0,y0
+	;JSR plot_dot			; x0,y0
+	PLOT_DOT
 
 	.clip_bottom
 	SEC
@@ -704,7 +732,8 @@ ELSE
 	\ clip here
 	BCC clip_top
 	TAY
-	JSR plot_dot			; x10,y10
+	;JSR plot_dot			; x10,y10
+	PLOT_DOT
 
 	.clip_top
 	CLC
@@ -714,7 +743,8 @@ ELSE
 	TAX
 
 	LDY circle_y
-	JSR plot_dot
+	;JSR plot_dot
+	PLOT_DOT
 
 	.clip_right
 	SEC
@@ -725,7 +755,8 @@ ELSE
 	TAX
 	LDY circle_y
 	\ clip here
-	JSR plot_dot
+	;JSR plot_dot
+	PLOT_DOT
 
 	.clip_left
 
@@ -759,8 +790,9 @@ ELSE
 		LDA clip_flags
 		BNE clip_tr
 
-		JSR plot_dot			; x1,y1
-
+		;JSR plot_dot			; x1,y1
+		PLOT_DOT
+		
 		.clip_tr
 
 		\\ Reflect x
@@ -777,7 +809,8 @@ ELSE
 		BNE clip_tl
 
 		LDY tmp_y
-		JSR plot_dot			; x19,y19
+		;JSR plot_dot			; x19,y19
+		PLOT_DOT
 
 		.clip_tl
 
@@ -796,7 +829,8 @@ ELSE
 		BNE clip_bl
 
 		; X preserved
-		JSR plot_dot			; x11,y11
+		;JSR plot_dot			; x11,y11
+		PLOT_DOT
 
 		.clip_bl
 		\ clip here
@@ -807,7 +841,8 @@ ELSE
 
 		LDX tmp_x
 		LDY tmp_y
-		JSR plot_dot			; x9,y9
+		;JSR plot_dot			; x9,y9
+		PLOT_DOT
 
 		.clip_br
 	}
@@ -920,11 +955,11 @@ EQUS "Bank",13
 
 ; hack wrap
 .message_text
-EQUS "          HELLO WORLD! BITSHIFTERS SCROLLTEXT PROTOTYPE CHALLENGE... 80x8 = 640 PRECOMPILED DOTS!",0,"          "
+;EQUS "          HELLO WORLD! BITSHIFTERS SCROLLTEXT PROTOTYPE CHALLENGE... 80x8 = 640 PRECOMPILED DOTS!",0,"          "
 
 ALIGN &100
 .glyph_data
-INCBIN "square_font_90_deg_cw.bin"
+;INCBIN "square_font_90_deg_cw.bin"
 
 ALIGN &100
 .dot_screen_address_LO
@@ -948,59 +983,40 @@ EQUB 128,64,32,16,8,4,2,1
 NEXT
 
 .dot_depth_tables
-.dot_circle_X
-.dot_circle_Y
 
-FOR d,0,CIRCLE_DEPTHS-1,1
-z = 1000 * (1 - (d / CIRCLE_DEPTHS))
+FOR d,0,TUNNEL_DEPTHS-1,1
+z = 1600 * (1 - (d / TUNNEL_DEPTHS))
 cz = -160
-r = 192
+r = 240
 
 PRINT "d=",d," z=",z," cz=",cz," r=",r
 
 PRINT "x values:"
-FOR n,0,CIRCLE_DOTS-1,1
+FOR n,0,(CIRCLE_DOTS/4),1
 x = SIN(2 * PI * n / CIRCLE_DOTS) * r
 xd =  160 * (x - 0) / (z - cz)
 EQUB xd
 NEXT
 
-PRINT "y values:"
-FOR n,0,CIRCLE_DOTS-1,1
-y = COS(2 * PI * n / CIRCLE_DOTS) * r
-yd =  160 * (y - 0) / (z - cz)
-EQUB yd
 NEXT
 
-NEXT
-
+ALIGN &100
 .tunnel_x_LO
-FOR d,0,CIRCLE_DEPTHS-1,1
-circle_tab_X = dot_depth_tables + d * CIRCLE_DOTS * 2
+FOR d,0,TUNNEL_DEPTHS-1,1
+circle_tab_X = dot_depth_tables + d * ((CIRCLE_DOTS/4)+1)
 EQUB LO(circle_tab_X)
 NEXT
 
 .tunnel_x_HI
-FOR d,0,CIRCLE_DEPTHS-1,1
-circle_tab_X = dot_depth_tables + d * CIRCLE_DOTS * 2
+FOR d,0,TUNNEL_DEPTHS-1,1
+circle_tab_X = dot_depth_tables + d * ((CIRCLE_DOTS/4)+1)
 EQUB HI(circle_tab_X)
 NEXT
 
-.tunnel_y_LO
-FOR d,0,CIRCLE_DEPTHS-1,1
-circle_tab_Y = dot_depth_tables + d * CIRCLE_DOTS * 2 + CIRCLE_DOTS
-EQUB LO(circle_tab_Y)
-NEXT
-
-.tunnel_y_HI
-FOR d,0,CIRCLE_DEPTHS-1,1
-circle_tab_Y = dot_depth_tables + d * CIRCLE_DOTS * 2 + CIRCLE_DOTS
-EQUB HI(circle_tab_Y)
-NEXT
-
+ALIGN &100
 .tunnel_centre_X
 FOR n,0,255,1
-EQUB 128 + 32 * SIN(4 * PI * n / 256)
+EQUB 128 + 64 * SIN(4 * PI * n / 256)
 NEXT
 
 .tunnel_centre_Y
