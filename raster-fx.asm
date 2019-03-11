@@ -48,6 +48,10 @@ MODE1_COL3=&A0
 screen_addr = &3000
 SCREEN_SIZE_BYTES = &8000 - screen_addr
 
+;vgm_stream_buffers = &300
+;vgm_buffer_start = vgm_stream_buffers
+;vgm_buffer_end = vgm_buffer_start + &800
+
 ; Exact time for a 50Hz frame less latch load time
 FramePeriod = 312*64-2
 
@@ -75,12 +79,11 @@ GUARD &9F
 
 \\ FX variables
 
-.fx_colour_index		SKIP 1		; index into our colour palette
-.fx_raster_count		SKIP 1
-
 .smiley_yoff			SKIP 1
 .smiley_vadj			SKIP 1
 .smiley_vel				SKIP 1
+
+INCLUDE "lib/vgmplayer.h.asm"
 
 \ ******************************************************************
 \ *	CODE START
@@ -130,13 +133,12 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #10: STA &FE00
 	LDA #32: STA &FE01
 
-	\\ Set Colour 2 to White - MODE 1 requires 4x writes to ULA Palette Register
-
-;	LDA #MODE1_COL2 + PAL_white
-;	STA &FE21
-;	EOR #&10: STA &FE21
-;	EOR #&40: STA &FE21
-;	EOR #&10: STA &FE21
+    ; initialize the vgm player with a vgc data stream
+    lda #hi(vgm_stream_buffers)
+    ldx #lo(vgm_data)
+    ldy #hi(vgm_data)
+    sec
+    jsr vgm_init
 
 	\\ Initialise system modules here!
 
@@ -241,6 +243,8 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	\\ Service any system modules here!
 
+	JSR vgm_update
+
 	\\ Check for Escape key
 
 	LDA #&79
@@ -271,6 +275,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 		\\ Observed values $FA (early) - $F7 (late) so map these from 7 - 0
 		\\ then branch into NOPs to even this out.
 
+IF 1
 		AND #15
 		SEC
 		SBC #7
@@ -287,6 +292,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 		NOP
 		.stable
 		BIT 0
+ENDIF
 	}
 
 	\\ Check if Escape pressed
@@ -528,11 +534,6 @@ STATUS_LINE_ADDR = &3000 + (29*640)
 	LDX #(29*8)
 	JSR cycles_wait_scanlines
 
-IF _DEBUG_RASTERS
-    LDA #PAL_green
-    STA &FE21
-ENDIF
-
 	\\ Configure vsync cycle
 
     LDA #4: STA &FE00
@@ -543,11 +544,6 @@ ENDIF
 
     LDA #6: STA &FE00
     LDA #3: STA &FE01               ; display 3 rows
-
-IF _DEBUG_RASTERS
-    LDA #PAL_black
-    STA &FE21
-ENDIF
 
 	LDX #(3*8)
 	JSR cycles_wait_scanlines
@@ -596,6 +592,8 @@ ENDIF
 }
 
 .fx_end
+
+INCLUDE "lib/vgmplayer.asm"
 
 \ ******************************************************************
 \ *	SYSTEM DATA
@@ -655,6 +653,9 @@ FOR n,0,31,1
 EQUB HI((SCREEN_ADDR + n * 640)/8)
 NEXT
 
+.vgm_data
+INCBIN "patarty-nohuff.vgc"
+
 .data_end
 
 \ ******************************************************************
@@ -674,6 +675,24 @@ SAVE "MyFX", start, end
 \ ******************************************************************
 
 .bss_start
+
+.vgm_buffer_start
+
+; reserve space for the vgm decode buffers (8x256 = 2Kb)
+ALIGN 256
+.vgm_stream_buffers
+    skip 256
+    skip 256
+    skip 256
+    skip 256
+    skip 256
+    skip 256
+    skip 256
+    skip 256
+
+
+.vgm_buffer_end
+
 .bss_end
 
 \ ******************************************************************
