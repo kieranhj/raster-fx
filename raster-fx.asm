@@ -76,6 +76,8 @@ GUARD &9F
 .fx_colour_index		SKIP 1		; index into our colour palette
 .fx_raster_count		SKIP 1
 
+.vadj					SKIP 1
+
 \ ******************************************************************
 \ *	CODE START
 \ ******************************************************************
@@ -116,7 +118,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	LDA #22
 	JSR oswrch
-	LDA #1
+	LDA #2
 	JSR oswrch
 
 	\\ Turn off cursor
@@ -126,11 +128,11 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	\\ Set Colour 2 to White - MODE 1 requires 4x writes to ULA Palette Register
 
-	LDA #MODE1_COL2 + PAL_white
-	STA &FE21
-	EOR #&10: STA &FE21
-	EOR #&40: STA &FE21
-	EOR #&10: STA &FE21
+;	LDA #MODE1_COL2 + PAL_white
+;	STA &FE21
+;	EOR #&10: STA &FE21
+;	EOR #&40: STA &FE21
+;	EOR #&10: STA &FE21
 
 	\\ Initialise system modules here!
 
@@ -336,6 +338,8 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_start
 
+STATUS_LINE_ADDR = &3000
+
 \ ******************************************************************
 \ Initialise FX
 \
@@ -355,6 +359,9 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDY #HI(osfile_params)
 	LDA #&FF
     JSR osfile
+
+	LDA #0
+	STA vadj
 
 	RTS
 }
@@ -382,6 +389,15 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #0
 	STA fx_raster_count
 
+	CLC
+	LDA vadj
+	ADC #1
+	CMP #8
+	BCC ok
+	LDA #0
+	.ok
+	STA vadj
+
 	RTS
 }
 
@@ -403,24 +419,41 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_draw_function
 {
-	LDA #&F0 + PAL_red
-	LDX #&F0 + PAL_yellow
-	LDY #&F0 + PAL_green
-	NOP
-	\\ 8c
+    \\ Wait until scanlne 8
+    FOR n,1,8,1
+    JSR cycles_wait_128
+    NEXT
 
-	.loop
+    \\ First scanline of displayed cycle
+    .here_display
 
-	FOR n,1,10,1
-	STA &FE21		; 4c
-	STX &FE21		; 4c
-	STY &FE21		; 4c
-	NEXT
-	\\ 10*12=120c
+    \\ Display screen
+	LDA #8:STA &FE00
+    LDA #0:STA &FE01
 
-	DEC fx_raster_count		; 5c
-	BNE loop				; 3c
-	\\ Total =128c
+    \\ Configure display cycle
+
+    LDA #4:STA &FE00
+    LDA #27:STA &FE01           ; 28 rows
+
+    LDA #6:STA &FE00
+    LDA #29:STA &FE01   		; fixed visible rows
+
+    LDA #7:STA &FE00
+    LDA #&FF:STA &FE01          ; no vsync
+
+    LDA #5:STA &FE00
+    LDA vadj:STA &FE01   		; yoff rows of vadj
+
+    \\ Set address of vsync cycle buffer
+
+    LDA #13:STA &FE00
+    LDA #LO(STATUS_LINE_ADDR/8):STA &FE01
+
+    LDA #12:STA &FE00
+    LDA #HI(STATUS_LINE_ADDR/8):STA &FE01
+
+	
 
     RTS
 }
@@ -509,53 +542,6 @@ EQUD 0
 \ *	FX DATA
 \ ******************************************************************
 
-ALIGN &100
-.fx_colour1_table
-{
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_red
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL1 + PAL_magenta
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_blue
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_cyan
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_green
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL1 + PAL_yellow
-	NEXT
-}
-
-.fx_colour2_table
-{
-	FOR n,1,21,1
-	EQUB MODE1_COL3 + PAL_red
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL3 + PAL_magenta
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL3 + PAL_blue
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL3 + PAL_cyan
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL3 + PAL_green
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL3 + PAL_yellow
-	NEXT
-	FOR n,1,22,1
-	EQUB MODE1_COL3 + PAL_red
-	NEXT
-}
 
 .data_end
 
@@ -599,4 +585,4 @@ PRINT "------"
 \ ******************************************************************
 
 PUTBASIC "circle.bas", "Circle"
-PUTFILE "screen.bin", "Screen", &3000
+PUTFILE "patarty.mode2.bin", "Screen", &3000
