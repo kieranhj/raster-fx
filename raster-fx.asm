@@ -2,6 +2,8 @@
 \ *	RASTER FX FRAMEWORK
 \ ******************************************************************
 
+_DEBUG_RASTERS = TRUE
+
 \ ******************************************************************
 \ *	OS defines
 \ ******************************************************************
@@ -76,13 +78,15 @@ GUARD &9F
 .fx_colour_index		SKIP 1		; index into our colour palette
 .fx_raster_count		SKIP 1
 
-.vadj					SKIP 1
+.smiley_yoff			SKIP 1
+.smiley_vadj			SKIP 1
+.smiley_vel				SKIP 1
 
 \ ******************************************************************
 \ *	CODE START
 \ ******************************************************************
 
-ORG &1900	      			; code origin (like P%=&2000)
+ORG &1100	      			; code origin (like P%=&2000)
 GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .start
@@ -217,11 +221,8 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ But don't forget that the loop also takes time!!
 
 	{
-		LDX #245
-		.loop
-		JSR cycles_wait_128
-		DEX
-		BNE loop
+		LDX #255
+		JSR cycles_wait_scanlines
 	}
 
 	\ ******************************************************************
@@ -330,6 +331,28 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	RTS					; 6c
 }						; = 128c
 
+.cycles_wait_scanlines	; 6c
+{
+	FOR n,1,54,1		; 54x
+	NOP					; 2c
+	NEXT				; = 108c
+	BIT 0				; 3c
+
+	.loop
+	DEX					; 2c
+	BEQ done			; 2/3c
+
+	FOR n,1,59,1		; 59x
+	NOP					; 2c
+	NEXT				; = 118c
+
+	BIT 0				; 3c
+	JMP loop			; 3c
+
+	.done
+	RTS					; 6c
+}
+
 .main_end
 
 \ ******************************************************************
@@ -338,7 +361,8 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_start
 
-STATUS_LINE_ADDR = &3000
+SCREEN_ADDR = &3000
+STATUS_LINE_ADDR = &3000 + (29*640)
 
 \ ******************************************************************
 \ Initialise FX
@@ -361,7 +385,11 @@ STATUS_LINE_ADDR = &3000
     JSR osfile
 
 	LDA #0
-	STA vadj
+	STA smiley_vadj
+	STA smiley_vel
+
+	LDA #32
+	STA smiley_yoff
 
 	RTS
 }
@@ -383,20 +411,62 @@ STATUS_LINE_ADDR = &3000
 
 .fx_update_function
 {
-	\\ Increment our index into the palette table
-	INC fx_colour_index
+    \\ Bounce!
 
-	LDA #0
-	STA fx_raster_count
+    SEC
+    LDA smiley_vel
+    SBC #1
+    STA smiley_vel
 
+    LDA smiley_vel
+    BMI down
+    \ Up
+    CLC
+    LDA smiley_yoff
+    ADC smiley_vel
+    BCC ok
+    JMP bounce
+
+    .down
+    CLC
+    LDA smiley_yoff
+    ADC smiley_vel
+    BCS ok
+
+    \\ Bounce
+    .bounce
 	CLC
-	LDA vadj
+    LDA smiley_vel
+    EOR #&FF
 	ADC #1
-	CMP #8
-	BCC ok
-	LDA #0
-	.ok
-	STA vadj
+;    SBC #3          ; deaden bounce
+    STA smiley_vel
+
+    LDA #0
+    .ok
+    STA smiley_yoff
+
+    \\ Calculate vadj
+
+    LDA smiley_yoff
+    AND #&7
+    STA smiley_vadj
+
+    LDA #5:STA &FE00
+    LDA #8
+    SEC
+    SBC smiley_vadj
+    STA &FE01                       ; 8-vadj
+
+    LDA #13:STA &FE00
+    LDA smiley_yoff
+    LSR A:LSR A:LSR A:TAX
+    LDA smiley_addr_LO, X
+    STA &FE01
+
+    LDA #12:STA &FE00
+    LDA smiley_addr_HI, X
+    STA &FE01
 
 	RTS
 }
@@ -443,7 +513,7 @@ STATUS_LINE_ADDR = &3000
     LDA #&FF:STA &FE01          ; no vsync
 
     LDA #5:STA &FE00
-    LDA vadj:STA &FE01   		; yoff rows of vadj
+    LDA smiley_vadj:STA &FE01   		; yoff rows of smiley_vadj
 
     \\ Set address of vsync cycle buffer
 
@@ -453,7 +523,39 @@ STATUS_LINE_ADDR = &3000
     LDA #12:STA &FE00
     LDA #HI(STATUS_LINE_ADDR/8):STA &FE01
 
-	
+    \\ Now wait 29 rows...
+
+	LDX #(29*8)
+	JSR cycles_wait_scanlines
+
+IF _DEBUG_RASTERS
+    LDA #PAL_green
+    STA &FE21
+ENDIF
+
+	\\ Configure vsync cycle
+
+    LDA #4: STA &FE00
+    LDA #39 - 28 - 1 - 1: STA &FE01     ; 39 rows - 29 we've had
+
+    LDA #7: STA &FE00
+    LDA #35 - 29: STA &FE01         ; row 35 - 29 we've had
+
+    LDA #6: STA &FE00
+    LDA #3: STA &FE01               ; display 3 rows
+
+IF _DEBUG_RASTERS
+    LDA #PAL_black
+    STA &FE21
+ENDIF
+
+	LDX #(3*8)
+	JSR cycles_wait_scanlines
+
+    \\ Turn display off
+
+	LDA #8:STA &FE00
+	LDA #&30:STA &FE01
 
     RTS
 }
@@ -542,6 +644,16 @@ EQUD 0
 \ *	FX DATA
 \ ******************************************************************
 
+ALIGN 64
+.smiley_addr_LO
+FOR n,0,31,1
+EQUB LO((SCREEN_ADDR + n * 640)/8)
+NEXT
+
+.smiley_addr_HI
+FOR n,0,31,1
+EQUB HI((SCREEN_ADDR + n * 640)/8)
+NEXT
 
 .data_end
 
