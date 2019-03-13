@@ -40,6 +40,35 @@ MODE1_COL3=&A0
 \ *	MACROS
 \ ******************************************************************
 
+BLUE_BAR_SIZE = 20
+BLUE_BAR_GAP = 20
+BLUE_BAR_TOTAL = BLUE_BAR_SIZE + BLUE_BAR_GAP
+BLUE_BAR_COLOUR = PAL_blue
+BLUE_GAP_COLOUR = PAL_black
+
+CYAN_BAR_SIZE = 32
+CYAN_BAR_GAP = 32
+CYAN_BAR_TOTAL = CYAN_BAR_SIZE + CYAN_BAR_GAP
+CYAN_BAR_COLOUR = PAL_cyan
+CYAN_GAP_COLOUR = PAL_black
+
+MACRO WAIT_CYCLES n
+
+PRINT "WAIT",n," CYCLES"
+
+IF (n AND 1) = 0
+	FOR i,1,n/2,1
+	NOP
+	NEXT
+ELSE
+	BIT 0
+	FOR i,1,(n-3)/2,1
+	NOP
+	NEXT
+ENDIF
+
+ENDMACRO
+
 \ ******************************************************************
 \ *	GLOBAL constants
 \ ******************************************************************
@@ -84,9 +113,20 @@ GUARD &9F
 .smiley_vel				SKIP 1
 
 .back_colour			SKIP 1
-.back_flip				SKIP 1
-.back_gap				SKIP 1
-.back_drop				SKIP 1
+
+.blue_top				SKIP 1
+.blue_start_col			SKIP 1		; start with this colour at top
+.blue_flip_col			SKIP 1		; flip this colour
+.blue_count				SKIP 1		; start with this counter at top
+.blue_set_count			SKIP 1		; set to this counter on flip
+.blue_flip_count		SKIP 1		; flip the counter on flip
+
+.cyan_top				SKIP 1
+.cyan_start_col			SKIP 1		; start with this colour at top
+.cyan_flip_col			SKIP 1		; flip this colour
+.cyan_count				SKIP 1		; start with this counter at top
+.cyan_set_count			SKIP 1		; set to this counter on flip
+.cyan_flip_count		SKIP 1		; flip the counter on flip
 
 INCLUDE "lib/vgmplayer.h.asm"
 
@@ -424,7 +464,8 @@ STATUS_LINE_ADDR = &3000 + (29*640)
 	STA smiley_yoff
 
 	LDA #0
-	STA back_drop
+	STA blue_top
+	STA cyan_top
 
 	RTS
 }
@@ -503,13 +544,122 @@ STATUS_LINE_ADDR = &3000 + (29*640)
     LDA smiley_addr_HI, X
     STA &FE01
 
-	LDA #&F0 + PAL_blue
+
+	LDA #&F0+PAL_black
 	STA back_colour
 
-	LDA #(&F0 + PAL_blue) EOR (&F0 + PAL_cyan)
-	STA back_flip
+	DEC blue_top
 
-	DEC back_drop
+	LDX #(&F0+BLUE_GAP_COLOUR)
+
+	LDA blue_top
+	.blue_loop
+	CMP #BLUE_BAR_TOTAL
+	BCC blue_remainder
+	SEC
+	SBC #BLUE_BAR_TOTAL
+	BNE blue_loop
+	.blue_remainder
+
+	CMP #BLUE_BAR_SIZE
+	BCS blue_off
+
+	STA blue_count
+	SEC
+	LDA #BLUE_BAR_SIZE
+	SBC blue_count
+	STA blue_count
+
+	LDA #(BLUE_BAR_GAP)
+	STA blue_set_count
+
+	LDX #(&F0+BLUE_BAR_COLOUR)
+	BNE blue_set_col
+
+	.blue_off
+	SBC #BLUE_BAR_SIZE
+
+	STA blue_count
+	SEC
+	LDA #BLUE_BAR_GAP
+	SBC blue_count
+	STA blue_count
+
+	LDA #(BLUE_BAR_SIZE)
+	STA blue_set_count
+
+	LDX #(&F0+BLUE_GAP_COLOUR)
+
+	.blue_set_col
+	STX blue_start_col
+
+	LDA #(BLUE_BAR_SIZE EOR BLUE_BAR_GAP)
+	STA blue_flip_count
+
+	LDA #(&F0+BLUE_BAR_COLOUR) EOR (&F0+BLUE_GAP_COLOUR)
+	STA blue_flip_col
+
+	LDA blue_start_col
+	EOR #&F0+PAL_black
+	EOR back_colour
+	STA back_colour
+
+
+	INC cyan_top
+
+	LDX #(&F0+PAL_black)
+
+	LDA cyan_top
+	.cyan_loop
+	CMP #CYAN_BAR_TOTAL
+	BCC cyan_remainder
+	SEC
+	SBC #CYAN_BAR_TOTAL
+	BNE cyan_loop
+	.cyan_remainder
+
+	CMP #CYAN_BAR_SIZE
+	BCS cyan_off
+
+	STA cyan_count
+	SEC
+	LDA #CYAN_BAR_SIZE
+	SBC cyan_count
+	STA cyan_count
+
+	LDA #(CYAN_BAR_GAP)
+	STA cyan_set_count
+
+	LDX #(&F0+CYAN_BAR_COLOUR)
+	BNE cyan_set_col
+
+	.cyan_off
+	SBC #CYAN_BAR_SIZE
+
+	STA cyan_count
+	SEC
+	LDA #CYAN_BAR_GAP
+	SBC cyan_count
+	STA cyan_count
+
+	LDA #(CYAN_BAR_SIZE)
+	STA cyan_set_count
+
+	LDX #(&F0+PAL_black)
+
+	.cyan_set_col
+	STX cyan_start_col
+
+	LDA #(CYAN_BAR_SIZE EOR CYAN_BAR_GAP)
+	STA cyan_flip_count
+
+	LDA #(&F0+CYAN_BAR_COLOUR) EOR (&F0+PAL_black)
+	STA cyan_flip_col
+
+	LDA cyan_start_col
+	EOR #&F0+PAL_black
+	EOR back_colour
+	STA back_colour
 
 	RTS
 }
@@ -536,9 +686,7 @@ STATUS_LINE_ADDR = &3000 + (29*640)
 	LDX #7
     JSR cycles_wait_scanlines
 
-	FOR n,1,40,1
-	NOP
-	NEXT
+	WAIT_CYCLES 80
 
     \\ First scanline of displayed cycle
     .here_display
@@ -569,13 +717,11 @@ STATUS_LINE_ADDR = &3000 + (29*640)
     LDA #12:STA &FE00
     LDA #HI(STATUS_LINE_ADDR/8):STA &FE01
 
+	WAIT_CYCLES 8
+
     \\ Now wait 29 rows...
 
 	LDX #(29*8)+1		; 2c
-
-	LDY back_drop		; 3c
-	LDA wib_table, Y
-	STA back_gap	
 
 	.loop
 
@@ -585,39 +731,70 @@ STATUS_LINE_ADDR = &3000 + (29*640)
 	DEX					; 2c
 	BEQ loop_done		; 2c
 
-;	DEY 				; 2c
-	DEC back_gap		; 5c
-	\\ 16c
+	DEC blue_count		; 5c
+	\\ 19c inc JMP loop
 
-	BNE same_colour
+	BNE still_blue
 	; 2c
 
+	\\ Blue bar toggle
+
 	LDA back_colour		; 3c
-	EOR back_flip		; 3c
+	EOR blue_flip_col	; 3c
 	STA back_colour		; 3c
 
-;	LDY back_gap		; 3c
+	\\ Next count
 
-	INY:INY:INY:INY
+	LDA blue_set_count	; 3c
+	STA blue_count		; 3c
 
-	LDA wib_table, Y	; 4c
-	STA back_gap		; 3c
-	JMP continue		; 3c
-	\\ 21c
+	\\ One after
 
-	.same_colour		; 3c
+	EOR blue_flip_count	; 3c
+	STA blue_set_count	; 3c
+
+	JMP done_blue		; 3c
+	\\ 26c
+
+	.still_blue		; 3c
 	\\ This needs to count the same as the other fork
-	FOR n,1,9+4,1
-	NOP
-	NEXT	
+	WAIT_CYCLES 26-3
 
-	.continue
+	.done_blue
 
-	\\ Wait rest of scanline 128 - 19 - 21 = 
-;	BIT 0
-	FOR n,1,44-4,1
-	NOP
-	NEXT
+	DEC cyan_count		; 5c
+	\\ 5c inc JMP loop
+
+	BNE still_cyan
+	; 2c
+
+	\\ Blue bar toggle
+
+	LDA back_colour		; 3c
+	EOR cyan_flip_col	; 3c
+	STA back_colour		; 3c
+
+	\\ Next count
+
+	LDA cyan_set_count	; 3c
+	STA cyan_count		; 3c
+
+	\\ One after
+
+	EOR cyan_flip_count	; 3c
+	STA cyan_set_count	; 3c
+
+	JMP done_cyan		; 3c
+	\\ 26c
+
+	.still_cyan		; 3c
+	\\ This needs to count the same as the other fork
+	WAIT_CYCLES 26-3
+
+	.done_cyan
+
+	\\ Wait rest of scanline 128 - part 1 - part 2
+	WAIT_CYCLES 128 - 19 - 26 - 5 - 26
 
 	JMP loop			; 3c
 
