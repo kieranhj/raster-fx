@@ -719,9 +719,9 @@ STATUS_LINE_ADDR = &3000 + (29*640)
 
 	WAIT_CYCLES 8
 
-    \\ Now wait 29 rows...
+    \\ Now wait 28 rows plus a scanline to make sure we're in next CRTC cycle
 
-	LDX #(29*8)+1		; 2c
+	LDX #(28*8)+1		; 2c
 
 	.loop
 
@@ -800,6 +800,9 @@ STATUS_LINE_ADDR = &3000 + (29*640)
 
 	.loop_done
 
+	LDA #&F0+PAL_red
+	STA &FE21
+
 	\\ Configure vsync cycle
 
     LDA #4: STA &FE00
@@ -813,6 +816,9 @@ STATUS_LINE_ADDR = &3000 + (29*640)
 
 	LDX #(3*8)
 	JSR cycles_wait_scanlines
+
+	LDA #&F0+PAL_magenta
+	STA &FE21
 
     \\ Turn display off
 
@@ -972,3 +978,5 @@ PRINT "------"
 
 PUTBASIC "circle.bas", "Circle"
 PUTFILE "MASKED.bin", "Screen", &3000
+PUTFILE "Text.mode2.bin", "Text", &3000
+

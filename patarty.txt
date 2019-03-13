@@ -1,0 +1,29 @@
+Need script system from #tb
+Need Exo from #scr
+
+Quick & dirtiest way of writing text to screen?
+Need to be able to reveal the text a line at a time on sync
+Need to keep the screen bouncing with vertical adjust
+
+Could either have proper font system
+Or have each line as a 80x32 byte = 4 char row block and display with VR
+Pain to do vadj + vrup + palette switch?
+^- think this would be easier and more generic then can switch in whichever lines from 8
+   and decompress a new set of strings in the background in between which bouncing
+   then script just needs to set which screen block is in which position
+   assuming there is a zero / blank block
+
+   Can't use rupture this way as would need to change the rupture dynamically as
+   the bounce occurs - e.g. top band has < 4 rows and each one follows at a different point
+   Could work if top and bottom bands are always blank
+   Always get 28 char rows displayed but up to 7 scanlines from 29'th row
+   Then 3 fixed rows and one blank row
+      
+Or have entire screens separate
+But then how to reveal each line?
+Could switch to show shadow at specific line but then need to clear potato...
+
+Exo compresses the text screens down to <1K
+Could decompress this in the background (!) to SHADOW buffer
+
+Need to be able to switch to potato instantly
