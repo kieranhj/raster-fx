@@ -69,7 +69,7 @@ TimerValue = 32*64 - 2*64 - 2 - 22 - 9
 \ *	ZERO PAGE
 \ ******************************************************************
 
-ORG &70
+ORG 0
 GUARD &9F
 
 \\ System variables
@@ -83,7 +83,33 @@ GUARD &9F
 .smiley_vadj			SKIP 1
 .smiley_vel				SKIP 1
 
+.back_colour			SKIP 1
+.back_flip				SKIP 1
+.back_gap				SKIP 1
+.back_drop				SKIP 1
+
 INCLUDE "lib/vgmplayer.h.asm"
+
+\ ******************************************************************
+\ *	SCRATCH SPACE
+\ ******************************************************************
+
+ORG &300
+.vgm_buffer_start
+
+; reserve space for the vgm decode buffers (8x256 = 2Kb)
+ALIGN 256
+.vgm_stream_buffers
+    skip 256
+    skip 256
+    skip 256
+    skip 256
+    skip 256
+    skip 256
+    skip 256
+    skip 256
+
+.vgm_buffer_end
 
 \ ******************************************************************
 \ *	CODE START
@@ -397,6 +423,9 @@ STATUS_LINE_ADDR = &3000 + (29*640)
 	LDA #32
 	STA smiley_yoff
 
+	LDA #0
+	STA back_drop
+
 	RTS
 }
 
@@ -474,6 +503,14 @@ STATUS_LINE_ADDR = &3000 + (29*640)
     LDA smiley_addr_HI, X
     STA &FE01
 
+	LDA #&F0 + PAL_blue
+	STA back_colour
+
+	LDA #(&F0 + PAL_blue) EOR (&F0 + PAL_cyan)
+	STA back_flip
+
+	DEC back_drop
+
 	RTS
 }
 
@@ -496,9 +533,12 @@ STATUS_LINE_ADDR = &3000 + (29*640)
 .fx_draw_function
 {
     \\ Wait until scanlne 8
-    FOR n,1,8,1
-    JSR cycles_wait_128
-    NEXT
+	LDX #7
+    JSR cycles_wait_scanlines
+
+	FOR n,1,40,1
+	NOP
+	NEXT
 
     \\ First scanline of displayed cycle
     .here_display
@@ -531,8 +571,57 @@ STATUS_LINE_ADDR = &3000 + (29*640)
 
     \\ Now wait 29 rows...
 
-	LDX #(29*8)
-	JSR cycles_wait_scanlines
+	LDX #(29*8)+1		; 2c
+
+	LDY back_drop		; 3c
+	LDA wib_table, Y
+	STA back_gap	
+
+	.loop
+
+	LDA back_colour		; 3c
+	STA &FE21			; 4c
+
+	DEX					; 2c
+	BEQ loop_done		; 2c
+
+;	DEY 				; 2c
+	DEC back_gap		; 5c
+	\\ 16c
+
+	BNE same_colour
+	; 2c
+
+	LDA back_colour		; 3c
+	EOR back_flip		; 3c
+	STA back_colour		; 3c
+
+;	LDY back_gap		; 3c
+
+	INY:INY:INY:INY
+
+	LDA wib_table, Y	; 4c
+	STA back_gap		; 3c
+	JMP continue		; 3c
+	\\ 21c
+
+	.same_colour		; 3c
+	\\ This needs to count the same as the other fork
+	FOR n,1,9+4,1
+	NOP
+	NEXT	
+
+	.continue
+
+	\\ Wait rest of scanline 128 - 19 - 21 = 
+;	BIT 0
+	FOR n,1,44-4,1
+	NOP
+	NEXT
+
+	JMP loop			; 3c
+
+	.loop_done
 
 	\\ Configure vsync cycle
 
@@ -656,6 +745,12 @@ NEXT
 .vgm_data
 INCBIN "patarty-nohuff.vgc"
 
+ALIGN &100
+.wib_table
+FOR n, 0, 255, 1
+EQUB 10 + 9 * SIN(2 * PI * n / 128)
+NEXT
+
 .data_end
 
 \ ******************************************************************
@@ -675,23 +770,6 @@ SAVE "MyFX", start, end
 \ ******************************************************************
 
 .bss_start
-
-.vgm_buffer_start
-
-; reserve space for the vgm decode buffers (8x256 = 2Kb)
-ALIGN 256
-.vgm_stream_buffers
-    skip 256
-    skip 256
-    skip 256
-    skip 256
-    skip 256
-    skip 256
-    skip 256
-    skip 256
-
-
-.vgm_buffer_end
 
 .bss_end
 
@@ -716,4 +794,4 @@ PRINT "------"
 \ ******************************************************************
 
 PUTBASIC "circle.bas", "Circle"
-PUTFILE "patarty.mode2.bin", "Screen", &3000
+PUTFILE "MASKED.bin", "Screen", &3000
