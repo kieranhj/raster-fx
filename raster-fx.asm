@@ -112,6 +112,8 @@ GUARD &9F
 .smiley_vadj			SKIP 1
 .smiley_vel				SKIP 1
 
+.num_strips				SKIP 1
+
 .back_colour			SKIP 1
 
 .blue_top				SKIP 1
@@ -460,7 +462,7 @@ STATUS_LINE_ADDR = &3000 + (29*640)
 	STA smiley_vadj
 	STA smiley_vel
 
-	LDA #32
+	LDA #31
 	STA smiley_yoff
 
 	LDA #0
@@ -522,7 +524,7 @@ STATUS_LINE_ADDR = &3000 + (29*640)
     .ok
     STA smiley_yoff
 
-    \\ Calculate vadj
+    \\ Calculate vadj for vsync strip
 
     LDA smiley_yoff
     AND #&7
@@ -534,9 +536,75 @@ STATUS_LINE_ADDR = &3000 + (29*640)
     SBC smiley_vadj
     STA &FE01                       ; 8-vadj
 
-    LDA #13:STA &FE00
+	SEC
+	LDA #32
+	SBC smiley_yoff
+	STA strip_scanlines + 0		; shorter
+
     LDA smiley_yoff
-    LSR A:LSR A:LSR A:TAX
+    LSR A:LSR A:LSR A:TAX		; number of char rows offset
+
+	STX strip_scr_row + 0
+
+	SEC
+	LDA #3
+	SBC strip_scr_row + 0
+	STA strip_total_rows + 0
+
+	CPX #0
+	BEQ seven_strips
+
+	\\ Otherwise 8 strips
+	\\ Strip 0 = < 4 char rows
+	\\ Strip 7 = 4-strip 0 rows + vadj
+
+	LDA #8
+	STA num_strips
+
+	LDA smiley_vadj
+	STA strip_vadj + 7
+
+	LDA #0
+	STA strip_vadj + 6
+
+	LDA #32
+	STA strip_scanlines + 6
+
+	LDA smiley_yoff
+	STA strip_scanlines + 7
+
+	DEX
+	STX strip_total_rows + 7
+
+	LDA #3
+	STA strip_total_rows + 6
+	BNE set_strip0_addr
+
+	\\ Seven strips
+	.seven_strips
+	LDA #7
+	STA num_strips
+
+	LDA smiley_vadj
+	STA strip_vadj + 6
+	LDA #0
+	STA strip_vadj + 7			; not used
+	STA strip_scanlines + 7		; not used
+	STA strip_total_rows + 7	; not used
+
+	CLC
+	LDA #32
+	ADC smiley_vadj
+	STA strip_scanlines + 6		; longer
+
+	LDA #3
+	STA strip_total_rows + 6
+
+	\\ Set address for strip 0
+
+	.set_strip0_addr
+    LDA #13:STA &FE00
+	LDX strip_scr_row + 0
     LDA smiley_addr_LO, X
     STA &FE01
 
@@ -544,6 +612,8 @@ STATUS_LINE_ADDR = &3000 + (29*640)
     LDA smiley_addr_HI, X
     STA &FE01
 
+
+	\\ Do bar stuff
 
 	LDA #&F0+PAL_black
 	STA back_colour
@@ -697,39 +767,41 @@ STATUS_LINE_ADDR = &3000 + (29*640)
 
     \\ Configure display cycle
 
-    LDA #4:STA &FE00
-    LDA #27:STA &FE01           ; 28 rows
-
     LDA #6:STA &FE00
-    LDA #29:STA &FE01   		; fixed visible rows
+    LDA #5:STA &FE01   			; fixed visible rows
 
     LDA #7:STA &FE00
     LDA #&FF:STA &FE01          ; no vsync
 
-    LDA #5:STA &FE00
-    LDA smiley_vadj:STA &FE01   		; yoff rows of smiley_vadj
+	LDY #0						; strip
 
-    \\ Set address of vsync cycle buffer
+	.strip_loop
+
+    LDA #4:STA &FE00
+	LDA strip_total_rows, Y
+    STA &FE01           		; total rows for strip
+
+    LDA #5:STA &FE00
+	LDA strip_vadj, Y
+    STA &FE01   				; vadj for strip
+
+    \\ Set address of strip+1
 
     LDA #13:STA &FE00
-    LDA #LO(STATUS_LINE_ADDR/8):STA &FE01
+	LDX strip_scr_row + 1, Y
+    LDA smiley_addr_LO, X:STA &FE01
 
     LDA #12:STA &FE00
-    LDA #HI(STATUS_LINE_ADDR/8):STA &FE01
-
-	WAIT_CYCLES 8
+    LDA smiley_addr_HI, X:STA &FE01
 
     \\ Now wait 28 rows plus a scanline to make sure we're in next CRTC cycle
 
-	LDX #(28*8)+1		; 2c
+	LDX strip_scanlines, Y
 
 	.loop
 
 	LDA back_colour		; 3c
 	STA &FE21			; 4c
-
-	DEX					; 2c
-	BEQ loop_done		; 2c
 
 	DEC blue_count		; 5c
 	\\ 19c inc JMP loop
@@ -796,9 +868,21 @@ STATUS_LINE_ADDR = &3000 + (29*640)
 	\\ Wait rest of scanline 128 - part 1 - part 2
 	WAIT_CYCLES 128 - 19 - 26 - 5 - 26
 
+	DEX					; 2c
+	BEQ loop_done		; 2c
+
 	JMP loop			; 3c
 
 	.loop_done
+
+	\\ May need some padding here
+
+	INY						; 2c
+	CPY num_strips			; 3c
+	BCS done_strip_loop		; 2c
+	JMP strip_loop			; 3c
+
+	.done_strip_loop
 
 	LDA #&F0+PAL_red
 	STA &FE21
@@ -913,6 +997,20 @@ EQUD 0
 \ ******************************************************************
 \ *	FX DATA
 \ ******************************************************************
+
+; 7 strips of 4 character rows, optional 8th strip when 1st strip is < 4 char rows
+
+.strip_vadj
+EQUB 0,0,0,0,0,0,8,8		; vadj added to 7th or 8th
+
+.strip_total_rows			; +1
+EQUB 3,3,3,3,3,3,3,&80		; must add up to 28 total
+
+.strip_scanlines
+EQUB 32,32,32,32,32,32,32,0	; must add up to 224
+
+.strip_scr_row
+EQUB 0,24,20,16,12,8,4,28	; which screen row to display in strip
 
 ALIGN 64
 .smiley_addr_LO
