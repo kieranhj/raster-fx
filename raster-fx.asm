@@ -2,7 +2,7 @@
 \ *	RASTER FX FRAMEWORK
 \ ******************************************************************
 
-_DEBUG_RASTERS = TRUE
+_DEBUG = FALSE
 
 \ ******************************************************************
 \ *	OS defines
@@ -76,6 +76,7 @@ ENDMACRO
 ; Default screen address
 screen_addr = &3000
 SCREEN_SIZE_BYTES = &8000 - screen_addr
+STRIP_SIZE_BYTES = 4 * 640
 
 ;vgm_stream_buffers = &300
 ;vgm_buffer_start = vgm_stream_buffers
@@ -98,13 +99,14 @@ TimerValue = 32*64 - 2*64 - 2 - 22 - 9
 \ *	ZERO PAGE
 \ ******************************************************************
 
-ORG 0
+ORG $30
 GUARD &9F
 
 \\ System variables
 
 .vsync_counter			SKIP 2		; counts up with each vsync
 .escape_pressed			SKIP 1		; set when Escape key pressed
+.delta_time				SKIP 1
 
 \\ FX variables
 
@@ -131,6 +133,7 @@ GUARD &9F
 .cyan_flip_count		SKIP 1		; flip the counter on flip
 
 INCLUDE "lib/vgmplayer.h.asm"
+INCLUDE "lib/script.h.asm"
 
 \ ******************************************************************
 \ *	SCRATCH SPACE
@@ -201,6 +204,16 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #10: STA &FE00
 	LDA #32: STA &FE01
 
+	\ Set SWRAM BANK
+	LDA #$4
+	STA &F4:STA &FE30
+
+    \ Ask OSFILE to load our screen
+	LDX #LO(filename)
+	LDY #HI(filename)
+	LDA #&80
+	JSR disksys_load_file
+
     ; initialize the vgm player with a vgc data stream
     lda #hi(vgm_stream_buffers)
     ldx #lo(vgm_data)
@@ -209,6 +222,13 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
     jsr vgm_init
 
 	\\ Initialise system modules here!
+
+	LDA #1
+	STA delta_time
+
+	LDX #LO(sequence_script_start)
+	LDY #HI(sequence_script_start)
+	JSR script_init
 
 	\ ******************************************************************
 	\ *	DEMO START - from here on out there are no interrupts enabled!!
@@ -312,6 +332,10 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ Service any system modules here!
 
 	JSR vgm_update
+
+	\\ Update the scripting system
+
+	JSR script_update
 
 	\\ Check for Escape key
 
@@ -435,9 +459,6 @@ ENDIF
 
 .fx_start
 
-SCREEN_ADDR = &3000
-STATUS_LINE_ADDR = &3000 + (29*640)
-
 \ ******************************************************************
 \ Initialise FX
 \
@@ -452,11 +473,25 @@ STATUS_LINE_ADDR = &3000 + (29*640)
 
 .fx_init_function
 {
-    \ Ask OSFILE to load our screen
-	LDX #LO(osfile_params)
-	LDY #HI(osfile_params)
-	LDA #&FF
-    JSR osfile
+	\\ Write to MAIN
+	LDA &FE34
+	AND #&FF-4
+	STA &FE34
+
+	LDX #LO(patarty_exo)
+	LDY #HI(patarty_exo)
+	JSR decrunch
+
+	\\ Write to SHADOW
+	LDA &FE34
+	ORA #4
+	STA &FE34
+
+	LDX #LO(text1_exo)
+	LDY #HI(text1_exo)
+	JSR decrunch
+
+	JSR fx_show_potato
 
 	LDA #0
 	STA smiley_vadj
@@ -949,9 +984,65 @@ STATUS_LINE_ADDR = &3000 + (29*640)
 	RTS
 }
 
+.fx_show_potato
+{
+	LDA &FE34
+	AND #&FF-1
+	STA &FE34
+	RTS
+}
+
+.fx_show_text
+{
+	LDA &FE34
+	ORA #1
+	STA &FE34
+	RTS
+}
+
+.fx_strips_default
+{
+	LDX #7
+	.loop
+	LDA strips_default_rows, X
+	STA strip_scr_row, X
+	DEX
+	BPL loop
+	RTS
+}
+
+.fx_strips_blank
+{
+	LDX #7
+	LDA #0
+	.loop
+	STA strip_scr_row, X
+	DEX
+	BPL loop
+	RTS
+}
+
+.fx_decompress_text2
+{
+	LDX #LO(text2_exo)
+	LDY #HI(text2_exo)
+	JMP decrunch
+}
+
+.fx_decompress_text3
+{
+	LDX #LO(text3_exo)
+	LDY #HI(text3_exo)
+	JMP decrunch
+}
+
 .fx_end
 
 INCLUDE "lib/vgmplayer.asm"
+INCLUDE "lib/exo.asm"
+INCLUDE "lib/disksys.asm"
+INCLUDE "lib/script.asm"
+INCLUDE "sequence.asm"
 
 \ ******************************************************************
 \ *	SYSTEM DATA
@@ -977,24 +1068,8 @@ INCLUDE "lib/vgmplayer.asm"
 	EQUB LO(screen_addr/8)	; R13 screen start address, low
 }
 
-.osfile_filename
-EQUS "Screen", 13
-
-.osfile_params
-.osfile_nameaddr
-EQUW osfile_filename
-; file load address
-.osfile_loadaddr
-EQUD screen_addr
-; file exec address
-.osfile_execaddr
-EQUD 0
-; start address or length
-.osfile_length
-EQUD 0
-; end address of attributes
-.osfile_endaddr
-EQUD 0
+.filename
+EQUS "Bank", 13
 
 \ ******************************************************************
 \ *	FX DATA
@@ -1006,27 +1081,27 @@ EQUD 0
 EQUB 0,0,0,0,0,0,8,8		; vadj added to 7th or 8th
 
 .strip_total_rows			; +1
-EQUB 3,3,3,3,3,3,3,&80		; must add up to 28 total
+EQUB 3,3,3,3,3,3,3,0		; must add up to 28 total
 
 .strip_scanlines
 EQUB 32,32,32,32,32,32,32,0	; must add up to 224
 
 .strip_scr_row
-EQUB 0,24,20,16,12,8,4,28	; which screen row to display in strip
+EQUB 0,24,20,16,12,8,4,0,0	; which screen row to display in strip
+
+.strips_default_rows
+EQUB 0,4,8,12,16,20,24,28,0
 
 ALIGN 64
 .smiley_addr_LO
 FOR n,0,31,1
-EQUB LO((SCREEN_ADDR + n * 640)/8)
+EQUB LO((screen_addr + n * 640)/8)
 NEXT
 
 .smiley_addr_HI
 FOR n,0,31,1
-EQUB HI((SCREEN_ADDR + n * 640)/8)
+EQUB HI((screen_addr + n * 640)/8)
 NEXT
-
-.vgm_data
-INCBIN "music/patarty-nohuff.vgc"
 
 ALIGN &100
 .wib_table
@@ -1073,11 +1148,48 @@ PRINT "FREE =", ~screen_addr-P%
 PRINT "------"
 
 \ ******************************************************************
+\ *	SWRAM BANK
+\ ******************************************************************
+
+CLEAR &8000,&C000
+ORG &8000
+GUARD &C000
+
+.bank_start
+
+.vgm_data
+INCBIN "music/patarty-nohuff.vgc"
+
+.patarty_exo
+INCBIN "build/patarty.exo"
+
+.text1_exo
+INCBIN "build/text.exo"
+
+.text2_exo
+INCBIN "build/text2.exo"
+
+.text3_exo
+INCBIN "build/text3.exo"
+
+.bank_end
+
+SAVE "Bank", bank_start, bank_end
+
+PRINT "------"
+PRINT "BANK"
+PRINT "------"
+PRINT "------"
+PRINT "HIGH WATERMARK =", ~P%
+PRINT "FREE =", ~&C000-P%
+PRINT "------"
+
+\ ******************************************************************
 \ *	Any other files for the disc
 \ ******************************************************************
 
 PUTBASIC "circle.bas", "Circle"
-PUTFILE "MASKED.bin", "Screen", &3000
-PUTFILE "Text.mode2.bin", "Text", &3000
-PUTFILE "Text2.mode2.bin", "Text2", &3000
-
+PUTFILE "build/patarty.masked.bin", "Screen", &3000
+PUTFILE "build/Text.masked.bin", "Text", &3000
+PUTFILE "build/Text2.masked.bin", "Text2", &3000
+PUTFILE "build/Text3.masked.bin", "Text3", &3000

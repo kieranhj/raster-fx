@@ -14,15 +14,15 @@ MAX_SEQUENCE_LENGTH_256 = 1
 ; -------------------------------------------------------------------
 ; zero page addresses used
 ; -------------------------------------------------------------------
-zp_len_lo = $17
-zp_len_hi = $18
+zp_len_lo = $0
+zp_len_hi = zp_len_lo + 1
 
-zp_src_lo  = $1e
+zp_src_lo  = $2
 zp_src_hi  = zp_src_lo + 1
 
-zp_bits_hi = $19
+zp_bits_hi = $4
 ;;; zp_bits_hi needs leaving spare!!!!
-zp_bitbuf  = $1b
+zp_bitbuf  = $5
 zp_dest_lo = zp_bitbuf + 1      ; dest addr lo
 zp_dest_hi = zp_bitbuf + 2      ; dest addr hi
 
@@ -44,10 +44,7 @@ INPOS = get_crunched_byte+1
 .s0a    rts
 }
 .get_crunched_byte_copy_end
-zp_stash_start = $17
-zp_stash_end = $2a ; exclusive
-zp_stash_len = zp_stash_end - zp_stash_start
-.zpstash SKIP zp_stash_len
+
 ;; refill bits is always inlined
 MACRO mac_refill_bits
         pha
@@ -118,16 +115,6 @@ ENDIF
 ; -------------------------------------------------------------------
 ; init zeropage, x and y regs. (12 bytes)
 {
-{ 	; stash zp
-	phy
-	ldy #zp_stash_len-1
-.loop
-	lda zp_stash_start,Y
-	sta zpstash,Y
-	dey
-	bpl loop
-	ply
-}
 	stx INPOS
         sty INPOS+1
 	lda #$AD ; LDA abs
@@ -352,15 +339,6 @@ ENDIF
         bcs copy_next
 .decr_exit
 ENDIF
-{
-	; unstash zp
-	ldy #zp_stash_len-1
-.loop
-	lda zpstash,Y
-	sta zp_stash_start,Y
-	dey
-	bpl loop
-}
         rts
 ; -------------------------------------------------------------------
 ; the static stable used for bits+offset for lengths 3, 1 and 2 (3 bytes)
@@ -374,4 +352,3 @@ ENDIF
 
 PUCRUNCH_UNPACK = decrunch
 PUCRUNCH_UNPACK_TO_OUTPOS = decrunch
-
