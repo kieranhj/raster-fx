@@ -157,7 +157,7 @@ ALIGN 256
 \ *	CODE START
 \ ******************************************************************
 
-ORG &1100	      			; code origin (like P%=&2000)
+ORG &E00	      			; code origin (like P%=&2000)
 GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .start
@@ -866,10 +866,12 @@ STATUS_LINE_ADDR = &3000 + (29*640)
 	.done_cyan
 
 	\\ Wait rest of scanline 128 - part 1 - part 2
-	WAIT_CYCLES 128 - 19 - 26 - 5 - 26
+	WAIT_CYCLES 128 - 19 - 26 - 5 - 26 - 10
 
 	DEX					; 2c
 	BEQ loop_done		; 2c
+
+	WAIT_CYCLES 10
 
 	JMP loop			; 3c
 
@@ -1024,7 +1026,7 @@ EQUB HI((SCREEN_ADDR + n * 640)/8)
 NEXT
 
 .vgm_data
-INCBIN "patarty-nohuff.vgc"
+INCBIN "music/patarty-nohuff.vgc"
 
 ALIGN &100
 .wib_table
@@ -1077,4 +1079,5 @@ PRINT "------"
 PUTBASIC "circle.bas", "Circle"
 PUTFILE "MASKED.bin", "Screen", &3000
 PUTFILE "Text.mode2.bin", "Text", &3000
+PUTFILE "Text2.mode2.bin", "Text2", &3000
 

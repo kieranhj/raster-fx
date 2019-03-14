@@ -27,3 +27,13 @@ Exo compresses the text screens down to <1K
 Could decompress this in the background (!) to SHADOW buffer
 
 Need to be able to switch to potato instantly
+Don't need to switch effect - just one throughout
+
+Get text working
+- align lines to 32 scanline/4 char row blocks - DONE use 10.5 point font (Bauhaus 93)
+- set background to &FF for colour palette change - use Tom's converter?
+- add Exo library to decompress screens to MAIN/SHADOW
+- add script library to control sync
+- fn to set which screen row for which strip
+- fn to switch visible screen MAIN/SHADOW
+- fn to switch palette combos
