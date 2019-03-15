@@ -38,3 +38,7 @@ Get text working
 - fn to switch visible screen MAIN/SHADOW - DONE
 - fn to switch palette combos
 - decompress next text screen in bg - going to need streamed version of Exo <grumble>
+
+Try to decompress 256 bytes (1 page) per frame?!
+20K screen would then be 80 frames = 1.6 seconds which is fine
+Might be a bit optimistic to not interfere with everything else!

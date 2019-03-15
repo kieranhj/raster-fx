@@ -4,6 +4,8 @@
 
 _DEBUG = FALSE
 
+DECRUNCH_BYTES_PER_FRAME = 64
+
 \ ******************************************************************
 \ *	OS defines
 \ ******************************************************************
@@ -107,6 +109,8 @@ GUARD &9F
 .vsync_counter			SKIP 2		; counts up with each vsync
 .escape_pressed			SKIP 1		; set when Escape key pressed
 .delta_time				SKIP 1
+.decrunch_active		SKIP 1
+.decrunch_count			SKIP 1
 
 \\ FX variables
 
@@ -134,6 +138,7 @@ GUARD &9F
 
 INCLUDE "lib/vgmplayer.h.asm"
 INCLUDE "lib/script.h.asm"
+INCLUDE "lib/exomiser.h.asm"
 
 \ ******************************************************************
 \ *	SCRATCH SPACE
@@ -143,7 +148,7 @@ ORG &300
 .vgm_buffer_start
 
 ; reserve space for the vgm decode buffers (8x256 = 2Kb)
-ALIGN 256
+ALIGN &100
 .vgm_stream_buffers
     skip 256
     skip 256
@@ -155,6 +160,14 @@ ALIGN 256
     skip 256
 
 .vgm_buffer_end
+
+\\ Exomiser unpack buffer (must be page aligned)
+\\ Now moved this to the language workspace at &0400 - &0800
+ALIGN &100
+.EXO_buffer_start
+	skip EXO_buffer_len
+.EXO_buffer_end
+
 
 \ ******************************************************************
 \ *	CODE START
@@ -223,8 +236,10 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	\\ Initialise system modules here!
 
-	LDA #1
-	STA delta_time
+	LDX #1
+	STX delta_time
+	DEX
+	STX decrunch_active
 
 	LDX #LO(sequence_script_start)
 	LDY #HI(sequence_script_start)
@@ -337,6 +352,10 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	JSR script_update
 
+	\\ Background decompress
+
+	JSR decrunch_tick
+
 	\\ Check for Escape key
 
 	LDA #&79
@@ -367,7 +386,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 		\\ Observed values $FA (early) - $F7 (late) so map these from 7 - 0
 		\\ then branch into NOPs to even this out.
 
-IF 1
+IF 0
 		AND #15
 		SEC
 		SBC #7
@@ -480,6 +499,7 @@ ENDIF
 
 	LDX #LO(patarty_exo)
 	LDY #HI(patarty_exo)
+	LDA #HI(screen_addr)
 	JSR decrunch
 
 	\\ Write to SHADOW
@@ -489,6 +509,7 @@ ENDIF
 
 	LDX #LO(text1_exo)
 	LDY #HI(text1_exo)
+	LDA #HI(screen_addr)
 	JSR decrunch
 
 	JSR fx_show_potato
@@ -1026,20 +1047,69 @@ ENDIF
 {
 	LDX #LO(text2_exo)
 	LDY #HI(text2_exo)
-	JMP decrunch
+	LDA #HI(screen_addr)
+	JMP decrunch_background
 }
 
 .fx_decompress_text3
 {
 	LDX #LO(text3_exo)
 	LDY #HI(text3_exo)
-	JMP decrunch
+	LDA #HI(screen_addr)
+	JMP decrunch_background
 }
+
+.decrunch_background
+{
+	STA decrunch_tick_write_chr+2
+	JSR exo_init_decruncher
+
+	LDX #0
+	STX decrunch_tick_write_chr+1
+	DEX
+	STX decrunch_active
+	RTS	
+}
+
+\\ Move this to ZP!
+.decrunch_tick
+\{
+	LDA decrunch_active
+	BPL decrunch_tick_return
+
+	LDA #DECRUNCH_BYTES_PER_FRAME
+	STA decrunch_count
+
+	.decrunch_tick_next_chr
+	JSR exo_get_decrunched_byte
+	BCS decrunch_tick_all_done
+
+	.decrunch_tick_write_chr
+	STA &ffff				; **SELF-MODIFIED**
+
+	DEC decrunch_count
+	BEQ decrunch_tick_return
+
+	INC decrunch_tick_write_chr+1
+	BNE decrunch_tick_next_chr
+
+	\\ One page at a time
+
+	INC decrunch_tick_write_chr+2
+	BNE decrunch_tick_next_chr
+
+	.decrunch_tick_all_done
+	LDA #0
+	STA decrunch_active
+
+	.decrunch_tick_return
+	RTS
+\}
 
 .fx_end
 
 INCLUDE "lib/vgmplayer.asm"
-INCLUDE "lib/exo.asm"
+INCLUDE "lib/exomiser.asm"
 INCLUDE "lib/disksys.asm"
 INCLUDE "lib/script.asm"
 INCLUDE "sequence.asm"
