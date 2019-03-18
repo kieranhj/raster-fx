@@ -2,10 +2,11 @@
 \ *	Sequence of FX
 \ ******************************************************************
 
-TICKS_PER_BEAT = (4 * 6)
-BEATS_PER_PATTERN = 16
-TICKS_PER_PATTERN = TICKS_PER_BEAT * BEATS_PER_PATTERN
-TICKS_PER_NOTE = (2 * 6)
+TICKS_PER_LINE = (6)
+LINES_PER_BEAT = 4
+TICKS_PER_BEAT = (LINES_PER_BEAT * TICKS_PER_LINE)
+LINES_PER_PATTERN = 64
+TICKS_PER_PATTERN = TICKS_PER_LINE * LINES_PER_PATTERN
 
 TEXT_1 = (1*4)
 TEXT_2 = (2*4)
@@ -21,8 +22,8 @@ TEXT_7 = (7*4)
 \ *	SEQUENCE MACROS
 \ ******************************************************************
 
-MACRO ON_NOTE p, n, f, v
-    SCRIPT_SEGMENT_UNTIL ((p-1) * TICKS_PER_PATTERN) + (n * TICKS_PER_NOTE)
+MACRO ON_LINE p, n, f, v
+    SCRIPT_SEGMENT_UNTIL ((p-1) * TICKS_PER_PATTERN) + (n * TICKS_PER_LINE)
     ; just wait
     SCRIPT_SEGMENT_END
     SCRIPT_CALLV f, v
@@ -92,25 +93,43 @@ ENDMACRO
 
 SCRIPT_CALL fx_strips_default
 
+; 18,20
+; 24,27
+
+ON_LINE 1, 50, fx_show_text, 0
+
+ON_LINE 1, 58, fx_set_strip_1, TEXT_1        ; it's
+ON_LINE 1, 60, fx_set_strip_2, TEXT_2        ; not
+ON_LINE 1, 62, fx_set_strip_3, TEXT_3        ; a
+
 \ ******************************************************************
 \\ **** PATTERN 2 ****
 \ ******************************************************************
 
 SEQUENCE_WAIT_UNTIL_PATTERN 2
 
-SCRIPT_CALL fx_strips_blank
-SCRIPT_CALL fx_show_text
+ON_LINE 2, 0, fx_set_strip_4, TEXT_4        ; party
 
-ON_NOTE 2, 1, fx_set_strip_1, TEXT_1
-ON_NOTE 2, 2, fx_set_strip_2, TEXT_2
-ON_NOTE 2, 3, fx_set_strip_3, TEXT_3
-ON_NOTE 2, 4, fx_set_strip_4, TEXT_4
+ON_LINE 2, 6, fx_strips_blank, 0
 
-ON_NOTE 2, 16, fx_strips_blank, 0
-ON_NOTE 2, 16, fx_set_strip_1, TEXT_1
-ON_NOTE 2, 17, fx_set_strip_2, TEXT_3
-ON_NOTE 2, 18, fx_set_strip_3, TEXT_5
-ON_NOTE 2, 19, fx_set_strip_4, TEXT_7
+ON_LINE 2, 10, fx_set_strip_1, TEXT_1       ; it's
+ON_LINE 2, 12, fx_set_strip_2, TEXT_3       ; a
+ON_LINE 2, 14, fx_set_strip_3, TEXT_5       ; partaty
+ON_LINE 2, 22, fx_set_strip_4, TEXT_7       ; yeah!
+
+ON_LINE 2, 32, fx_show_potato, 0
+
+ON_LINE 2, 46, fx_show_text, 0
+
+ON_LINE 2, 48, fx_set_strip_3, TEXT_5       ; party
+ON_LINE 2, 54, fx_set_strip_4, TEXT_7       ; yeah!
+
+ON_LINE 2, 56, fx_set_strip_3, TEXT_5       ; party
+ON_LINE 2, 58, fx_set_bar2_col, PAL_red
+ON_LINE 2, 60, fx_set_bar2_col, PAL_cyan
+ON_LINE 2, 62, fx_set_bar2_col, PAL_red
+
+; flash
 
 \ ******************************************************************
 \\ **** PATTERN 3 ****
@@ -118,8 +137,13 @@ ON_NOTE 2, 19, fx_set_strip_4, TEXT_7
 
 SEQUENCE_WAIT_UNTIL_PATTERN 3
 
+ON_LINE 3, 0, fx_set_bar2_col, PAL_cyan
+
 SCRIPT_CALL fx_show_potato
-SCRIPT_CALL fx_decompress_text2
+ON_LINE 3, 2, fx_decompress_text3, 0
+
+ON_LINE 3, 50, fx_show_text, 0
+ON_LINE 3, 52, fx_set_strip_3, TEXT_1       ; slap that bass!
 
 \ ******************************************************************
 \\ **** PATTERN 4 ****
@@ -127,7 +151,14 @@ SCRIPT_CALL fx_decompress_text2
 
 SEQUENCE_WAIT_UNTIL_PATTERN 4
 
-SCRIPT_CALL fx_show_text
+SCRIPT_CALL fx_show_potato
+
+; change palette
+ON_LINE 4, 0, fx_set_bar2_col, PAL_red
+
+ON_LINE 4, 30, fx_show_text, 0
+ON_LINE 4, 32, fx_set_strip_2, TEXT_2       ; imagine
+ON_LINE 4, 34, fx_set_strip_3, TEXT_3       ; twister
 
 \ ******************************************************************
 \\ **** PATTERN 5 ****
@@ -135,15 +166,41 @@ SCRIPT_CALL fx_show_text
 
 SEQUENCE_WAIT_UNTIL_PATTERN 5
 
+SCRIPT_CALL fx_show_potato
+
+; change palette
+
+ON_LINE 5, 30, fx_show_text, 0
+ON_LINE 5, 32, fx_set_strip_2, TEXT_4       ; particularly
+ON_LINE 5, 34, fx_set_strip_3, TEXT_5       ; clever
+
 \ ******************************************************************
 \\ **** PATTERN 6 ****
 \ ******************************************************************
 
 SEQUENCE_WAIT_UNTIL_PATTERN 6
 
-SCRIPT_CALL fx_strips_default
 SCRIPT_CALL fx_show_potato
-SCRIPT_CALL fx_decompress_text3
+
+; disco flash
+ON_LINE 6, 0, fx_set_bar2_col, PAL_red
+ON_LINE 6, 4, fx_set_bar2_col, PAL_cyan
+ON_LINE 6, 8, fx_set_bar1_col, PAL_yellow
+ON_LINE 6, 12, fx_set_bar2_col, PAL_red
+ON_LINE 6, 16, fx_set_bar2_col, PAL_cyan
+ON_LINE 6, 20, fx_set_bar1_col, PAL_blue
+ON_LINE 6, 24, fx_set_bar2_col, PAL_red
+ON_LINE 6, 28, fx_set_bar2_col, PAL_cyan
+ON_LINE 6, 32, fx_set_bar1_col, PAL_yellow
+ON_LINE 6, 36, fx_set_bar2_col, PAL_red
+ON_LINE 6, 40, fx_set_bar2_col, PAL_cyan
+ON_LINE 6, 44, fx_set_bar1_col, PAL_blue
+ON_LINE 6, 48, fx_set_bar2_col, PAL_red
+ON_LINE 6, 52, fx_set_bar2_col, PAL_cyan
+ON_LINE 6, 56, fx_set_bar2_col, PAL_yellow
+ON_LINE 6, 60, fx_set_bar2_col, PAL_green
+
+ON_LINE 6, 62, fx_show_text, 0
 
 \ ******************************************************************
 \\ **** PATTERN 7 ****
@@ -151,7 +208,28 @@ SCRIPT_CALL fx_decompress_text3
 
 SEQUENCE_WAIT_UNTIL_PATTERN 7
 
-SCRIPT_CALL fx_show_text
+ON_LINE 7, 0, fx_set_bar1_col, PAL_green
+
+ON_LINE 7, 2, fx_set_strip_1, TEXT_6       ; todo
+ON_LINE 7, 4, fx_set_strip_2, TEXT_7       ; finish this
+
+ON_LINE 7, 32, fx_show_potato, 0
+ON_LINE 7, 34, fx_decompress_text2, 0
+
+\ ******************************************************************
+\\ **** PATTERN 7 ****
+\ ******************************************************************
+
+ON_LINE 8, 0, fx_show_text, 0
+ON_LINE 8, 2, fx_set_bar1_col, PAL_blue
+ON_LINE 8, 4, fx_set_bar2_col, PAL_cyan
+
+ON_LINE 8, 10, fx_set_strip_1, TEXT_1       ; it's
+ON_LINE 8, 12, fx_set_strip_2, TEXT_2       ; a
+ON_LINE 8, 14, fx_set_strip_3, TEXT_3       ; partaty
+ON_LINE 8, 22, fx_set_strip_4, TEXT_4       ; yeah!
+
+ON_LINE 8, 32, fx_show_potato, 0
 
 SCRIPT_END
 

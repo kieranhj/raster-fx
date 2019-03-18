@@ -133,12 +133,16 @@ GUARD &9F
 .blue_set_count			SKIP 1		; set to this counter on flip
 .blue_flip_count		SKIP 1		; flip the counter on flip
 
+.blue_bar_col			SKIP 1
+
 .cyan_top				SKIP 1
 .cyan_start_col			SKIP 1		; start with this colour at top
 .cyan_flip_col			SKIP 1		; flip this colour
 .cyan_count				SKIP 1		; start with this counter at top
 .cyan_set_count			SKIP 1		; set to this counter on flip
 .cyan_flip_count		SKIP 1		; flip the counter on flip
+
+.cyan_bar_col			SKIP 1
 
 INCLUDE "lib/vgmplayer.h.asm"
 INCLUDE "lib/script.h.asm"
@@ -545,6 +549,12 @@ ENDIF
 	STA blue_top
 	STA cyan_top
 
+	LDA #BLUE_BAR_COLOUR
+	STA blue_bar_col
+
+	LDA #CYAN_BAR_COLOUR
+	STA cyan_bar_col
+
 	RTS
 }
 
@@ -719,8 +729,8 @@ ENDIF
 	LDA #(BLUE_BAR_GAP)
 	STA blue_set_count
 
-	LDX #(BLUE_BAR_COLOUR)
-	BNE blue_set_col
+	LDX blue_bar_col
+	JMP blue_set_col
 
 	.blue_off
 	SBC #BLUE_BAR_SIZE
@@ -742,7 +752,8 @@ ENDIF
 	LDA #(BLUE_BAR_SIZE EOR BLUE_BAR_GAP)
 	STA blue_flip_count
 
-	LDA #(BLUE_BAR_COLOUR) EOR (BLUE_GAP_COLOUR)
+	LDA blue_bar_col	; EOR (BLUE_GAP_COLOUR)
+	EOR #BLUE_GAP_COLOUR
 	STA blue_flip_col
 
 	LDA blue_start_col
@@ -776,8 +787,8 @@ ENDIF
 	LDA #(CYAN_BAR_GAP)
 	STA cyan_set_count
 
-	LDX #(CYAN_BAR_COLOUR)
-	BNE cyan_set_col
+	LDX cyan_bar_col
+	JMP cyan_set_col
 
 	.cyan_off
 	SBC #CYAN_BAR_SIZE
@@ -799,7 +810,8 @@ ENDIF
 	LDA #(CYAN_BAR_SIZE EOR CYAN_BAR_GAP)
 	STA cyan_flip_count
 
-	LDA #(CYAN_BAR_COLOUR) EOR (PAL_black)
+	LDA cyan_bar_col
+	EOR #(PAL_black)
 	STA cyan_flip_col
 
 	LDA cyan_start_col
@@ -1046,6 +1058,7 @@ ENDIF
 	LDA &FE34
 	ORA #1
 	STA &FE34
+	JSR fx_strips_blank
 	JMP fx_set_white
 }
 
@@ -1104,6 +1117,18 @@ ENDIF
 .fx_set_strip_6
 {
 	STA strip_scr_row+6
+	RTS
+}
+
+.fx_set_bar1_col
+{
+	STA blue_bar_col
+	RTS
+}
+
+.fx_set_bar2_col
+{
+	STA cyan_bar_col
 	RTS
 }
 
@@ -1299,7 +1324,7 @@ EQUB 32,32,32,32,32,32,32,0	; must add up to 224
 EQUB 0,24,20,16,12,8,4,0,0	; which screen row to display in strip
 
 .strips_default_rows
-EQUB 0,4,8,12,16,20,24,28,0
+EQUB 0,4,8,12,16,20,24,0,0
 
 ALIGN 64
 .smiley_addr_LO
