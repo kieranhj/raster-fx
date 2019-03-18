@@ -204,8 +204,10 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	LDA #22
 	JSR oswrch
-	LDA #2
+	LDA #1
 	JSR oswrch
+
+	JSR fx_set_black
 
 	\\ Turn off cursor
 
@@ -406,7 +408,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 		\\ Observed values $FA (early) - $F7 (late) so map these from 7 - 0
 		\\ then branch into NOPs to even this out.
 
-IF 1
+IF 0
 		AND #15
 		SEC
 		SBC #7
@@ -689,12 +691,12 @@ ENDIF
 
 	\\ Do bar stuff
 
-	LDA #&F0+PAL_black
+	LDA #PAL_black
 	STA back_colour
 
 	DEC blue_top
 
-	LDX #(&F0+BLUE_GAP_COLOUR)
+	LDX #(BLUE_GAP_COLOUR)
 
 	LDA blue_top
 	.blue_loop
@@ -717,7 +719,7 @@ ENDIF
 	LDA #(BLUE_BAR_GAP)
 	STA blue_set_count
 
-	LDX #(&F0+BLUE_BAR_COLOUR)
+	LDX #(BLUE_BAR_COLOUR)
 	BNE blue_set_col
 
 	.blue_off
@@ -732,7 +734,7 @@ ENDIF
 	LDA #(BLUE_BAR_SIZE)
 	STA blue_set_count
 
-	LDX #(&F0+BLUE_GAP_COLOUR)
+	LDX #(BLUE_GAP_COLOUR)
 
 	.blue_set_col
 	STX blue_start_col
@@ -740,18 +742,18 @@ ENDIF
 	LDA #(BLUE_BAR_SIZE EOR BLUE_BAR_GAP)
 	STA blue_flip_count
 
-	LDA #(&F0+BLUE_BAR_COLOUR) EOR (&F0+BLUE_GAP_COLOUR)
+	LDA #(BLUE_BAR_COLOUR) EOR (BLUE_GAP_COLOUR)
 	STA blue_flip_col
 
 	LDA blue_start_col
-	EOR #&F0+PAL_black
+	EOR #PAL_black
 	EOR back_colour
 	STA back_colour
 
 
 	INC cyan_top
 
-	LDX #(&F0+PAL_black)
+	LDX #(PAL_black)
 
 	LDA cyan_top
 	.cyan_loop
@@ -774,7 +776,7 @@ ENDIF
 	LDA #(CYAN_BAR_GAP)
 	STA cyan_set_count
 
-	LDX #(&F0+CYAN_BAR_COLOUR)
+	LDX #(CYAN_BAR_COLOUR)
 	BNE cyan_set_col
 
 	.cyan_off
@@ -789,7 +791,7 @@ ENDIF
 	LDA #(CYAN_BAR_SIZE)
 	STA cyan_set_count
 
-	LDX #(&F0+PAL_black)
+	LDX #(PAL_black)
 
 	.cyan_set_col
 	STX cyan_start_col
@@ -797,11 +799,11 @@ ENDIF
 	LDA #(CYAN_BAR_SIZE EOR CYAN_BAR_GAP)
 	STA cyan_flip_count
 
-	LDA #(&F0+CYAN_BAR_COLOUR) EOR (&F0+PAL_black)
+	LDA #(CYAN_BAR_COLOUR) EOR (PAL_black)
 	STA cyan_flip_col
 
 	LDA cyan_start_col
-	EOR #&F0+PAL_black
+	EOR #PAL_black
 	EOR back_colour
 	STA back_colour
 
@@ -877,6 +879,13 @@ ENDIF
 	LDA back_colour		; 3c
 	STA &FE21			; 4c
 
+	ORA #&10			; 2c
+	STA &FE21			; 4c
+	ORA #&40			; 2c
+	STA &FE21			; 4c
+	EOR #&10			; 2c
+	STA &FE21			; 4c
+
 	DEC blue_count		; 5c
 	\\ 19c inc JMP loop
 
@@ -940,7 +949,7 @@ ENDIF
 	.done_cyan
 
 	\\ Wait rest of scanline 128 - part 1 - part 2
-	WAIT_CYCLES 128 - 19 - 26 - 5 - 26 - 10
+	WAIT_CYCLES 128 - 19 - 26 - 5 - 26 - 10 - 18
 
 	DEX					; 2c
 	BEQ loop_done		; 2c
@@ -960,8 +969,8 @@ ENDIF
 
 	.done_strip_loop
 
-	LDA #&F0+PAL_red
-	STA &FE21
+;	LDA #PAL_red
+;	STA &FE21
 
 	\\ Configure vsync cycle
 
@@ -977,8 +986,8 @@ ENDIF
 	LDX #(3*8)
 	JSR cycles_wait_scanlines
 
-	LDA #&F0+PAL_magenta
-	STA &FE21
+;	LDA #PAL_magenta
+;	STA &FE21
 
     \\ Turn display off
 
@@ -1028,7 +1037,8 @@ ENDIF
 	LDA &FE34
 	AND #&FF-1
 	STA &FE34
-	RTS
+	JSR fx_strips_default
+	JMP fx_set_black
 }
 
 .fx_show_text
@@ -1036,7 +1046,7 @@ ENDIF
 	LDA &FE34
 	ORA #1
 	STA &FE34
-	RTS
+	JMP fx_set_white
 }
 
 .fx_strips_default
@@ -1061,6 +1071,42 @@ ENDIF
 	RTS
 }
 
+.fx_set_strip_1
+{
+	STA strip_scr_row+1
+	RTS
+}
+
+.fx_set_strip_2
+{
+	STA strip_scr_row+2
+	RTS
+}
+
+.fx_set_strip_3
+{
+	STA strip_scr_row+3
+	RTS
+}
+
+.fx_set_strip_4
+{
+	STA strip_scr_row+4
+	RTS
+}
+
+.fx_set_strip_5
+{
+	STA strip_scr_row+5
+	RTS
+}
+
+.fx_set_strip_6
+{
+	STA strip_scr_row+6
+	RTS
+}
+
 .fx_decompress_text2
 {
 	LDA #5:STA &F4:STA &FE30
@@ -1079,6 +1125,24 @@ ENDIF
 	LDY #HI(text2_exo)
 	LDA #HI(screen_addr)
 	JMP start_copy_down
+}
+
+.fx_set_black
+{
+	LDA #&a0 + PAL_black:STA &FE21
+	LDA #&b0 + PAL_black:STA &FE21
+	LDA #&e0 + PAL_black:STA &FE21
+	LDA #&f0 + PAL_black:STA &FE21
+	RTS
+}
+
+.fx_set_white
+{
+	LDA #&a0 + PAL_white:STA &FE21
+	LDA #&b0 + PAL_white:STA &FE21
+	LDA #&e0 + PAL_white:STA &FE21
+	LDA #&f0 + PAL_white:STA &FE21
+	RTS
 }
 
 COPY_BYTES_PER_FRAME = 64
@@ -1188,6 +1252,26 @@ INCLUDE "sequence.asm"
 	EQUB 8					; R11 cursor end
 	EQUB HI(screen_addr/8)	; R12 screen start address, high
 	EQUB LO(screen_addr/8)	; R13 screen start address, low
+}
+
+.mode1_pal
+{
+	EQUB &00 + PAL_black
+	EQUB &10 + PAL_black
+	EQUB &20 + PAL_red
+	EQUB &30 + PAL_red
+	EQUB &40 + PAL_black
+	EQUB &50 + PAL_black
+	EQUB &60 + PAL_red
+	EQUB &70 + PAL_red
+	EQUB &80 + PAL_yellow
+	EQUB &90 + PAL_yellow
+	EQUB &a0 + PAL_black
+	EQUB &b0 + PAL_black
+	EQUB &c0 + PAL_yellow
+	EQUB &d0 + PAL_yellow
+	EQUB &e0 + PAL_black
+	EQUB &f0 + PAL_black
 }
 
 .filename EQUS "Hazel", 13
@@ -1301,11 +1385,12 @@ PRINT "------"
 \ ******************************************************************
 
 PUTBASIC "circle.bas", "Circle"
-;PUTFILE "build/patarty.masked.bin", "Screen", &3000
+PUTBASIC "square.bas", "Square"
+PUTFILE "build/patarty.mode1.bin", "Patarty", &3000
 
-PUTFILE "build/text.masked.bin", "T1", &3000
-PUTFILE "build/text2.masked.bin", "T2", &3000
-PUTFILE "build/text3.masked.bin", "T3", &3000
+;PUTFILE "build/text.mode1.bin", "T1", &3000
+;PUTFILE "build/text2.mode1.bin", "T2", &3000
+;PUTFILE "build/text3.mode1.bin", "T3", &3000
 
 PUTFILE "build/text.exo", "Text", &8000
 PUTFILE "build/text2.exo", "Text2", &8000
