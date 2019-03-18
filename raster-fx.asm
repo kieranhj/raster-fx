@@ -78,6 +78,11 @@ screen_addr = &3000
 SCREEN_SIZE_BYTES = &8000 - screen_addr
 STRIP_SIZE_BYTES = 4 * 640
 
+patarty_exo = screen_addr - &900
+text1_exo = patarty_exo - &400
+text2_exo = &8000
+text3_exo = &8000
+
 ;vgm_stream_buffers = &300
 ;vgm_buffer_start = vgm_stream_buffers
 ;vgm_buffer_end = vgm_buffer_start + &800
@@ -107,6 +112,9 @@ GUARD &9F
 .vsync_counter			SKIP 2		; counts up with each vsync
 .escape_pressed			SKIP 1		; set when Escape key pressed
 .delta_time				SKIP 1
+
+.copy_down_active		SKIP 1
+.copy_down_count		SKIP 1
 
 \\ FX variables
 
@@ -205,13 +213,40 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #32: STA &FE01
 
 	\ Set SWRAM BANK
-	LDA #$4
-	STA &F4:STA &FE30
+	LDA #4:STA &F4:STA &FE30
+
+    \ Ask OSFILE to load our screen
+	LDX #LO(bank4)
+	LDY #HI(bank4)
+	LDA #HI(text1_exo)
+	JSR disksys_load_file
+
+    \ Ask OSFILE to load our screen
+	LDA #5:STA &F4:STA &FE30
+
+	LDX #LO(bank5)
+	LDY #HI(bank5)
+	LDA #HI(&8000)
+	JSR disksys_decrunch_file
+
+    \ Ask OSFILE to load our screen
+	LDA #6:STA &F4:STA &FE30
+
+	LDX #LO(bank6)
+	LDY #HI(bank6)
+	LDA #HI(&8000)
+	JSR disksys_decrunch_file
+
+    \ Ask OSFILE to load our screen
+	LDX #LO(screen)
+	LDY #HI(screen)
+	LDA #HI(patarty_exo)
+	JSR disksys_load_file
 
     \ Ask OSFILE to load our screen
 	LDX #LO(filename)
 	LDY #HI(filename)
-	LDA #&80
+	LDA #HI(hazel_start)
 	JSR disksys_load_file
 
     ; initialize the vgm player with a vgc data stream
@@ -336,6 +371,10 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ Update the scripting system
 
 	JSR script_update
+
+	\\ Copy down in background
+
+	JSR tick_copy_down
 
 	\\ Check for Escape key
 
@@ -1024,17 +1063,100 @@ ENDIF
 
 .fx_decompress_text2
 {
+	LDA #5:STA &F4:STA &FE30
+
 	LDX #LO(text2_exo)
 	LDY #HI(text2_exo)
-	JMP decrunch
+	LDA #HI(screen_addr)
+	JMP start_copy_down
 }
 
 .fx_decompress_text3
 {
-	LDX #LO(text3_exo)
-	LDY #HI(text3_exo)
-	JMP decrunch
+	LDA #6:STA &F4:STA &FE30
+
+	LDX #LO(text2_exo)
+	LDY #HI(text2_exo)
+	LDA #HI(screen_addr)
+	JMP start_copy_down
 }
+
+COPY_BYTES_PER_FRAME = 64
+
+.start_copy_down
+{
+	STX copy_down_from + 1
+	STY copy_down_from + 2
+
+	LDA #HI(screen_addr + 64)
+	STA copy_down_to + 2
+	LDA #LO(screen_addr + 64)
+	STA copy_down_to + 1
+
+	LDA #(512/COPY_BYTES_PER_FRAME)
+	STA copy_down_count
+
+	LDA #&FF
+	STA copy_down_active
+
+	RTS
+}
+
+.tick_copy_down
+\{
+	LDA copy_down_active
+	BEQ tick_copy_down_return
+
+	LDX #0
+	.tick_copy_down_loop
+	.copy_down_from
+	LDA &FFFF, X
+	.copy_down_to
+	STA &FFFF, X
+	INX
+	CPX #COPY_BYTES_PER_FRAME
+	BCC tick_copy_down_loop
+
+	CLC
+	LDA copy_down_from+1
+	ADC #COPY_BYTES_PER_FRAME
+	STA copy_down_from+1
+	BCC no_carry1
+	INC copy_down_from+2
+	.no_carry1
+
+	CLC
+	LDA copy_down_to+1
+	ADC #COPY_BYTES_PER_FRAME
+	STA copy_down_to+1
+	BCC no_carry2
+	INC copy_down_to+2
+	.no_carry2
+
+	DEC copy_down_count
+	BNE tick_copy_down_return
+
+	CLC
+	LDA copy_down_to+1
+	ADC #128
+	STA copy_down_to+1 
+	BCC no_carry3
+	INC copy_down_to+2
+	.no_carry3
+
+	LDA #(512/COPY_BYTES_PER_FRAME)
+	STA copy_down_count
+
+	.tick_copy_down_return
+	LDA copy_down_to+2
+	BPL still_going
+
+	LDA #0
+	STA copy_down_active
+
+	.still_going
+	RTS
+\}
 
 .fx_end
 
@@ -1068,8 +1190,11 @@ INCLUDE "sequence.asm"
 	EQUB LO(screen_addr/8)	; R13 screen start address, low
 }
 
-.filename
-EQUS "Bank", 13
+.filename EQUS "Hazel", 13
+.bank4 EQUS "Text", 13
+.bank5 EQUS "Text2", 13
+.bank6 EQUS "Text3", 13
+.screen EQUS "Screen", 13
 
 \ ******************************************************************
 \ *	FX DATA
@@ -1151,37 +1276,24 @@ PRINT "------"
 \ *	SWRAM BANK
 \ ******************************************************************
 
-CLEAR &8000,&C000
-ORG &8000
-GUARD &C000
 
-.bank_start
+CLEAR &C300, &DF00
+ORG &C300
+GUARD &DF00
 
+.hazel_start
 .vgm_data
 INCBIN "music/patarty-nohuff.vgc"
+.hazel_end
 
-.patarty_exo
-INCBIN "build/patarty.exo"
-
-.text1_exo
-INCBIN "build/text.exo"
-
-.text2_exo
-INCBIN "build/text2.exo"
-
-.text3_exo
-INCBIN "build/text3.exo"
-
-.bank_end
-
-SAVE "Bank", bank_start, bank_end
+SAVE "Hazel", hazel_start, hazel_end
 
 PRINT "------"
-PRINT "BANK"
+PRINT "HAZEL"
 PRINT "------"
 PRINT "------"
 PRINT "HIGH WATERMARK =", ~P%
-PRINT "FREE =", ~&C000-P%
+PRINT "FREE =", ~&DF00-P%
 PRINT "------"
 
 \ ******************************************************************
@@ -1189,7 +1301,13 @@ PRINT "------"
 \ ******************************************************************
 
 PUTBASIC "circle.bas", "Circle"
-PUTFILE "build/patarty.masked.bin", "Screen", &3000
-PUTFILE "build/Text.masked.bin", "Text", &3000
-PUTFILE "build/Text2.masked.bin", "Text2", &3000
-PUTFILE "build/Text3.masked.bin", "Text3", &3000
+;PUTFILE "build/patarty.masked.bin", "Screen", &3000
+
+PUTFILE "build/text.masked.bin", "T1", &3000
+PUTFILE "build/text2.masked.bin", "T2", &3000
+PUTFILE "build/text3.masked.bin", "T3", &3000
+
+PUTFILE "build/text.exo", "Text", &8000
+PUTFILE "build/text2.exo", "Text2", &8000
+PUTFILE "build/text3.exo", "Text3", &8000
+PUTFILE "build/patarty.exo", "Screen", &3000

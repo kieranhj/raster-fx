@@ -38,3 +38,15 @@ Get text working
 - fn to switch visible screen MAIN/SHADOW - DONE
 - fn to switch palette combos
 - decompress next text screen in bg - going to need streamed version of Exo <grumble>
+
+OK, streaming EXO doesn't work - not enough time to decompress whilst full FX running - instead just copy out of SWRAM
+
+- Move music to Hazel &C300
+- Change screens to be 16K - 256x256
+- Exo compress screens store on disc
+- Load to screen and decomp at boot to swram bank
+- At run time copy one page at a time down to screen ram per frame = 64 pages
+- Can therefore have 4x screens only
+
+This is all to avoid a blank screen between fx!
+Interesting to learn what can be done in parallel with existing fx...
