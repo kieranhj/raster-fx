@@ -2,6 +2,8 @@
 \ *	RASTER FX FRAMEWORK
 \ ******************************************************************
 
+CPU 1
+
 \ ******************************************************************
 \ *	OS defines
 \ ******************************************************************
@@ -37,6 +39,23 @@ MODE1_COL3=&A0
 \ ******************************************************************
 \ *	MACROS
 \ ******************************************************************
+
+MACRO WAIT_CYCLES n
+
+PRINT "WAIT",n," CYCLES"
+
+IF (n AND 1) = 0
+	FOR i,1,n/2,1
+	NOP
+	NEXT
+ELSE
+	BIT 0
+	FOR i,1,(n-3)/2,1
+	NOP
+	NEXT
+ENDIF
+
+ENDMACRO
 
 \ ******************************************************************
 \ *	GLOBAL constants
@@ -215,11 +234,8 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ But don't forget that the loop also takes time!!
 
 	{
-		LDX #245
-		.loop
-		JSR cycles_wait_128
-		DEX
-		BNE loop
+		LDX #255
+		JSR cycles_wait_scanlines
 	}
 
 	\ ******************************************************************
@@ -328,6 +344,28 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	RTS					; 6c
 }						; = 128c
 
+.cycles_wait_scanlines	; 6c
+{
+	FOR n,1,54,1		; 54x
+	NOP					; 2c
+	NEXT				; = 108c
+	BIT 0				; 3c
+
+	.loop
+	DEX					; 2c
+	BEQ done			; 2/3c
+
+	FOR n,1,59,1		; 59x
+	NOP					; 2c
+	NEXT				; = 118c
+
+	BIT 0				; 3c
+	JMP loop			; 3c
+
+	.done
+	RTS					; 6c
+}
+
 .main_end
 
 \ ******************************************************************
@@ -379,9 +417,10 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ Increment our index into the palette table
 	INC fx_colour_index
 
-	LDA #0
+	LDA #253
 	STA fx_raster_count
-	TAY
+	
+	LDY #0
 
 	\\ Set screen address for cycle 0
 
@@ -432,8 +471,85 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #6: STA &FE00
 	LDA #1: STA &FE01
 
-	
+	\\ R1=40 - horizontal displayed = 40 chars
+	LDA #1: STA &FE00
+	LDA #40: STA &FE01
 
+	\\ 80c
+
+	LDX #12
+	LDY #13
+	
+	WAIT_CYCLES 48 -4
+
+	\\ 128c total
+
+	.scanline_1a
+
+	\\ R0=39 - horizontal total = 40 chars
+	LDA #0: STA &FE00
+	LDA #39: STA &FE01
+
+	\\ R2=58 - horizontal sync = 58 chars
+	LDA #2: STA &FE00
+	LDA #58: STA &FE01
+
+	\\ 32c
+
+	WAIT_CYCLES 8
+
+	\\ 40c total
+
+	.scanline_1b
+
+	\\ R0=87 - horizontal total = 88 chars
+	LDA #0: STA &FE00
+	LDA #87: STA &FE01
+
+	\\ 16c
+
+	WAIT_CYCLES 72
+
+	\\ 88c total
+	\\ 128c total
+
+	.loop
+	.scanline_2a
+
+	\\ R0=39 - horizontal total = 40 chars
+	LDA #0: STA &FE00
+	LDA #39: STA &FE01
+
+	WAIT_CYCLES 24
+
+	.scanline_2b
+
+	\\ R0=87 - horizontal total = 88 chars
+	LDA #0: STA &FE00
+	LDA #87: STA &FE01
+
+	WAIT_CYCLES 72 -5 -3
+
+	DEC fx_raster_count
+	BNE loop
+
+	.scanline_256
+
+	\\ R0=127 - horizontal total = 128 chars
+	LDA #0: STA &FE00
+	LDA #127: STA &FE01
+
+	\\ R2=98 - horizontal sync = 98 chars
+	LDA #2: STA &FE00
+	LDA #98: STA &FE01
+
+	\\ R4=6 - CRTC cycle is 32 + 7 more rows = 312 scanlines
+	LDA #4: STA &FE00
+	LDA #56-1+1: STA &FE01		; 312 - 256 = 56 scanlines
+
+	\\ R7=3 - vsync is at row 35 = 280 scanlines
+	LDA #7:	STA &FE00
+	LDA #24+1: STA &FE01			; 280 - 256 = 24 scanlines
 
     RTS
 }
