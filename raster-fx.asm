@@ -381,6 +381,17 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	LDA #0
 	STA fx_raster_count
+	TAY
+
+	\\ Set screen address for cycle 0
+
+	LDA #12: STA &FE00			; 2c + 4c++
+	LDA twister_vram_table_HI, Y		; 4c
+	STA &FE01					; 4c++
+
+	LDA #13: STA &FE00			; 2c + 4c++
+	LDA twister_vram_table_LO, Y		; 4c
+	STA &FE01					; 4c++
 
 	RTS
 }
@@ -403,24 +414,26 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_draw_function
 {
-	LDA #&F0 + PAL_red
-	LDX #&F0 + PAL_yellow
-	LDY #&F0 + PAL_green
-	NOP
-	\\ 8c
+	\\ Scanline 0
 
-	.loop
+	\\ R9=0 - character row = 1 scanline
+	LDA #9: STA &FE00
+	LDA #0:	STA &FE01
 
-	FOR n,1,10,1
-	STA &FE21		; 4c
-	STX &FE21		; 4c
-	STY &FE21		; 4c
-	NEXT
-	\\ 10*12=120c
+	\\ R4=0 - CRTC cycle is one row
+	LDA #4: STA &FE00
+	LDA #0: STA &FE01
 
-	DEC fx_raster_count		; 5c
-	BNE loop				; 3c
-	\\ Total =128c
+	\\ R7=&FF - no vsync
+	LDA #7:	STA &FE00
+	LDA #&FF: STA &FE01
+
+	\\ R6=1 - one row displayed
+	LDA #6: STA &FE00
+	LDA #1: STA &FE01
+
+	
+
 
     RTS
 }
@@ -557,6 +570,16 @@ ALIGN &100
 	NEXT
 }
 
+.twister_vram_table_LO
+FOR n,0,127,1
+EQUB LO((&3000 + n*160)/8)
+NEXT
+
+.twister_vram_table_HI
+FOR n,0,127,1
+EQUB HI((&3000 + n*160)/8)
+NEXT
+
 .data_end
 
 \ ******************************************************************
@@ -599,4 +622,4 @@ PRINT "------"
 \ ******************************************************************
 
 PUTBASIC "circle.bas", "Circle"
-PUTFILE "screen.bin", "Screen", &3000
+PUTFILE "twist.bin", "Screen", &3000
