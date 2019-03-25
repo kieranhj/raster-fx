@@ -94,6 +94,7 @@ GUARD &9F
 
 .fx_colour_index		SKIP 1		; index into our colour palette
 .fx_raster_count		SKIP 1
+.fx_top_index			SKIP 1
 
 \ ******************************************************************
 \ *	CODE START
@@ -394,6 +395,9 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #&FF
     JSR osfile
 
+	LDA #0
+	STA fx_top_index
+
 	RTS
 }
 
@@ -415,7 +419,10 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 .fx_update_function
 {
 	\\ Increment our index into the palette table
-	INC fx_colour_index
+	INC fx_top_index
+
+	LDA fx_top_index
+	STA fx_colour_index
 
 	LDA #253
 	STA fx_raster_count
@@ -517,21 +524,44 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	.scanline_2a
 
 	\\ R0=39 - horizontal total = 40 chars
-	LDA #0: STA &FE00
-	LDA #39: STA &FE01
+	STZ &FE00			; 6c
+	LDA #39: STA &FE01	; 8c
 
-	WAIT_CYCLES 24
+	STX &FE00	; R12	; 6c
+	LDA #HI(&3000/8): STA &FE01	; 8c
+
+	STY &FE00	; R13	; 6c
+	STZ &FE01			; 6c
+
+;	WAIT_CYCLES 0
 
 	.scanline_2b
 
 	\\ R0=87 - horizontal total = 88 chars
-	LDA #0: STA &FE00
-	LDA #87: STA &FE01
+	LDA #0: STA &FE00			; 8c
+	LDA #87: STA &FE01			; 8c
 
-	WAIT_CYCLES 72 -5 -3
+	LDA fx_colour_index			; 3c
+	AND #&7F
+	TAY
 
-	DEC fx_raster_count
-	BNE loop
+	LDA #12: STA &FE00			; 8c
+	LDA twister_vram_table_HI, Y	; 4c
+	STA &FE01					; 6c
+
+	LDA #13: STA &FE00			; 8c
+	LDA twister_vram_table_LO, Y	; 4c
+	STA &FE01					; 6c
+
+	INY							; 2c
+	STY fx_colour_index			; 3c
+	LDY #13						; 2c
+	\\ 62c
+
+	WAIT_CYCLES (88-64) -5 -3
+
+	DEC fx_raster_count			; 5c
+	BNE loop					; 3c
 
 	.scanline_256
 
@@ -686,6 +716,7 @@ ALIGN &100
 	NEXT
 }
 
+ALIGN &100
 .twister_vram_table_LO
 FOR n,0,127,1
 EQUB LO((&3000 + n*160)/8)
