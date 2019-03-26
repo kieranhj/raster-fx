@@ -232,11 +232,8 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ But don't forget that the loop also takes time!!
 
 	{
-		LDX #245
-		.loop
-		JSR cycles_wait_128
-		DEX
-		BNE loop
+		LDX #255
+		JSR cycles_wait_scanlines
 	}
 
 	\ ******************************************************************
