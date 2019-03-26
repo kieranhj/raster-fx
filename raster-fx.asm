@@ -38,6 +38,23 @@ MODE1_COL3=&A0
 \ *	MACROS
 \ ******************************************************************
 
+MACRO WAIT_CYCLES n
+
+PRINT "WAIT",n," CYCLES"
+
+IF (n AND 1) = 0
+	FOR i,1,n/2,1
+	NOP
+	NEXT
+ELSE
+	BIT 0
+	FOR i,1,(n-3)/2,1
+	NOP
+	NEXT
+ENDIF
+
+ENDMACRO
+
 \ ******************************************************************
 \ *	GLOBAL constants
 \ ******************************************************************
@@ -327,6 +344,28 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	NEXT				; = 116c
 	RTS					; 6c
 }						; = 128c
+
+.cycles_wait_scanlines	; 6c
+{
+	FOR n,1,54,1		; 54x
+	NOP					; 2c
+	NEXT				; = 108c
+	BIT 0				; 3c
+
+	.loop
+	DEX					; 2c
+	BEQ done			; 2/3c
+
+	FOR n,1,59,1		; 59x
+	NOP					; 2c
+	NEXT				; = 118c
+
+	BIT 0				; 3c
+	JMP loop			; 3c
+
+	.done
+	RTS					; 6c
+}
 
 .main_end
 
