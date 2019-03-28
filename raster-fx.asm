@@ -55,6 +55,10 @@ ENDIF
 
 ENDMACRO
 
+MACRO MODE2_PIXEL_PAIR a, b
+	EQUB a + a*16, b + b*16
+ENDMACRO
+
 \ ******************************************************************
 \ *	GLOBAL constants
 \ ******************************************************************
@@ -91,7 +95,11 @@ GUARD &9F
 \\ FX variables
 
 .fx_colour_index		SKIP 1		; index into our colour palette
-.fx_raster_count		SKIP 1
+.raster_count			SKIP 1
+
+.zoom					SKIP 1
+.texture_v				SKIP 2
+.delta_v				SKIP 2
 
 \ ******************************************************************
 \ *	CODE START
@@ -133,7 +141,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	LDA #22
 	JSR oswrch
-	LDA #1
+	LDA #2
 	JSR oswrch
 
 	\\ Turn off cursor
@@ -141,13 +149,10 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #10: STA &FE00
 	LDA #32: STA &FE01
 
-	\\ Set Colour 2 to White - MODE 1 requires 4x writes to ULA Palette Register
+	\\ Set square
 
-	LDA #MODE1_COL2 + PAL_white
-	STA &FE21
-	EOR #&10: STA &FE21
-	EOR #&40: STA &FE21
-	EOR #&10: STA &FE21
+	LDA #1: STA &FE00
+	LDA #64: STA &FE01
 
 	\\ Initialise system modules here!
 
@@ -392,6 +397,9 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #&FF
     JSR osfile
 
+	LDA #0
+	STA zoom
+
 	RTS
 }
 
@@ -415,8 +423,25 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ Increment our index into the palette table
 	INC fx_colour_index
 
+	LDA #1
+	STA raster_count
+
 	LDA #0
-	STA fx_raster_count
+	STA texture_v
+	STA texture_v+1
+
+	LDX zoom
+	LDA delta_LO, X
+	STA delta_v
+	LDA delta_HI, X
+	STA delta_v+1
+
+	LDX texture_v+1
+	LDA #13:STA &FE00
+	LDA screen1_LO, X:STA &FE01
+
+	LDA #12:STA &FE00
+	LDA screen1_HI, X:STA &FE01
 
 	RTS
 }
@@ -438,28 +463,64 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 \ ******************************************************************
 
 .fx_draw_function
-{
-	LDA #&F0 + PAL_red
-	LDX #&F0 + PAL_yellow
-	LDY #&F0 + PAL_green
-	NOP
+\{
+	\\ R4 = 0 : vertical total = 1
+	LDA #4: STA &FE00
+	LDA #0: STA &FE01
+
+	\\ R7 = &FF : vsync = never
+	LDA #7: STA &FE00
+	LDA #&FF: STA &FE01
+
+	\\ R6 = 1 : vertical displayed = 1
+	LDA #6: STA &FE00
+	LDA #1: STA &FE01
+
+	\\ R9 = 0 : scanlines per row = 1
+	LDA #9: STA &FE00
+	LDA #0: STA &FE01
+
+	\\ 8*8c = 64c
+
+	WAIT_CYCLES 128-64
+
+	.fx_draw_scanline1
+
+	.fx_draw_loop
+
+	CLC					; 2c
+	LDA texture_v		; 3c
+	ADC delta_v 		; 3c
+	STA texture_v		; 3c
+	LDA texture_v+1		; 3c
+	ADC delta_v+1		; 3c
+	STA texture_v+1		; 3c
+	\\ 20c
+
+	TAX					; 2c
+	LDA #13:STA &FE00	; 8c
+	LDA screen1_LO, X:STA &FE01 ;10c
+	LDA #12:STA &FE00	; 8c
+	LDA screen1_HI, X:STA &FE01	;10c
+	\\ 38c
+
+	WAIT_CYCLES 128-66
+
+	INC raster_count	; 5c
+	BNE fx_draw_loop	; 3c
 	\\ 8c
 
-	.loop
+	.fx_draw_scanline256
+	\\ R4 = vertical total 312 lines
+	LDA #4: STA &FE00
+	LDA #312 - 256 - 1: STA &FE01
 
-	FOR n,1,10,1
-	STA &FE21		; 4c
-	STX &FE21		; 4c
-	STY &FE21		; 4c
-	NEXT
-	\\ 10*12=120c
-
-	DEC fx_raster_count		; 5c
-	BNE loop				; 3c
-	\\ Total =128c
+	\\ R7 = vsync at char row 25
+	LDA #7: STA &FE00
+	LDA #280 - 256 - 1: STA &FE01
 
     RTS
-}
+\}
 
 \ ******************************************************************
 \ Kill FX
@@ -545,53 +606,137 @@ EQUD 0
 \ *	FX DATA
 \ ******************************************************************
 
-ALIGN &100
-.fx_colour1_table
-{
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_red
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL1 + PAL_magenta
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_blue
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_cyan
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_green
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL1 + PAL_yellow
-	NEXT
-}
+TEXTURE_WIDTH = 128
+TEXTURE_HEIGHT = 8
 
-.fx_colour2_table
-{
-	FOR n,1,21,1
-	EQUB MODE1_COL3 + PAL_red
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL3 + PAL_magenta
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL3 + PAL_blue
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL3 + PAL_cyan
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL3 + PAL_green
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL3 + PAL_yellow
-	NEXT
-	FOR n,1,22,1
-	EQUB MODE1_COL3 + PAL_red
-	NEXT
-}
+MACRO SCANLINE_DELTA_LO width
+d=INT(256*(width / TEXTURE_WIDTH))
+EQUB LO(d)
+ENDMACRO
+
+MACRO SCANLINE_DELTA_HI width
+d=INT(256*(width / TEXTURE_WIDTH))
+EQUB HI(d)
+ENDMACRO
+
+ALIGN &100
+.delta_LO
+SCANLINE_DELTA_LO 128
+SCANLINE_DELTA_LO 99
+SCANLINE_DELTA_LO 64
+SCANLINE_DELTA_LO 32
+SCANLINE_DELTA_LO 16
+SCANLINE_DELTA_LO 8
+SCANLINE_DELTA_LO 4
+SCANLINE_DELTA_LO 2
+SCANLINE_DELTA_LO 1
+
+.delta_HI
+SCANLINE_DELTA_HI 128
+SCANLINE_DELTA_HI 99
+SCANLINE_DELTA_HI 64
+SCANLINE_DELTA_HI 32
+SCANLINE_DELTA_HI 16
+SCANLINE_DELTA_HI 8
+SCANLINE_DELTA_HI 4
+SCANLINE_DELTA_HI 2
+SCANLINE_DELTA_HI 1
+
+.screen1_LO
+FOR n,0,TEXTURE_HEIGHT-1,1
+addr = screen_addr + 512 * n
+EQUB LO(addr/8)
+NEXT
+
+.screen1_HI
+FOR n,0,TEXTURE_HEIGHT-1,1
+addr = screen_addr + 512 * n
+EQUB HI(addr/8)
+NEXT
+
+.screen2_LO
+FOR n,0,TEXTURE_HEIGHT-1,1
+addr = screen_addr + TEXTURE_HEIGHT*512 + 512 * n
+EQUB LO(addr/8)
+NEXT
+
+.screen2_HI
+FOR n,0,TEXTURE_HEIGHT-1,1
+addr = screen_addr + TEXTURE_HEIGHT*512 + 512 * n
+EQUB HI(addr/8)
+NEXT
+
+ALIGN &100
+
+.texture_data
+.texture_row_0
+FOR c,0,TEXTURE_WIDTH-1,2
+MODE2_PIXEL_PAIR 0,1
+NEXT
+.texture_row_1
+FOR c,0,TEXTURE_WIDTH-1,2
+MODE2_PIXEL_PAIR 2,0
+NEXT
+.texture_row_2
+FOR c,0,TEXTURE_WIDTH-1,2
+MODE2_PIXEL_PAIR 0,3
+NEXT
+.texture_row_3
+FOR c,0,TEXTURE_WIDTH-1,2
+MODE2_PIXEL_PAIR 4,0
+NEXT
+.texture_row_4
+FOR c,0,TEXTURE_WIDTH-1,2
+MODE2_PIXEL_PAIR 0,5
+NEXT
+.texture_row_5
+FOR c,0,TEXTURE_WIDTH-1,2
+MODE2_PIXEL_PAIR 6,0
+NEXT
+.texture_row_6
+FOR c,0,TEXTURE_WIDTH-1,2
+MODE2_PIXEL_PAIR 0,7
+NEXT
+.texture_row_7
+FOR c,0,TEXTURE_WIDTH-1,8
+MODE2_PIXEL_PAIR 7,6
+MODE2_PIXEL_PAIR 5,4
+MODE2_PIXEL_PAIR 3,2
+MODE2_PIXEL_PAIR 1,0
+NEXT
+
+SCREEN_WIDTH=128
+
+MACRO TEXTURE_U_TABLE width
+
+PRINT "TEXTURE WIDTH=", TEXTURE_WIDTH, "SCREEN_WIDTH=", SCREEN_WIDTH, " mapping width=",width," scale=", (width / TEXTURE_WIDTH), " zoom=", (TEXTURE_WIDTH / width), " scanline delta=", INT(256*(width / TEXTURE_WIDTH))
+
+FOR x,0,SCREEN_WIDTH-1,1
+u = (TEXTURE_WIDTH/2) + (x - SCREEN_WIDTH/2) * (width / TEXTURE_WIDTH)
+
+EQUB u
+NEXT
+
+ENDMACRO
+
+.texture_u_128
+TEXTURE_U_TABLE 128
+.texture_u_99
+TEXTURE_U_TABLE 99
+.texture_u_64
+TEXTURE_U_TABLE 64
+.texture_u_32
+TEXTURE_U_TABLE 32
+.texture_u_16
+TEXTURE_U_TABLE 16
+.texture_u_8
+TEXTURE_U_TABLE 8
+.texture_u_4
+TEXTURE_U_TABLE 4
+.texture_u_2
+TEXTURE_U_TABLE 2
+.texture_u_1
+TEXTURE_U_TABLE 1
 
 .data_end
 
