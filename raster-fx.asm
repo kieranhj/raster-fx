@@ -2,6 +2,8 @@
 \ *	RASTER FX FRAMEWORK
 \ ******************************************************************
 
+CPU 1
+
 \ ******************************************************************
 \ *	OS defines
 \ ******************************************************************
@@ -25,6 +27,40 @@ PAL_cyan	= (6 EOR 7)
 PAL_yellow	= (3 EOR 7)
 PAL_white	= (7 EOR 7)
 
+PIXEL_LEFT_0 = &00
+PIXEL_LEFT_1 = &02
+PIXEL_LEFT_2 = &08
+PIXEL_LEFT_3 = &0A
+PIXEL_LEFT_4 = &20
+PIXEL_LEFT_5 = &22
+PIXEL_LEFT_6 = &28
+PIXEL_LEFT_7 = &2A
+PIXEL_LEFT_8 = &80
+PIXEL_LEFT_9 = &82
+PIXEL_LEFT_A = &88
+PIXEL_LEFT_B = &8A
+PIXEL_LEFT_C = &A0
+PIXEL_LEFT_D = &A2
+PIXEL_LEFT_E = &A8
+PIXEL_LEFT_F = &AA
+
+PIXEL_RIGHT_0 = &00
+PIXEL_RIGHT_1 = &01
+PIXEL_RIGHT_2 = &04
+PIXEL_RIGHT_3 = &05
+PIXEL_RIGHT_4 = &10
+PIXEL_RIGHT_5 = &11
+PIXEL_RIGHT_6 = &14
+PIXEL_RIGHT_7 = &15
+PIXEL_RIGHT_8 = &40
+PIXEL_RIGHT_9 = &41
+PIXEL_RIGHT_A = &44
+PIXEL_RIGHT_B = &45
+PIXEL_RIGHT_C = &50
+PIXEL_RIGHT_D = &51
+PIXEL_RIGHT_E = &54
+PIXEL_RIGHT_F = &55
+
 \ ******************************************************************
 \ *	SYSTEM defines
 \ ******************************************************************
@@ -33,6 +69,9 @@ MODE1_COL0=&00
 MODE1_COL1=&20
 MODE1_COL2=&80
 MODE1_COL3=&A0
+
+PIXEL_1_MASK = &AA
+PIXEL_2_MASK = &55
 
 \ ******************************************************************
 \ *	MACROS
@@ -53,10 +92,6 @@ ELSE
 	NEXT
 ENDIF
 
-ENDMACRO
-
-MACRO MODE2_PIXEL_PAIR a, b
-	EQUB a + a*16, b + b*16
 ENDMACRO
 
 \ ******************************************************************
@@ -96,16 +131,24 @@ GUARD &9F
 
 .fx_colour_index		SKIP 1		; index into our colour palette
 .raster_count			SKIP 1
+.buffer					SKIP 1
 
 .zoom					SKIP 1
-.texture_v				SKIP 2
-.delta_v				SKIP 2
+.zdir					SKIP 1
+.v_index				SKIP 1
+
+.pixel_column			SKIP 1
+.screen_byte			SKIP 1
+
+.readptr				SKIP 2
+.readptr_right			SKIP 2
+.writeptr				SKIP 2
 
 \ ******************************************************************
 \ *	CODE START
 \ ******************************************************************
 
-ORG &1900	      			; code origin (like P%=&2000)
+ORG &E00	      			; code origin (like P%=&2000)
 GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .start
@@ -395,10 +438,14 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDX #LO(osfile_params)
 	LDY #HI(osfile_params)
 	LDA #&FF
-    JSR osfile
+;    JSR osfile
 
 	LDA #0
 	STA zoom
+	STA buffer
+
+	LDA #1
+	STA zdir
 
 	RTS
 }
@@ -420,28 +467,154 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_update_function
 {
-	\\ Increment our index into the palette table
-	INC fx_colour_index
+	LDA buffer
+	BEQ buffer_zero
+	\\ Write to screen1
 
-	LDA #1
+	\\ Display screen1
+	LDA #LO(screen1_LO)
+	STA screen_disp_LO+1
+	STA fx_draw_screen_LO+1
+	LDA #HI(screen1_LO)
+	STA screen_disp_LO+2
+	STA fx_draw_screen_LO+2
+
+	LDA #LO(screen1_HI)
+	STA screen_disp_HI+1
+	STA fx_draw_screen_HI+1
+	LDA #HI(screen1_HI)
+	STA screen_disp_HI+2
+	STA fx_draw_screen_HI+2
+
+	\\ Write to screen2
+	LDA #LO(screen2_addr)
+	STA writeptr
+	LDA #HI(screen2_addr)
+	STA writeptr+1
+
+	JMP buffer_cont
+
+	.buffer_zero
+
+	\\ Display screen1
+	LDA #LO(screen2_LO)
+	STA screen_disp_LO+1
+	STA fx_draw_screen_LO+1
+	LDA #HI(screen2_LO)
+	STA screen_disp_LO+2
+	STA fx_draw_screen_LO+2
+
+	LDA #LO(screen2_HI)
+	STA screen_disp_HI+1
+	STA fx_draw_screen_HI+1
+	LDA #HI(screen2_HI)
+	STA screen_disp_HI+2
+	STA fx_draw_screen_HI+2
+
+	\\ Write to screen2
+	LDA #LO(screen1_addr)
+	STA writeptr
+	LDA #HI(screen1_addr)
+	STA writeptr+1
+
+	.buffer_cont
+	LDA buffer
+	EOR #1
+	STA buffer
+
+	LDA #2
 	STA raster_count
 
-	LDA #0
-	STA texture_v
-	STA texture_v+1
-
 	LDX zoom
-	LDA delta_LO, X
-	STA delta_v
-	LDA delta_HI, X
-	STA delta_v+1
+	LDA u_table_HI, X
+	STA fx_draw_u_lookup0+2
+	STA fx_draw_u_lookup0a+2
+	STA fx_draw_u_lookup1+2
+	STA fx_draw_u_lookup1a+2
+	STA fx_draw_u_lookup2+2
+	STA fx_draw_u_lookup2a+2
+	STA fx_draw_u_lookup3+2
+	STA fx_draw_u_lookup3a+2
 
-	LDX texture_v+1
+	LDA u_table_LO, X
+	STA fx_draw_u_lookup0+1
+	STA fx_draw_u_lookup0a+1
+	INC A
+	STA fx_draw_u_lookup1+1
+	STA fx_draw_u_lookup1a+1
+	INC A
+	STA fx_draw_u_lookup2+1
+	STA fx_draw_u_lookup2a+1
+	INC A
+	STA fx_draw_u_lookup3+1
+	STA fx_draw_u_lookup3a+1
+
+	LDA v_table_LO, X
+	STA fx_draw_v_lookup+1
+	STA v_loop_lookup+1
+	LDA v_table_HI, X
+	STA fx_draw_v_lookup+2
+	STA v_loop_lookup+2
+
+\\ Skip through V table until reach non-zero value
+\\ Set initial screen address to last zero'th row
+\\ Set v to index of non-zero value
+
+	LDY #0
+	.v_loop
+	.v_loop_lookup
+	LDA texture_v_base, Y
+	BNE v_found
+	INY
+	BNE v_loop
+	.v_found
+	STA fx_draw_raster_cmp+1
+	STY v_index
+
+	DEY
+
 	LDA #13:STA &FE00
-	LDA screen1_LO, X:STA &FE01
+	.screen_disp_LO
+	LDA screen1_LO, Y:STA &FE01
 
 	LDA #12:STA &FE00
-	LDA screen1_HI, X:STA &FE01
+	.screen_disp_HI
+	LDA screen1_HI, Y:STA &FE01
+
+	LDA #LO(texture_row_0)
+	STA readptr
+	LDA #HI(texture_row_0)
+	STA readptr+1
+
+	LDA #LO(texture_row_0r)
+	STA readptr_right
+	LDA #HI(texture_row_0r)
+	STA readptr_right+1
+
+IF 1
+	CLC
+	LDY zoom
+	LDX zdir
+	BPL pos
+	\ neg
+	DEY
+	BNE dir_ok
+
+	LDA #1
+	STA zdir
+	BNE dir_ok
+
+	.pos
+	INY
+	CPY #NUM_ZOOMS-1
+	BCC dir_ok
+
+	LDA #&FF
+	STA zdir
+
+	.dir_ok
+	STY zoom 
+ENDIF
 
 	RTS
 }
@@ -462,6 +635,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 \ A FULL AND VALID 312 line PAL signal before exiting!
 \ ******************************************************************
 
+ALIGN &100
 .fx_draw_function
 \{
 	\\ R4 = 0 : vertical total = 1
@@ -482,42 +656,188 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	\\ 8*8c = 64c
 
-	WAIT_CYCLES 128-64
+	WAIT_CYCLES 128-64-4
 
 	.fx_draw_scanline1
 
+	LDX #0					; pixel column
+	CLC						; 2c
+
 	.fx_draw_loop
 
-	CLC					; 2c
-	LDA texture_v		; 3c
-	ADC delta_v 		; 3c
-	STA texture_v		; 3c
-	LDA texture_v+1		; 3c
-	ADC delta_v+1		; 3c
-	STA texture_v+1		; 3c
+	LDA raster_count		; 3c
+	.fx_draw_raster_cmp
+	CMP #&FF				; 2c
+	\\ 5c
+
+	\ Still on same screen buffer line
+	BCC plot_texels
+
+	\ Otherwise update R12/R13 to next screen buffer line
+
+	; 2c
+	LDY v_index				; 3c
+	LDA #13:STA &FE00	; 8c
+	.fx_draw_screen_LO
+	LDA screen1_LO, Y:STA &FE01 ;10c
+	LDA #12:STA &FE00	; 8c
+	.fx_draw_screen_HI
+	LDA screen1_HI, Y:STA &FE01	;10c
+
+	INY					; 2c
+	STY v_index			; 3c	- could be self-mod
+
+	.fx_draw_v_lookup
+	LDA texture_v_base, Y		; 4c
+	STA fx_draw_raster_cmp+1	; 4c self-mod
+	CLC
+
+	\\ NOP to end of line and continue
+
+	WAIT_CYCLES 128 -5 -56 -10 -3	; 59c lost
+
+	JMP continue_line
+
+	.plot_texels
+	; 3c
+
+\ read texture look up for pixel - stays same for frame (for constant scale)
+	.fx_draw_u_lookup0
+	LDY texture_u_base+0, X	; 4c
+\ texture data changes when updating to next row of v
+\ (could unroll code x8 once for each v coordinate?)
+	LDA (readptr), Y		; 5c
+	STA screen_byte         ; 3c
+	\\ 12c
+
+	.fx_draw_u_lookup1
+	LDY texture_u_base+1, X	; 4c
+	LDA (readptr_right), Y	; 5c
+	ORA screen_byte         ; 3c
+	STA (writeptr)			; 6c
+	\\ 18c
+
+	.fx_draw_u_lookup2
+	LDY texture_u_base+2, X	; 4c
+	LDA (readptr), Y		; 5c
+	STA screen_byte         ; 3c
+	\\ 12c
+
+	.fx_draw_u_lookup3
+	LDY texture_u_base+3, X	; 4c
+	LDA (readptr_right), Y	; 5c
+	ORA screen_byte         ; 3c
+
+	LDY #8					; 2c
+	STA (writeptr),Y		; 6c
 	\\ 20c
 
-	TAX					; 2c
-	LDA #13:STA &FE00	; 8c
-	LDA screen1_LO, X:STA &FE01 ;10c
-	LDA #12:STA &FE00	; 8c
-	LDA screen1_HI, X:STA &FE01	;10c
-	\\ 38c
+	\ Update pixel column
+	TXA						; 2c
+	ADC #4					; 2c
+	\\ Need to handle TEXTURE_WIDTH here
+	AND #(TEXTURE_WIDTH-1)	; 2c
+	BNE same_row
+	\IF 0 THEN need to update texture lookup
+	; 2c
+	INC readptr+1			; 5c
+	INC readptr_right+1		; 5c
+	BNE store_column		; 3c
+	.same_row
+	; 3c
+	NOP:NOP:NOP:NOP:NOP:NOP	; 12c
 
-	WAIT_CYCLES 128-66
+	.store_column
+	TAX						; 2c
+	\\ 23c
 
-	INC raster_count	; 5c
-	BNE fx_draw_loop	; 3c
-	\\ 8c
+	\ Update write ptr
+	CLC                     ; 2c	- might be able to remove?
+	LDA writeptr            ; 3c
+	ADC #16                 ; 2c      
+	STA writeptr            ; 3c
+	LDA writeptr+1          ; 3c
+	ADC #0                  ; 2c
+	STA writeptr+1          ; 3c
+	\\ 18c
+
+	WAIT_CYCLES 7		; amazing!
+
+	.continue_line
+	INC raster_count		; 5c
+	BEQ fx_draw_scanline256	; 2c
+	JMP fx_draw_loop		; 3c
+	\\ 10c
 
 	.fx_draw_scanline256
 	\\ R4 = vertical total 312 lines
 	LDA #4: STA &FE00
-	LDA #312 - 256 - 1: STA &FE01
+	LDA #312 - 255 - 1: STA &FE01
 
 	\\ R7 = vsync at char row 25
 	LDA #7: STA &FE00
-	LDA #280 - 256 - 1: STA &FE01
+	LDA #280 - 255: STA &FE01
+
+	\\ If skip raster lines that set new screen address
+	\\ then can have max TEXTURE_HEIGHT rows left to process in theory
+	\\ = 8x2 bytes
+	\\ Actually have more as lose first scanline, clamp line + last two scanlines
+	\\ So 12x2 = 24 bytes
+IF 1
+	CLC
+	.fx_draw_fixup_loop
+
+	.fx_draw_u_lookup0a
+	LDY texture_u_base+0, X	; 4c
+\ texture data changes when updating to next row of v
+\ (could unroll code x8 once for each v coordinate?)
+	LDA (readptr), Y		; 5c
+	STA screen_byte         ; 3c
+	\\ 12c
+
+	.fx_draw_u_lookup1a
+	LDY texture_u_base+1, X	; 4c
+	LDA (readptr_right), Y	; 5c
+	ORA screen_byte         ; 3c
+	STA (writeptr)			; 6c
+	\\ 18c
+
+	.fx_draw_u_lookup2a
+	LDY texture_u_base+2, X	; 4c
+	LDA (readptr), Y		; 5c
+	STA screen_byte         ; 3c
+	\\ 12c
+
+	.fx_draw_u_lookup3a
+	LDY texture_u_base+3, X	; 4c
+	LDA (readptr_right), Y	; 5c
+	ORA screen_byte         ; 3c
+
+	LDY #8					; 2c
+	STA (writeptr),Y		; 6c
+	\\ 20c
+
+	\ Update pixel column
+	TXA						; 2c
+	ADC #4					; 2c
+	\\ Need to handle TEXTURE_WIDTH here
+	AND #(TEXTURE_WIDTH-1)	; 2c
+	BEQ fx_draw_fixup_done
+	TAX						; 2c
+
+	\ Update write ptr
+	CLC                     ; 2c	- might be able to remove?
+	LDA writeptr            ; 3c
+	ADC #16                 ; 2c      
+	STA writeptr            ; 3c
+	LDA writeptr+1          ; 3c
+	ADC #0                  ; 2c
+	STA writeptr+1          ; 3c
+	\\ 18c
+
+	JMP fx_draw_fixup_loop
+	.fx_draw_fixup_done
+ENDIF
 
     RTS
 \}
@@ -609,103 +929,153 @@ EQUD 0
 TEXTURE_WIDTH = 128
 TEXTURE_HEIGHT = 8
 
-MACRO SCANLINE_DELTA_LO width
-d=INT(256*(width / TEXTURE_WIDTH))
-EQUB LO(d)
-ENDMACRO
+NUM_ZOOMS = 34
 
-MACRO SCANLINE_DELTA_HI width
-d=INT(256*(width / TEXTURE_WIDTH))
-EQUB HI(d)
-ENDMACRO
+blank_line_addr = screen_addr - 512		; won't work w/ shadow
+
+.v_table_LO
+FOR n,0,NUM_ZOOMS-1,1
+EQUB LO(texture_v_base + n * TEXTURE_V_SIZE)
+NEXT
+
+.v_table_HI
+FOR n,0,NUM_ZOOMS-1,1
+EQUB HI(texture_v_base + n * TEXTURE_V_SIZE)
+NEXT
+
+.u_table_LO
+FOR n,0,NUM_ZOOMS-1,1
+EQUB LO(texture_u_base + n * TEXTURE_U_SIZE)
+NEXT
+
+.u_table_HI
+FOR n,0,NUM_ZOOMS-1,1
+EQUB HI(texture_u_base + n * TEXTURE_U_SIZE)
+NEXT
+
+screen1_addr = screen_addr
+screen2_addr = screen_addr + TEXTURE_HEIGHT*512
 
 ALIGN &100
-.delta_LO
-SCANLINE_DELTA_LO 128
-SCANLINE_DELTA_LO 99
-SCANLINE_DELTA_LO 64
-SCANLINE_DELTA_LO 32
-SCANLINE_DELTA_LO 16
-SCANLINE_DELTA_LO 8
-SCANLINE_DELTA_LO 4
-SCANLINE_DELTA_LO 2
-SCANLINE_DELTA_LO 1
-
-.delta_HI
-SCANLINE_DELTA_HI 128
-SCANLINE_DELTA_HI 99
-SCANLINE_DELTA_HI 64
-SCANLINE_DELTA_HI 32
-SCANLINE_DELTA_HI 16
-SCANLINE_DELTA_HI 8
-SCANLINE_DELTA_HI 4
-SCANLINE_DELTA_HI 2
-SCANLINE_DELTA_HI 1
-
 .screen1_LO
+EQUB LO(blank_line_addr/8)
 FOR n,0,TEXTURE_HEIGHT-1,1
-addr = screen_addr + 512 * n
+addr = screen1_addr + 512 * n
 EQUB LO(addr/8)
 NEXT
+EQUB LO(blank_line_addr/8)
+EQUB LO(blank_line_addr/8)
 
 .screen1_HI
+EQUB HI(blank_line_addr/8)
 FOR n,0,TEXTURE_HEIGHT-1,1
-addr = screen_addr + 512 * n
+addr = screen1_addr + 512 * n
 EQUB HI(addr/8)
 NEXT
+EQUB HI(blank_line_addr/8)
+EQUB HI(blank_line_addr/8)
 
 .screen2_LO
+EQUB LO(blank_line_addr/8)
 FOR n,0,TEXTURE_HEIGHT-1,1
-addr = screen_addr + TEXTURE_HEIGHT*512 + 512 * n
+addr = screen2_addr + 512 * n
 EQUB LO(addr/8)
 NEXT
+EQUB LO(blank_line_addr/8)
+EQUB LO(blank_line_addr/8)
 
 .screen2_HI
+EQUB HI(blank_line_addr/8)
 FOR n,0,TEXTURE_HEIGHT-1,1
-addr = screen_addr + TEXTURE_HEIGHT*512 + 512 * n
+addr = screen2_addr + 512 * n
 EQUB HI(addr/8)
+NEXT
+EQUB HI(blank_line_addr/8)
+EQUB HI(blank_line_addr/8)
+
+.texture_data
+ALIGN &100
+.texture_row_0	; if each row is page aligned could blow out to left&right pixels
+FOR c,0,TEXTURE_WIDTH-1,2
+	EQUB PIXEL_LEFT_0, PIXEL_LEFT_1
+NEXT
+.texture_row_0r
+FOR c,0,TEXTURE_WIDTH-1,2
+	EQUB PIXEL_RIGHT_0, PIXEL_RIGHT_1
 NEXT
 
 ALIGN &100
-
-.texture_data
-.texture_row_0
-FOR c,0,TEXTURE_WIDTH-1,2
-MODE2_PIXEL_PAIR 0,1
-NEXT
 .texture_row_1
 FOR c,0,TEXTURE_WIDTH-1,2
-MODE2_PIXEL_PAIR 2,0
+	EQUB PIXEL_LEFT_2, PIXEL_LEFT_0
 NEXT
+.texture_row_1r
+FOR c,0,TEXTURE_WIDTH-1,2
+	EQUB PIXEL_RIGHT_2, PIXEL_RIGHT_0
+NEXT
+
+ALIGN &100
 .texture_row_2
 FOR c,0,TEXTURE_WIDTH-1,2
-MODE2_PIXEL_PAIR 0,3
+	EQUB PIXEL_LEFT_0, PIXEL_LEFT_3
 NEXT
+.texture_row_2r
+FOR c,0,TEXTURE_WIDTH-1,2
+	EQUB PIXEL_RIGHT_0, PIXEL_RIGHT_3
+NEXT
+
+ALIGN &100
 .texture_row_3
 FOR c,0,TEXTURE_WIDTH-1,2
-MODE2_PIXEL_PAIR 4,0
+	EQUB PIXEL_LEFT_4,PIXEL_LEFT_0
 NEXT
+.texture_row_3r
+FOR c,0,TEXTURE_WIDTH-1,2
+	EQUB PIXEL_RIGHT_4,PIXEL_RIGHT_0
+NEXT
+
+ALIGN &100
 .texture_row_4
 FOR c,0,TEXTURE_WIDTH-1,2
-MODE2_PIXEL_PAIR 0,5
+	EQUB PIXEL_LEFT_0, PIXEL_LEFT_5
 NEXT
+.texture_row_4r
+FOR c,0,TEXTURE_WIDTH-1,2
+	EQUB PIXEL_RIGHT_0, PIXEL_RIGHT_5
+NEXT
+
+ALIGN &100
 .texture_row_5
 FOR c,0,TEXTURE_WIDTH-1,2
-MODE2_PIXEL_PAIR 6,0
+	EQUB PIXEL_LEFT_6, PIXEL_LEFT_0
 NEXT
+.texture_row_5r
+FOR c,0,TEXTURE_WIDTH-1,2
+	EQUB PIXEL_RIGHT_6, PIXEL_RIGHT_0
+NEXT
+
+ALIGN &100
 .texture_row_6
 FOR c,0,TEXTURE_WIDTH-1,2
-MODE2_PIXEL_PAIR 0,7
+	EQUB PIXEL_LEFT_0, PIXEL_LEFT_7
 NEXT
+.texture_row_6r
+FOR c,0,TEXTURE_WIDTH-1,2
+	EQUB PIXEL_RIGHT_0, PIXEL_RIGHT_7
+NEXT
+
+ALIGN &100
 .texture_row_7
 FOR c,0,TEXTURE_WIDTH-1,8
-MODE2_PIXEL_PAIR 7,6
-MODE2_PIXEL_PAIR 5,4
-MODE2_PIXEL_PAIR 3,2
-MODE2_PIXEL_PAIR 1,0
+	EQUB PIXEL_LEFT_7, PIXEL_LEFT_6, PIXEL_LEFT_5, PIXEL_LEFT_4, PIXEL_LEFT_3, PIXEL_LEFT_2, PIXEL_LEFT_1, PIXEL_LEFT_0
+NEXT
+.texture_row_7r
+FOR c,0,TEXTURE_WIDTH-1,8
+	EQUB PIXEL_RIGHT_7, PIXEL_RIGHT_6, PIXEL_RIGHT_5, PIXEL_RIGHT_4, PIXEL_RIGHT_3, PIXEL_RIGHT_2, PIXEL_RIGHT_1, PIXEL_RIGHT_0
 NEXT
 
 SCREEN_WIDTH=128
+TEXTURE_U_SIZE = SCREEN_WIDTH
 
 MACRO TEXTURE_U_TABLE width
 
@@ -719,24 +1089,50 @@ NEXT
 
 ENDMACRO
 
-.texture_u_128
-TEXTURE_U_TABLE 128
-.texture_u_99
-TEXTURE_U_TABLE 99
-.texture_u_64
-TEXTURE_U_TABLE 64
-.texture_u_32
-TEXTURE_U_TABLE 32
-.texture_u_16
-TEXTURE_U_TABLE 16
-.texture_u_8
-TEXTURE_U_TABLE 8
-.texture_u_4
-TEXTURE_U_TABLE 4
-.texture_u_2
-TEXTURE_U_TABLE 2
-.texture_u_1
-TEXTURE_U_TABLE 1
+.texture_u_base
+FOR n,0,NUM_ZOOMS-1,1
+w = (NUM_ZOOMS-n)/NUM_ZOOMS * TEXTURE_WIDTH
+TEXTURE_U_TABLE w
+NEXT
+
+TEXTURE_V_SIZE = 16;TEXTURE_HEIGHT+3
+
+MACRO TEXTURE_V_TABLE width
+
+\\ The scanlines at which the screen address needs to be updated...
+zoom = (TEXTURE_WIDTH / width)
+height = TEXTURE_HEIGHT * zoom
+top = 128 - (height / 2)
+
+EQUB 0			; clamp top to blank
+
+PRINT "zoom=",zoom," height=", height, " top=", top
+
+FOR y,0,TEXTURE_HEIGHT,1
+
+v = top + y * zoom
+PRINT "y=",y,"v=",v
+
+IF v <= 0
+	EQUB 0
+ELIF v >= 255
+	EQUB 255
+ELSE
+	EQUB v+1	; because raster_count starts at 2 for 'reasons'
+ENDIF
+
+NEXT
+
+EQUB 255		; clamp bottom to blank
+EQUB 0,0,0,0,0	; pad
+
+ENDMACRO
+
+.texture_v_base
+FOR n,0,NUM_ZOOMS-1,1
+w = (NUM_ZOOMS-n)/NUM_ZOOMS * TEXTURE_WIDTH
+TEXTURE_V_TABLE w
+NEXT
 
 .data_end
 
