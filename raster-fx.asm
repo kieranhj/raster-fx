@@ -525,30 +525,11 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #2
 	STA raster_count
 
+\\ Remember that this value is for the zoom being displayed right now
+\\ Not the one being written to be the code inside the draw loop!
+\\ So this needs to be the previous zoom value
+
 	LDX zoom
-	LDA u_table_HI, X
-	STA fx_draw_u_lookup0+2
-	STA fx_draw_u_lookup0a+2
-	STA fx_draw_u_lookup1+2
-	STA fx_draw_u_lookup1a+2
-	STA fx_draw_u_lookup2+2
-	STA fx_draw_u_lookup2a+2
-	STA fx_draw_u_lookup3+2
-	STA fx_draw_u_lookup3a+2
-
-	LDA u_table_LO, X
-	STA fx_draw_u_lookup0+1
-	STA fx_draw_u_lookup0a+1
-	INC A
-	STA fx_draw_u_lookup1+1
-	STA fx_draw_u_lookup1a+1
-	INC A
-	STA fx_draw_u_lookup2+1
-	STA fx_draw_u_lookup2a+1
-	INC A
-	STA fx_draw_u_lookup3+1
-	STA fx_draw_u_lookup3a+1
-
 	LDA v_table_LO, X
 	STA fx_draw_v_lookup+1
 	STA v_loop_lookup+1
@@ -581,6 +562,58 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	.screen_disp_HI
 	LDA screen1_HI, Y:STA &FE01
 
+\\ Then we update our zoom value
+
+IF 1
+	LDA zdir
+	BPL pos
+	\ neg
+	DEX
+	BNE dir_ok
+
+	LDA #1
+	STA zdir
+	BNE dir_ok
+
+	.pos
+	INX
+	CPX #NUM_ZOOMS-1
+	BCC dir_ok
+
+	LDA #&FF
+	STA zdir
+
+	.dir_ok
+	STX zoom 
+ENDIF
+
+\\ Poke in the horizontal tables to the draw fn
+
+	LDA u_table_HI, X
+	STA fx_draw_u_lookup0+2
+	STA fx_draw_u_lookup0a+2
+	STA fx_draw_u_lookup1+2
+	STA fx_draw_u_lookup1a+2
+	STA fx_draw_u_lookup2+2
+	STA fx_draw_u_lookup2a+2
+	STA fx_draw_u_lookup3+2
+	STA fx_draw_u_lookup3a+2
+
+	LDA u_table_LO, X
+	STA fx_draw_u_lookup0+1
+	STA fx_draw_u_lookup0a+1
+	INC A
+	STA fx_draw_u_lookup1+1
+	STA fx_draw_u_lookup1a+1
+	INC A
+	STA fx_draw_u_lookup2+1
+	STA fx_draw_u_lookup2a+1
+	INC A
+	STA fx_draw_u_lookup3+1
+	STA fx_draw_u_lookup3a+1
+
+\\ Reset our read pointers to the start of the texture
+
 	LDA #LO(texture_row_0)
 	STA readptr
 	LDA #HI(texture_row_0)
@@ -590,31 +623,6 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	STA readptr_right
 	LDA #HI(texture_row_0r)
 	STA readptr_right+1
-
-IF 1
-	CLC
-	LDY zoom
-	LDX zdir
-	BPL pos
-	\ neg
-	DEY
-	BNE dir_ok
-
-	LDA #1
-	STA zdir
-	BNE dir_ok
-
-	.pos
-	INY
-	CPY #NUM_ZOOMS-1
-	BCC dir_ok
-
-	LDA #&FF
-	STA zdir
-
-	.dir_ok
-	STY zoom 
-ENDIF
 
 	RTS
 }
@@ -929,7 +937,8 @@ EQUD 0
 TEXTURE_WIDTH = 128
 TEXTURE_HEIGHT = 8
 
-NUM_ZOOMS = 34
+NUM_ZOOMS = 32
+MAX_ZOOM = 128
 
 blank_line_addr = screen_addr - 512		; won't work w/ shadow
 
@@ -1091,7 +1100,8 @@ ENDMACRO
 
 .texture_u_base
 FOR n,0,NUM_ZOOMS-1,1
-w = (NUM_ZOOMS-n)/NUM_ZOOMS * TEXTURE_WIDTH
+w = TEXTURE_WIDTH - (TEXTURE_WIDTH * n/NUM_ZOOMS)
+
 TEXTURE_U_TABLE w
 NEXT
 
@@ -1130,7 +1140,8 @@ ENDMACRO
 
 .texture_v_base
 FOR n,0,NUM_ZOOMS-1,1
-w = (NUM_ZOOMS-n)/NUM_ZOOMS * TEXTURE_WIDTH
+w = TEXTURE_WIDTH - (TEXTURE_WIDTH * n/NUM_ZOOMS)
+
 TEXTURE_V_TABLE w
 NEXT
 
