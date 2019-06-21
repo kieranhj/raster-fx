@@ -80,7 +80,7 @@ STRIP_SIZE_BYTES = 4 * 640
 
 patarty_exo = screen_addr - &900
 text1_exo = patarty_exo - &400
-text2_exo = &8000
+text2_exo = &8000 + 4*512
 text3_exo = &8000
 
 ;vgm_stream_buffers = &300
@@ -218,6 +218,37 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #10: STA &FE00
 	LDA #32: STA &FE01
 
+{
+	\\ Write to SHADOW
+	LDA &FE34
+	ORA #4
+	STA &FE34
+
+	LDX #LO(amiga)
+	LDY #HI(amiga)
+	LDA #HI(patarty_exo)
+	JSR disksys_load_file
+
+	LDX #LO(patarty_exo)
+	LDY #HI(patarty_exo)
+	JSR decrunch
+
+	LDX #LO(amiga_pal)
+	LDY #HI(amiga_pal)
+	JSR set_palette
+
+	\\ Show SHADOW
+	LDA &FE34
+	ORA #1
+	STA &FE34
+
+	\\ Write to MAIN
+	LDA &FE34
+	AND #&FF-4
+	STA &FE34
+
+}
+
 	\ Set SWRAM BANK
 	LDA #4:STA &F4:STA &FE30
 
@@ -225,7 +256,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDX #LO(bank4)
 	LDY #HI(bank4)
 	LDA #HI(text1_exo)
-	JSR disksys_load_file
+	JSR disksys_decrunch_file
 
     \ Ask OSFILE to load our screen
 	LDA #5:STA &F4:STA &FE30
@@ -259,7 +290,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
     lda #hi(vgm_stream_buffers)
     ldx #lo(vgm_data)
     ldy #hi(vgm_data)
-    sec
+    clc
     jsr vgm_init
 
 	\\ Initialise system modules here!
@@ -384,10 +415,10 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	\\ Check for Escape key
 
-	LDA #&79
-	LDX #(&70 EOR &80)
-	JSR osbyte
-	STX escape_pressed
+;	LDA #&79
+;	LDX #(&70 EOR &80)
+;	JSR osbyte
+;	STX escape_pressed
 
 	\\ FX update callback here!
 
@@ -412,7 +443,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 		\\ Observed values $FA (early) - $F7 (late) so map these from 7 - 0
 		\\ then branch into NOPs to even this out.
 
-IF 0
+IF 1
 		AND #15
 		SEC
 		SBC #7
@@ -453,9 +484,11 @@ ENDIF
 
 	\\ Re-enable useful interupts
 
-	LDA #&D3					; A=11010011
-	STA &FE4E					; R14=Interrupt Enable
-    CLI
+;	LDA #&D3					; A=11010011
+;	STA &FE4E					; R14=Interrupt Enable
+;   CLI
+
+	JSR fx_show_workbench
 
 	\\ Exit gracefully (in theory)
 
@@ -532,9 +565,13 @@ ENDIF
 	ORA #4
 	STA &FE34
 
-	LDX #LO(text1_exo)
-	LDY #HI(text1_exo)
-	JSR decrunch
+;	LDX #LO(text1_exo)
+;	LDY #HI(text1_exo)
+;	JSR decrunch
+
+	LDX #LO(default_pal)
+	LDY #HI(default_pal)
+	JSR set_palette
 
 	JSR fx_show_potato
 
@@ -1031,6 +1068,10 @@ ENDIF
 
 .fx_kill_function
 {
+    \\ Wait until scanlne 8
+;	LDX #8
+;   JSR cycles_wait_scanlines
+
 	\\ Set all CRTC registers back to their defaults for MODE 0,1,2
 
 	LDX #13
@@ -1051,6 +1092,41 @@ ENDIF
 	STA &FE34
 	JSR fx_strips_default
 	JMP fx_set_black
+}
+
+.fx_press_escape
+{
+	LDA #255
+	STA escape_pressed
+	RTS
+}
+
+.fx_show_workbench
+{
+	\\ TODO BLANK SCREEN HERE
+
+	\\ Write to MAIN
+	LDA &FE34
+	AND #&FF-4
+	STA &FE34
+
+	LDX #LO(workbench_exo)
+	LDY #HI(workbench_exo)
+	JSR decrunch
+
+	\\ Show Main
+	LDA &FE34
+	AND #&FF-1
+	STA &FE34
+
+	LDX #LO(workbench_pal)
+	LDY #HI(workbench_pal)
+	JSR set_palette
+
+	\\ TODO SET PALETTE
+	\\ TODO SHOW SCREEN HERE
+
+	RTS
 }
 
 .fx_show_text
@@ -1132,6 +1208,16 @@ ENDIF
 	RTS
 }
 
+.fx_decompress_text1
+{
+	LDA #4:STA &F4:STA &FE30
+
+	LDX #LO(text2_exo)
+	LDY #HI(text2_exo)
+	LDA #HI(screen_addr)
+	JMP start_copy_down
+}
+
 .fx_decompress_text2
 {
 	LDA #5:STA &F4:STA &FE30
@@ -1177,9 +1263,9 @@ COPY_BYTES_PER_FRAME = 64
 	STX copy_down_from + 1
 	STY copy_down_from + 2
 
-	LDA #HI(screen_addr + 64)
+	LDA #HI(screen_addr + 64 + 4*640)
 	STA copy_down_to + 2
-	LDA #LO(screen_addr + 64)
+	LDA #LO(screen_addr + 64 + 4*640)
 	STA copy_down_to + 1
 
 	LDA #(512/COPY_BYTES_PER_FRAME)
@@ -1247,6 +1333,21 @@ COPY_BYTES_PER_FRAME = 64
 	RTS
 \}
 
+.set_palette
+{
+	STX loop+1
+	STY loop+2
+
+	LDX #15
+	.loop
+	LDA amiga_pal, X
+	STA &FE21
+	DEX
+	BPL loop
+
+	RTS
+}
+
 .fx_end
 
 INCLUDE "lib/vgmplayer.asm"
@@ -1279,7 +1380,47 @@ INCLUDE "sequence.asm"
 	EQUB LO(screen_addr/8)	; R13 screen start address, low
 }
 
-.mode1_pal
+.amiga_pal
+{
+	EQUB &00 + PAL_white
+	EQUB &10 + PAL_white
+	EQUB &20 + PAL_blue
+	EQUB &30 + PAL_blue
+	EQUB &40 + PAL_white
+	EQUB &50 + PAL_white
+	EQUB &60 + PAL_blue
+	EQUB &70 + PAL_blue
+	EQUB &80 + PAL_black
+	EQUB &90 + PAL_black
+	EQUB &a0 + PAL_magenta
+	EQUB &b0 + PAL_magenta
+	EQUB &c0 + PAL_black
+	EQUB &d0 + PAL_black
+	EQUB &e0 + PAL_magenta
+	EQUB &f0 + PAL_magenta
+}
+
+.workbench_pal
+{
+	EQUB &00 + PAL_black
+	EQUB &10 + PAL_black
+	EQUB &20 + PAL_blue
+	EQUB &30 + PAL_blue
+	EQUB &40 + PAL_black
+	EQUB &50 + PAL_black
+	EQUB &60 + PAL_blue
+	EQUB &70 + PAL_blue
+	EQUB &80 + PAL_red
+	EQUB &90 + PAL_red
+	EQUB &a0 + PAL_white
+	EQUB &b0 + PAL_white
+	EQUB &c0 + PAL_red
+	EQUB &d0 + PAL_red
+	EQUB &e0 + PAL_white
+	EQUB &f0 + PAL_white
+}
+
+.default_pal
 {
 	EQUB &00 + PAL_black
 	EQUB &10 + PAL_black
@@ -1304,6 +1445,7 @@ INCLUDE "sequence.asm"
 .bank5 EQUS "Text2", 13
 .bank6 EQUS "Text3", 13
 .screen EQUS "Screen", 13
+.amiga EQUS "Amiga", 13
 
 \ ******************************************************************
 \ *	FX DATA
@@ -1337,11 +1479,8 @@ FOR n,0,31,1
 EQUB HI((screen_addr + n * 640)/8)
 NEXT
 
-ALIGN &100
-.wib_table
-FOR n, 0, 255, 1
-EQUB 10 + 9 * SIN(2 * PI * n / 128)
-NEXT
+.workbench_exo
+INCBIN "build/workbench.exo"
 
 .data_end
 
@@ -1411,9 +1550,11 @@ PRINT "------"
 
 PUTBASIC "circle.bas", "Circle"
 PUTBASIC "square.bas", "Square"
-PUTFILE "build/patarty.mode1.bin", "Patarty", &3000
 
-;PUTFILE "build/text.mode1.bin", "T1", &3000
+;PUTFILE "build/patarty.mode1.bin", "Patarty", &3000
+;PUTFILE "build/amiga.mode1.bin", "Amiga", &3000
+;PUTFILE "build/workbench.mode1.bin", "Work", &3000
+;PUTFILE "build/text1.masked.bin", "M1", &3000
 ;PUTFILE "build/text2.mode1.bin", "T2", &3000
 ;PUTFILE "build/text3.mode1.bin", "T3", &3000
 
@@ -1421,3 +1562,4 @@ PUTFILE "build/text.exo", "Text", &8000
 PUTFILE "build/text2.exo", "Text2", &8000
 PUTFILE "build/text3.exo", "Text3", &8000
 PUTFILE "build/patarty.exo", "Screen", &3000
+PUTFILE "build/amiga.exo", "Amiga", &3000

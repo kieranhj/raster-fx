@@ -21,7 +21,7 @@ Pain to do vadj + vrup + palette switch?
       
 Or have entire screens separate
 But then how to reveal each line?
-Could switch to show shadow at specific line but then need to clear potato...
+Could switch to show shadow at specific line but then ncopied eed to clear potato...
 
 Exo compresses the text screens down to <1K
 Could decompress this in the background (!) to SHADOW buffer
@@ -50,3 +50,26 @@ OK, streaming EXO doesn't work - not enough time to decompress whilst full FX ru
 
 This is all to avoid a blank screen between fx!
 Interesting to learn what can be done in parallel with existing fx...
+
+
+Text 1
+1. It's
+2. Not
+3. a
+4. party
+5. patarty
+6. Yeah!
+
+7. Slap that bass!
+1. Imagine there is
+2. a twister here
+3. Maybe the one we
+4. did last year...
+5. Bitshifters :heart:
+6. Slipstream
+
+Each strip 4 character rows = 4x512 bytes = 2048 bytes copied at 64 bytes/frame = 32 frames
+Total of 7 strips per bank = 32*7 = 224 frames = 4.48 seconds
+One pattern = 6*64 = 384 frames
+So copying down one strip = ~6 beats
+Copying down one screen = ~38 beats
