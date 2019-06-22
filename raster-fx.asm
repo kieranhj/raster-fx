@@ -218,6 +218,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #10: STA &FE00
 	LDA #32: STA &FE01
 
+\\ Display Amiga hand
 {
 	\\ Write to SHADOW
 	LDA &FE34
@@ -246,8 +247,12 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA &FE34
 	AND #&FF-4
 	STA &FE34
-
 }
+	\ Wait 5 seconds for dramatic effect..
+	LDA #&81
+	LDX #LO(200)
+	LDY #HI(200)
+	JSR osbyte
 
 	\ Set SWRAM BANK
 	LDA #4:STA &F4:STA &FE30
@@ -1010,6 +1015,7 @@ ENDIF
 	.loop_done
 
 	\\ May need some padding here
+;	WAIT_CYCLES 104
 
 	INY						; 2c
 	CPY num_strips			; 3c
@@ -1104,6 +1110,8 @@ ENDIF
 .fx_show_workbench
 {
 	\\ TODO BLANK SCREEN HERE
+	LDA #8:STA &FE00
+	LDA #&30:STA &FE01
 
 	\\ Write to MAIN
 	LDA &FE34
@@ -1123,8 +1131,9 @@ ENDIF
 	LDY #HI(workbench_pal)
 	JSR set_palette
 
-	\\ TODO SET PALETTE
 	\\ TODO SHOW SCREEN HERE
+	LDA #8:STA &FE00
+	LDA #&0:STA &FE01
 
 	RTS
 }
@@ -1445,7 +1454,7 @@ INCLUDE "sequence.asm"
 .bank5 EQUS "Text2", 13
 .bank6 EQUS "Text3", 13
 .screen EQUS "Screen", 13
-.amiga EQUS "Amiga", 13
+.amiga EQUS "Hand", 13
 
 \ ******************************************************************
 \ *	FX DATA
@@ -1494,7 +1503,7 @@ INCBIN "build/workbench.exo"
 \ *	Save the code
 \ ******************************************************************
 
-SAVE "MyFX", start, end
+SAVE "Amiga", start, end
 
 \ ******************************************************************
 \ *	Space reserved for runtime buffers not preinitialised
@@ -1548,18 +1557,12 @@ PRINT "------"
 \ *	Any other files for the disc
 \ ******************************************************************
 
-PUTBASIC "circle.bas", "Circle"
-PUTBASIC "square.bas", "Square"
-
-;PUTFILE "build/patarty.mode1.bin", "Patarty", &3000
-;PUTFILE "build/amiga.mode1.bin", "Amiga", &3000
-;PUTFILE "build/workbench.mode1.bin", "Work", &3000
-;PUTFILE "build/text1.masked.bin", "M1", &3000
-;PUTFILE "build/text2.mode1.bin", "T2", &3000
-;PUTFILE "build/text3.mode1.bin", "T3", &3000
+;PUTBASIC "square.bas", "Square"
+;PUTFILE "build/text1f.mode1.bin", "T1", &3000
+;PUTFILE "build/text3f.mode1.bin", "T3", &3000
 
 PUTFILE "build/text.exo", "Text", &8000
 PUTFILE "build/text2.exo", "Text2", &8000
 PUTFILE "build/text3.exo", "Text3", &8000
 PUTFILE "build/patarty.exo", "Screen", &3000
-PUTFILE "build/amiga.exo", "Amiga", &3000
+PUTFILE "build/amiga.exo", "Hand", &3000

@@ -59,8 +59,8 @@ Text 1
 4. party
 5. patarty
 6. Yeah!
-
 7. Slap that bass!
+
 1. Imagine there is
 2. a twister here
 3. Maybe the one we
@@ -73,3 +73,11 @@ Total of 7 strips per bank = 32*7 = 224 frames = 4.48 seconds
 One pattern = 6*64 = 384 frames
 So copying down one strip = ~6 beats
 Copying down one screen = ~38 beats
+
+TODO
+Change //TODO to Bitshifts heart Slipstream - done
+Change Clever to 'last years' - done
+Remove stray pixels - partarty, tea - done
+Add a delay after Amiga hand for pause - done
+Remove visible palette change 
+Can see a dodgy line of pixels for last text screen at bottom?!

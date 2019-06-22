@@ -234,8 +234,8 @@ SEQUENCE_WAIT_UNTIL_PATTERN 7
 ON_LINE 7, 1, fx_set_bar1_col, PAL_green
 ON_LINE 7, 1, fx_set_bar2_col, PAL_green
 
-ON_LINE 7, 2, fx_set_strip_1, TEXT_6       ; todo
-ON_LINE 7, 4, fx_set_strip_2, TEXT_7       ; finish this
+ON_LINE 7, 2, fx_set_strip_3, TEXT_6       ; todo
+ON_LINE 7, 10, fx_set_strip_4, TEXT_7       ; finish this
 
 ON_LINE 7, 32, fx_show_potato, 0
 ON_LINE 7, 34, fx_decompress_text1, 0
