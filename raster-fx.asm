@@ -1015,7 +1015,7 @@ ENDIF
 	.loop_done
 
 	\\ May need some padding here
-;	WAIT_CYCLES 104
+	WAIT_CYCLES 50
 
 	INY						; 2c
 	CPY num_strips			; 3c
@@ -1038,8 +1038,101 @@ ENDIF
     LDA #6: STA &FE00
     LDA #3: STA &FE01               ; display 3 rows
 
+	\\ May need some padding here
+	WAIT_CYCLES 40
+
+{
+	    \\ Now wait 28 rows plus a scanline to make sure we're in next CRTC cycle
 	LDX #(3*8)
-	JSR cycles_wait_scanlines
+;	JSR cycles_wait_scanlines
+;	LDX strip_scanlines, Y
+
+	.loop2
+
+	LDA back_colour		; 3c
+	STA &FE21			; 4c
+
+	ORA #&10			; 2c
+	STA &FE21			; 4c
+	ORA #&40			; 2c
+	STA &FE21			; 4c
+	EOR #&10			; 2c
+	STA &FE21			; 4c
+
+	DEC blue_count		; 5c
+	\\ 19c inc JMP loop
+
+	BNE still_blue2
+	; 2c
+
+	\\ Blue bar toggle
+
+	LDA back_colour		; 3c
+	EOR blue_flip_col	; 3c
+	STA back_colour		; 3c
+
+	\\ Next count
+
+	LDA blue_set_count	; 3c
+	STA blue_count		; 3c
+
+	\\ One after
+
+	EOR blue_flip_count	; 3c
+	STA blue_set_count	; 3c
+
+	JMP done_blue2		; 3c
+	\\ 26c
+
+	.still_blue2		; 3c
+	\\ This needs to count the same as the other fork
+	WAIT_CYCLES 26-3
+
+	.done_blue2
+
+	DEC cyan_count		; 5c
+	\\ 5c inc JMP loop
+
+	BNE still_cyan2
+	; 2c
+
+	\\ Blue bar toggle
+
+	LDA back_colour		; 3c
+	EOR cyan_flip_col	; 3c
+	STA back_colour		; 3c
+
+	\\ Next count
+
+	LDA cyan_set_count	; 3c
+	STA cyan_count		; 3c
+
+	\\ One after
+
+	EOR cyan_flip_count	; 3c
+	STA cyan_set_count	; 3c
+
+	JMP done_cyan2		; 3c
+	\\ 26c
+
+	.still_cyan2		; 3c
+	\\ This needs to count the same as the other fork
+	WAIT_CYCLES 26-3
+
+	.done_cyan2
+
+	\\ Wait rest of scanline 128 - part 1 - part 2
+	WAIT_CYCLES 128 - 19 - 26 - 5 - 26 - 10 - 18
+
+	DEX					; 2c
+	BEQ loop_done2		; 2c
+
+	WAIT_CYCLES 10
+
+	JMP loop2			; 3c
+
+	.loop_done2
+}
 
 ;	LDA #PAL_magenta
 ;	STA &FE21
@@ -1469,7 +1562,7 @@ EQUB 0,0,0,0,0,0,8,8		; vadj added to 7th or 8th
 EQUB 3,3,3,3,3,3,3,0		; must add up to 28 total
 
 .strip_scanlines
-EQUB 32,32,32,32,32,32,32,0	; must add up to 224
+EQUB 31,31,31,31,31,31,31,0	; must add up to 224
 
 .strip_scr_row
 EQUB 0,24,20,16,12,8,4,0,0	; which screen row to display in strip

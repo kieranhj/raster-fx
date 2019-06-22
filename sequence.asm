@@ -146,6 +146,7 @@ SCRIPT_CALL fx_show_potato
 ON_LINE 3, 4, fx_decompress_text3, 0
 
 ON_LINE 3, 50, fx_show_text, 0
+ON_LINE 3, 51, fx_set_bar2_col, PAL_red
 ON_LINE 3, 52, fx_set_strip_3, TEXT_1       ; slap that bass!
 
 \ ******************************************************************
@@ -157,10 +158,10 @@ SEQUENCE_WAIT_UNTIL_PATTERN 4
 SCRIPT_CALL fx_show_potato
 
 ; change palette
-ON_LINE 4, 0, fx_set_bar2_col, PAL_red
+ON_LINE 4, 0, fx_set_bar2_col, PAL_cyan
 
 ON_LINE 4, 30, fx_show_text, 0
-ON_LINE 4, 31, fx_set_bar2_col, PAL_cyan
+ON_LINE 4, 31, fx_set_bar2_col, PAL_red
 ON_LINE 4, 32, fx_set_strip_2, TEXT_2       ; imagine
 ON_LINE 4, 34, fx_set_strip_3, TEXT_3       ; twister
 
@@ -172,12 +173,12 @@ SEQUENCE_WAIT_UNTIL_PATTERN 5
 
 SCRIPT_CALL fx_show_potato
 
-ON_LINE 5, 2, fx_set_bar2_col, PAL_red
+ON_LINE 5, 2, fx_set_bar2_col, PAL_green
 
 ; change palette
 
 ON_LINE 5, 30, fx_show_text, 0
-ON_LINE 5, 31, fx_set_bar2_col, PAL_green
+ON_LINE 5, 31, fx_set_bar2_col, PAL_red
 ON_LINE 5, 32, fx_set_strip_2, TEXT_4       ; particularly
 ON_LINE 5, 34, fx_set_strip_3, TEXT_5       ; clever
 

@@ -79,5 +79,7 @@ Change //TODO to Bitshifts heart Slipstream - done
 Change Clever to 'last years' - done
 Remove stray pixels - partarty, tea - done
 Add a delay after Amiga hand for pause - done
-Remove visible palette change 
+Remove visible palette change - done?!
 Can see a dodgy line of pixels for last text screen at bottom?!
+
+strip running at 33 scanlines 78 chars - should be 32 scanlines!
