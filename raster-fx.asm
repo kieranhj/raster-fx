@@ -280,6 +280,14 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	JSR disksys_decrunch_file
 
     \ Ask OSFILE to load our screen
+	LDA #7:STA &F4:STA &FE30
+
+	LDX #LO(bank7)
+	LDY #HI(bank7)
+	LDA #HI(&8000)
+	JSR disksys_decrunch_file
+
+    \ Ask OSFILE to load our screen
 	LDX #LO(screen)
 	LDY #HI(screen)
 	LDA #HI(patarty_exo)
@@ -367,6 +375,10 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	.call_init
 	JSR fx_init_function
 
+	\\ HIDE SCREEN
+	LDA #8:STA &FE00
+	LDA #&30:STA &FE01
+
 	\\ We don't know how long the init took so resync to timer 1
 
 	{
@@ -391,6 +403,10 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 		LDX #255
 		JSR cycles_wait_scanlines
 	}
+
+	\\ SHOW SCREEN
+	LDA #8:STA &FE00
+	LDA #0:STA &FE01
 
 	\ ******************************************************************
 	\ *	MAIN LOOP
@@ -578,7 +594,7 @@ ENDIF
 	LDY #HI(default_pal)
 	JSR set_palette
 
-	JSR fx_show_potato
+;	JSR fx_show_potato
 
 	LDA #0
 	STA smiley_vadj
@@ -665,7 +681,7 @@ ENDIF
     STA &FE01                       ; 8-vadj
 
 	SEC
-	LDA #32
+	LDA #31 ;was 32
 	SBC smiley_yoff
 	STA strip_scanlines + 0		; shorter
 
@@ -695,7 +711,7 @@ ENDIF
 	LDA #0
 	STA strip_vadj + 6
 
-	LDA #32
+	LDA #31	; was 32
 	STA strip_scanlines + 6
 
 	LDA smiley_yoff
@@ -721,7 +737,7 @@ ENDIF
 	STA strip_total_rows + 7	; not used
 
 	CLC
-	LDA #32
+	LDA #31	; was 32
 	ADC smiley_vadj
 	STA strip_scanlines + 6		; longer
 
@@ -1340,6 +1356,16 @@ ENDIF
 	JMP start_copy_down
 }
 
+.fx_decompress_text4
+{
+	LDA #7:STA &F4:STA &FE30
+
+	LDX #LO(text2_exo)
+	LDY #HI(text2_exo)
+	LDA #HI(screen_addr)
+	JMP start_copy_down
+}
+
 .fx_set_black
 {
 	LDA #&a0 + PAL_black:STA &FE21
@@ -1546,6 +1572,7 @@ INCLUDE "sequence.asm"
 .bank4 EQUS "Text", 13
 .bank5 EQUS "Text2", 13
 .bank6 EQUS "Text3", 13
+.bank7 EQUS "Text4", 13
 .screen EQUS "Screen", 13
 .amiga EQUS "Hand", 13
 
@@ -1650,12 +1677,13 @@ PRINT "------"
 \ *	Any other files for the disc
 \ ******************************************************************
 
-;PUTBASIC "square.bas", "Square"
-;PUTFILE "build/text1f.mode1.bin", "T1", &3000
-;PUTFILE "build/text3f.mode1.bin", "T3", &3000
+PUTBASIC "square.bas", "Square"
+PUTFILE "build/text4.mode1.bin", "T4", &3000
+PUTFILE "build/text2f.mode1.bin", "T2", &3000
 
 PUTFILE "build/text.exo", "Text", &8000
 PUTFILE "build/text2.exo", "Text2", &8000
 PUTFILE "build/text3.exo", "Text3", &8000
+PUTFILE "build/text4.exo", "Text4", &8000
 PUTFILE "build/patarty.exo", "Screen", &3000
 PUTFILE "build/amiga.exo", "Hand", &3000

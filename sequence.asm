@@ -91,14 +91,13 @@ ENDMACRO
 \\ **** PATTERN 1 ****
 \ ******************************************************************
 
-SCRIPT_CALL fx_strips_default
+SCRIPT_CALL fx_show_text; fx_strips_default
 
 ON_LINE 1, 2, fx_decompress_text1, 0
 
-; 18,20
-; 24,27
+ON_LINE 1, 18, fx_show_potato, 0
 
-ON_LINE 1, 50, fx_show_text, 0
+ON_LINE 1, 56, fx_show_text, 0
 
 ON_LINE 1, 58, fx_set_strip_2, TEXT_1        ; it's
 ON_LINE 1, 60, fx_set_strip_3, TEXT_2        ; not
@@ -193,6 +192,9 @@ SCRIPT_CALL fx_show_potato
 ; disco flash
 ON_LINE 6, 1, fx_set_bar1_col, PAL_red
 ON_LINE 6, 1, fx_set_bar2_col, PAL_red
+
+ON_LINE 6, 2, fx_decompress_text4, 0
+
 ON_LINE 6, 4, fx_set_bar1_col, PAL_green
 ON_LINE 6, 4, fx_set_bar2_col, PAL_green
 ON_LINE 6, 8, fx_set_bar1_col, PAL_blue
@@ -235,8 +237,12 @@ SEQUENCE_WAIT_UNTIL_PATTERN 7
 ON_LINE 7, 1, fx_set_bar1_col, PAL_green
 ON_LINE 7, 1, fx_set_bar2_col, PAL_green
 
-ON_LINE 7, 2, fx_set_strip_3, TEXT_6       ; todo
-ON_LINE 7, 10, fx_set_strip_4, TEXT_7       ; finish this
+ON_LINE 7, 2, fx_set_strip_1, TEXT_1       ; todo
+ON_LINE 7, 10, fx_set_strip_2, TEXT_2       ; finish this
+ON_LINE 7, 14, fx_set_strip_3, TEXT_3       ; todo
+ON_LINE 7, 18, fx_set_strip_4, TEXT_4       ; finish this
+ON_LINE 7, 22, fx_set_strip_5, TEXT_5       ; todo
+ON_LINE 7, 26, fx_set_strip_6, TEXT_6       ; finish this
 
 ON_LINE 7, 32, fx_show_potato, 0
 ON_LINE 7, 34, fx_decompress_text1, 0
