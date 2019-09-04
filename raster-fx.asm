@@ -103,7 +103,7 @@ GUARD &9F
 \ *	CODE START
 \ ******************************************************************
 
-ORG &1900	      			; code origin (like P%=&2000)
+ORG &E00	      			; code origin (like P%=&2000)
 GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .start
@@ -340,6 +340,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 \ *	HELPER FUNCTIONS
 \ ******************************************************************
 
+IF 0
 .cycles_wait_128		; JSR to get here takes 6c
 {
 	FOR n,1,58,1		; 58x
@@ -347,6 +348,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	NEXT				; = 116c
 	RTS					; 6c
 }						; = 128c
+ENDIF
 
 .cycles_wait_scanlines	; 6c
 {
@@ -398,6 +400,12 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #&FF
     JSR osfile
 
+	LDA #HI(screen_LO)
+	STA fx_colour_index
+
+	LDA #1
+	STA fx_raster_count
+
 	RTS
 }
 
@@ -418,12 +426,40 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_update_function
 {
-	\\ Increment our index into the palette table
-	INC fx_colour_index
+	LDA fx_raster_count
+	BMI backwards
 
-	LDA #0
+	\\ Forwards
+	LDX fx_colour_index
+	STX lookup_load_LO + 2
+	INX
+	STX lookup_load_HI + 2
+	INX
+	CPX #HI(data_end)
+	BCC ok1
+	DEX:DEX
+	LDA #&80
 	STA fx_raster_count
+	.ok1
+	STX fx_colour_index
+	JMP continue
 
+	.backwards
+	LDX fx_colour_index
+	STX lookup_load_LO + 2
+	INX
+	STX lookup_load_HI + 2
+	DEX
+	CPX #HI(screen_LO)
+	BNE ok2
+	INX:INX
+	LDA #1
+	STA fx_raster_count
+	.ok2
+	DEX:DEX
+	STX fx_colour_index
+
+	.continue
 	ldy #255
 	lda #12:sta &fe00	; 8c
 	lda screen_HI, y:sta &fe01	; 10c
@@ -451,12 +487,12 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 \ ******************************************************************
 
 .fx_draw_function
-{
+\{
 	WAIT_CYCLES 128-8
 
-	.here
+	.fx_draw_here
 	stz &fe00
-	lda #9
+	lda #9+10
 	\\ 8c
 	
 	\\ start of scanline 0
@@ -465,15 +501,15 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ 6c
 
 	lda #1:sta &fe00
-	lda #10:sta &fe01	; R1=10 horizontal displayed
+	lda #10+10:sta &fe01	; R1=10 horizontal displayed
 	\\ 16c
 
 	lda #2:sta &fe00
-	lda #28:sta &fe01	; R2=28 hsync
+	lda #28+10:sta &fe01	; R2=28 hsync
 	\\ 16c
 
 	lda #4:STA &fe00
-	stz &FE01	; R4=0 vertical total
+	stz &FE01			; R4=0 vertical total
 	\\ 14c
 
 	WAIT_CYCLES 12 -4 -6
@@ -481,59 +517,97 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	ldy #255			; 2c
 
 	stz &fe00
-	lda #57
+	lda #57+10
 	\\ This must happen before 80c!
 	sta &fe01	; R0=57 horizontal total
 	\\ 14c
 
-	lda #7:sta &fe00
-	lda #&ff:sta &fe01	; R7=vsync never
+;	lda #7:sta &fe00
+;	lda #&ff:sta &fe01	; R7=vsync never
 	\\ 16c
 
 	lda #6:sta &fe00
 	lda #1:sta &fe01	; R6=1 row displayed
 	\\ 16c
 
-	WAIT_CYCLES 18 -8 +6 -2;ideally -4
+	lda #9:sta &fe00
+	lda #3:sta &fe01	; R9=1 scanlines per row=4
+	\\ 16c
+
+	WAIT_CYCLES 18 -14 -8 +6 -2;ideally -4
 
 	\\ start of scanline 1
-;	stx &fe00			; 6c
-;	lda #32:sta &fe01	; 8c
+	stx &fe00			; 6c
+	lda #16:sta &fe01	; 8c
 	\\ 14c
 
-	lda #9				; 2c
+	lda #9+10			; 2c
 	stz &fe00			; 6c
 	\\ 8c
-	.loop
+	.fx_draw_loop
 
-	\\ at start of each scanline
-	sta &fe01			; 6c R0=9
+	\\ begin scanline at -5
+	\\ start of segment [0-19]
+	sta &fe01			; 6c set R0=19
 
-	WAIT_CYCLES 80 -20 -2
+	stx &fe00			; 6c select CRTC register 8
+	.lookup_load_HI
+	ldx screen_HI, y	; 4c load screen address HI byte
+	lda #16				; 2c A=skew 2 bytes
 
-	stz &fe00			; 6c
-	lda #57
-	\\ must be before 80c
-	sta &fe01	; 8c
+	\\ end of segment [0-19]
+	stz &fe01			; 6c set R8=0 (skew=0)
+	\\ 24c (begins at -5c)
 
-	\\ 48 more cycles to end of scanline
+	\\ start of segment [20-39]
+	sta &fe01			; 6c set R8=32 (skew=2)
+
+	stx load_scr_HI+1	; 4c stash screen address HI byte
+	.lookup_load_LO
+	ldx screen_LO, y	; 4c load screen address LO byte
+
+	\\ end of segment [20-39]
+	stz &fe01			; 6c set R8=0 (skew=0)
+	\\ 20c
+
+	\\ start of segment [40-59]
+	sta &fe01			; 6c set R8=32 (skew=2)
+
+	stx load_scr_LO+1	; 4c stash screen address LO byte
+
+	ldx #57+10			; 2c X=horizontal width
+	WAIT_CYCLES 2		; 2c spare!
+
+	\\ end of segment [40-59]
+	stz &fe01			; 6c set R8=0 (skew=0)
+	\\ 20c
+
+	\\ start of segment [60-79 then 127]
+	sta &fe01			; 6c set R8=32 (skew=2)
+
+	stz &fe00			; 6c select CRTC register 0
+	\\ must be before horizontal counter reaches 19!
+	stx &fe01			; 6c set R0=67 horizontal width
+	ldx #8				; 2c X=8
+	\\ 20c
 
 	\\ Set R12/R13 here!
 	lda #12:sta &fe00	; 8c
-	lda screen_HI, y:sta &fe01	; 10c
+	.load_scr_HI
+	lda #0:sta &fe01	; 8c
 
 	lda #13:sta &fe00	; 8c
-	lda screen_LO, y:sta &fe01	; 10c
-	; 36c
-
-	WAIT_CYCLES 48 -36 -7 -6 +3
+	.load_scr_LO
+	lda #0:sta &fe01	; 8c
+	\\ 32c
 
 	stz &fe00			; 6c
-	lda #9				; 2c
+	lda #9+10			; 2c
 	dey					; 2c
-	bne loop			; 3c
+	bne fx_draw_loop			; 3c
+	\\ 13c
 
-	.done
+	.fx_draw_done
 
 	\\ start of scanline 255
 
@@ -545,14 +619,14 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ 16c
 
 	lda #4:sta &fe00
-	lda #6:sta &fe01	; R4=7 more character rows total 39
+	lda #6*2+1:sta &fe01	; R4=7 more character rows total 39
 	\\ 16c
 
 	lda #7:sta &fe00
-	lda #3:sta &fe01	; R7=vsync at row 35
+	lda #3*2:sta &fe01	; R7=vsync at row 35
 
     RTS
-}
+\}
 
 \ ******************************************************************
 \ Kill FX
@@ -640,14 +714,21 @@ EQUD 0
 
 ALIGN &100
 .screen_LO
-FOR y,0,255,1
-EQUB LO((&3000 + y*80)/8)
+FOR a,0,14,1
+
+FOR n,0,255,1
+y = (n DIV 2) + a * 2 * SIN(n * 4 * PI/256)
+EQUB LO((&3000 + (127-INT(y))*160)/8)
 NEXT
 
-.screen_HI
-FOR y,0,255,1
-EQUB HI((&3000 + y*80)/8)
+FOR n,0,255,1
+y = (n DIV 2) + a * 2 * SIN(n * 4 * PI/256)
+EQUB HI((&3000 + (127-INT(y))*160)/8)
 NEXT
+
+NEXT
+
+screen_HI=screen_LO + &100
 
 .data_end
 
