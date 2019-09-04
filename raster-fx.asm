@@ -2,6 +2,8 @@
 \ *	RASTER FX FRAMEWORK
 \ ******************************************************************
 
+CPU 1
+
 \ ******************************************************************
 \ *	OS defines
 \ ******************************************************************
@@ -42,7 +44,11 @@ MACRO WAIT_CYCLES n
 
 PRINT "WAIT",n," CYCLES"
 
-IF (n AND 1) = 0
+IF n < 0
+	ERROR "Can't wait negative cycles!"
+ELIF n=0
+	; do nothing
+ELIF (n AND 1) = 0
 	FOR i,1,n/2,1
 	NOP
 	NEXT
@@ -67,7 +73,7 @@ SCREEN_SIZE_BYTES = &8000 - screen_addr
 FramePeriod = 312*64-2
 
 ; Calculate here the timer value to interrupt at the desired line
-TimerValue = 32*64 - 2*64 - 2 - 22 - 9
+TimerValue = 32*64 - 2*64 - 2 - 22 - 9 - 64
 
 \\ 40 lines for vblank
 \\ 32 lines for vsync (vertical position = 35 / 39)
@@ -133,7 +139,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	LDA #22
 	JSR oswrch
-	LDA #1
+	LDA #2
 	JSR oswrch
 
 	\\ Turn off cursor
@@ -418,6 +424,13 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #0
 	STA fx_raster_count
 
+	ldy #255
+	lda #12:sta &fe00	; 8c
+	lda screen_HI, y:sta &fe01	; 10c
+
+	lda #13:sta &fe00	; 8c
+	lda screen_LO, y:sta &fe01	; 10c
+
 	RTS
 }
 
@@ -439,24 +452,104 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_draw_function
 {
-	LDA #&F0 + PAL_red
-	LDX #&F0 + PAL_yellow
-	LDY #&F0 + PAL_green
-	NOP
-	\\ 8c
+	WAIT_CYCLES 128-8
 
+	.here
+	stz &fe00
+	lda #9
+	\\ 8c
+	
+	\\ start of scanline 0
+
+	sta &FE01			; R0=9 horizontal total
+	\\ 6c
+
+	lda #1:sta &fe00
+	lda #10:sta &fe01	; R1=10 horizontal displayed
+	\\ 16c
+
+	lda #2:sta &fe00
+	lda #28:sta &fe01	; R2=28 hsync
+	\\ 16c
+
+	lda #4:STA &fe00
+	stz &FE01	; R4=0 vertical total
+	\\ 14c
+
+	WAIT_CYCLES 12 -4 -6
+	ldx #8				; 2c
+	ldy #255			; 2c
+
+	stz &fe00
+	lda #57
+	\\ This must happen before 80c!
+	sta &fe01	; R0=57 horizontal total
+	\\ 14c
+
+	lda #7:sta &fe00
+	lda #&ff:sta &fe01	; R7=vsync never
+	\\ 16c
+
+	lda #6:sta &fe00
+	lda #1:sta &fe01	; R6=1 row displayed
+	\\ 16c
+
+	WAIT_CYCLES 18 -8 +6 -2;ideally -4
+
+	\\ start of scanline 1
+;	stx &fe00			; 6c
+;	lda #32:sta &fe01	; 8c
+	\\ 14c
+
+	lda #9				; 2c
+	stz &fe00			; 6c
+	\\ 8c
 	.loop
 
-	FOR n,1,10,1
-	STA &FE21		; 4c
-	STX &FE21		; 4c
-	STY &FE21		; 4c
-	NEXT
-	\\ 10*12=120c
+	\\ at start of each scanline
+	sta &fe01			; 6c R0=9
 
-	DEC fx_raster_count		; 5c
-	BNE loop				; 3c
-	\\ Total =128c
+	WAIT_CYCLES 80 -20 -2
+
+	stz &fe00			; 6c
+	lda #57
+	\\ must be before 80c
+	sta &fe01	; 8c
+
+	\\ 48 more cycles to end of scanline
+
+	\\ Set R12/R13 here!
+	lda #12:sta &fe00	; 8c
+	lda screen_HI, y:sta &fe01	; 10c
+
+	lda #13:sta &fe00	; 8c
+	lda screen_LO, y:sta &fe01	; 10c
+	; 36c
+
+	WAIT_CYCLES 48 -36 -7 -6 +3
+
+	stz &fe00			; 6c
+	lda #9				; 2c
+	dey					; 2c
+	bne loop			; 3c
+
+	.done
+
+	\\ start of scanline 255
+
+	lda #127
+	sta &fe01			; R0=127 back to a full width line!
+
+	lda #2:sta &fe00
+	lda #98:sta &fe01	; R2=98 hsync
+	\\ 16c
+
+	lda #4:sta &fe00
+	lda #6:sta &fe01	; R4=7 more character rows total 39
+	\\ 16c
+
+	lda #7:sta &fe00
+	lda #3:sta &fe01	; R7=vsync at row 35
 
     RTS
 }
@@ -523,7 +616,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 }
 
 .osfile_filename
-EQUS "Screen", 13
+EQUS "Mangled", 13
 
 .osfile_params
 .osfile_nameaddr
@@ -546,52 +639,15 @@ EQUD 0
 \ ******************************************************************
 
 ALIGN &100
-.fx_colour1_table
-{
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_red
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL1 + PAL_magenta
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_blue
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_cyan
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_green
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL1 + PAL_yellow
-	NEXT
-}
+.screen_LO
+FOR y,0,255,1
+EQUB LO((&3000 + y*80)/8)
+NEXT
 
-.fx_colour2_table
-{
-	FOR n,1,21,1
-	EQUB MODE1_COL3 + PAL_red
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL3 + PAL_magenta
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL3 + PAL_blue
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL3 + PAL_cyan
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL3 + PAL_green
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL3 + PAL_yellow
-	NEXT
-	FOR n,1,22,1
-	EQUB MODE1_COL3 + PAL_red
-	NEXT
-}
+.screen_HI
+FOR y,0,255,1
+EQUB HI((&3000 + y*80)/8)
+NEXT
 
 .data_end
 
@@ -636,3 +692,6 @@ PRINT "------"
 
 PUTBASIC "circle.bas", "Circle"
 PUTFILE "screen.bin", "Screen", &3000
+PUTBASIC "mangle.bas", "Mangle"
+PUTFILE "mangled.bin", "Mangled", &3000
+
