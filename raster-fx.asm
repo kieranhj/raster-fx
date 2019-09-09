@@ -426,6 +426,7 @@ ENDIF
 
 .fx_update_function
 {
+IF 0
 	LDA fx_raster_count
 	BMI backwards
 
@@ -466,6 +467,17 @@ ENDIF
 
 	lda #13:sta &fe00	; 8c
 	lda screen_LO, y:sta &fe01	; 10c
+ENDIF
+
+	ldx #0
+	lda #12:sta &fe00	; 8c
+	lda screen_HI, x:sta &fe01	; 10c
+
+	lda #13:sta &fe00	; 8c
+	lda screen_LO, x:sta &fe01	; 10c
+
+	lda screen_R9, x
+	sta fx_draw_set_r9a+1
 
 	RTS
 }
@@ -486,144 +498,162 @@ ENDIF
 \ A FULL AND VALID 312 line PAL signal before exiting!
 \ ******************************************************************
 
+\\ <--- 80c visible ---> <--- 22c hsync ---> <2c> <2c> ... <2c> = 128c
+
 .fx_draw_function
 \{
-	WAIT_CYCLES 128-8
+	WAIT_CYCLES 128-12-5
 
 	.fx_draw_here
+	ldx #1			; this is used as a register value :\
+	ldy #4
 	stz &fe00
-	lda #9+10
-	\\ 8c
+	lda #79
+	\\ 12c
 	
-	\\ start of scanline 0
+	\\ start of scanline 0 HCC=0 LVC=0 VCC=0
+	\\ start segment 0 [0-79]
 
-	sta &FE01			; R0=9 horizontal total
+	sta &FE01				; R0=79 horizontal total = 80
 	\\ 6c
 
-	lda #1:sta &fe00
-	lda #10+10:sta &fe01	; R1=10 horizontal displayed
+	\\ First scanline hsync = 98 which is > horizontal total
+	\\ Set horizontal displayed?
+
+	sty &fe00
+	stz &FE01				; R4=0 vertical total = 1
+	\\ 12c
+
+	\\ Before end of segmnet 0 need to set R12/R13/R9 and R2!
+
+	\\ Set R12/R13
+	LDA #12:STA &fe00				; 8c
+	LDA screen_HI, X:STA &fe01		; 10c
+
+	LDA #13:STA &fe00				; 8c
+	LDA screen_LO, X:STA &fe01		; 10c
+	\\ 36c
+
+	\\ Set R9
+	LDA #9:STA &fe00				; 8c
+	.fx_draw_set_r9a
+	LDA #14:STA &fe01				; 10c TEMP fix R9 for now - could be SMC
+	\\ 18c
+
+	\\ Set R2 hsync
+	LDA #2:STA &fe00
+
+	\\ start segment 1 [80-101]
+
+	LDA #18:STA &fe01		; R2=18 hysnc in segment 1
 	\\ 16c
 
-	lda #2:sta &fe00
-	lda #28+10:sta &fe01	; R2=28 hsync
-	\\ 16c
-
-	lda #4:STA &fe00
-	stz &FE01			; R4=0 vertical total
-	\\ 14c
-
-	WAIT_CYCLES 12 -4 -6
-	ldx #8				; 2c
-	ldy #255			; 2c
-
+	\\ Set horizontal total
 	stz &fe00
-	lda #57+10
-	\\ This must happen before 80c!
-	sta &fe01	; R0=57 horizontal total
+	lda #21:sta &fe01		; R0=21 horizontal total = 22
 	\\ 14c
 
-;	lda #7:sta &fe00
-;	lda #&ff:sta &fe01	; R7=vsync never
-	\\ 16c
+	\\ start segment 2 [102-103]
+	stx &fe01				; R0=1 horizontal total = 2
+	\\ 6c
 
-	lda #6:sta &fe00
-	lda #1:sta &fe01	; R6=1 row displayed
-	\\ 16c
+	\\ segments 3-14 [104-127]
+	WAIT_CYCLES 11*2 -4 -10
 
-	lda #9:sta &fe00
-	lda #3:sta &fe01	; R9=1 scanlines per row=4
-	\\ 16c
+	LDA screen_R9, X		; 4c
+	STA fx_draw_set_r9b+1	; 4c
 
-	WAIT_CYCLES 18 -14 -8 +6 -2;ideally -4
+	ldy #1					; 2c
 
-	\\ start of scanline 1
-	stx &fe00			; 6c
-	lda #16:sta &fe01	; 8c
-	\\ 14c
+	\\ Move cycles from end of the loop to the beginning
 
-	lda #9+10			; 2c
-	stz &fe00			; 6c
-	\\ 8c
+	\\ Start of scanline 1 <phew>
+
 	.fx_draw_loop
+	\\ start segment 0 [0-79]
 
-	\\ begin scanline at -5
-	\\ start of segment [0-19]
-	sta &fe01			; 6c set R0=19
+	\\ got to catch this before 2c!
+	lda #79
+	sta &FE01				; R0=79 horizontal total = 80
+	\\ 6c
 
-	stx &fe00			; 6c select CRTC register 8
-	.lookup_load_HI
-	ldx screen_HI, y	; 4c load screen address HI byte
-	lda #16				; 2c A=skew 2 bytes
+	\\ Set hsync before 18c!
+	ldy #2:sty &fe00
+	sta &fe01			; R2=79 doesn't matter as will be reset must be > 18
+	\\ 14c
 
-	\\ end of segment [0-19]
-	stz &fe01			; 6c set R8=0 (skew=0)
-	\\ 24c (begins at -5c)
+	\\ Before end of segmnet 0 need to set R12/R13/R9 and R2!
 
-	\\ start of segment [20-39]
-	sta &fe01			; 6c set R8=32 (skew=2)
+	\\ Set R12/R13
+	LDA #12:STA &fe00				; 8c
+	LDA screen_HI, X:STA &fe01		; 10c
 
-	stx load_scr_HI+1	; 4c stash screen address HI byte
-	.lookup_load_LO
-	ldx screen_LO, y	; 4c load screen address LO byte
+	LDA #13:STA &fe00				; 8c
+	LDA screen_LO, X:STA &fe01		; 10c
+	\\ 36c
 
-	\\ end of segment [20-39]
-	stz &fe01			; 6c set R8=0 (skew=0)
-	\\ 20c
+	\\ Set R2 hsync
+	sty &fe00
+	ldy #1
+	LDA #18:STA &fe01		; R2=18 hysnc in segment 1
+	\\ 16c
 
-	\\ start of segment [40-59]
-	sta &fe01			; 6c set R8=32 (skew=2)
+	\\ Set R9
+	LDA #9:STA &fe00				; 8c
+	.fx_draw_set_r9b
+	LDA #14:STA &fe01				; 10c TEMP fix R9 for now - could be SMC
+	\\ 16c
 
-	stx load_scr_LO+1	; 4c stash screen address LO byte
+	\\ start segment 1 [80-101]
 
-	ldx #57+10			; 2c X=horizontal width
-	WAIT_CYCLES 2		; 2c spare!
+	\\ Set horizontal total
+	stz &fe00
+	lda #21:sta &fe01		; R0=21 horizontal total = 22
+	\\ 14c
 
-	\\ end of segment [40-59]
-	stz &fe01			; 6c set R8=0 (skew=0)
-	\\ 20c
+	\\ start segment 2 [102-103]
+	sty &fe01				; R0=1 horizontal total = 2
+	\\ 6c
 
-	\\ start of segment [60-79 then 127]
-	sta &fe01			; 6c set R8=32 (skew=2)
+	\\ segments 3-14 [104-127]
+	WAIT_CYCLES 11*2 -4 -5 -8
 
-	stz &fe00			; 6c select CRTC register 0
-	\\ must be before horizontal counter reaches 19!
-	stx &fe01			; 6c set R0=67 horizontal width
-	ldx #8				; 2c X=8
-	\\ 20c
+	LDA screen_R9, X		; 4c
+	STA fx_draw_set_r9b+1	; 4c
 
-	\\ Set R12/R13 here!
-	lda #12:sta &fe00	; 8c
-	.load_scr_HI
-	lda #0:sta &fe01	; 8c
+	\\ Time for SHADOW switch in hblank?!
 
-	lda #13:sta &fe00	; 8c
-	.load_scr_LO
-	lda #0:sta &fe01	; 8c
-	\\ 32c
-
-	stz &fe00			; 6c
-	lda #9+10			; 2c
-	dey					; 2c
-	bne fx_draw_loop			; 3c
-	\\ 13c
+	inx						; 2c
+	bne fx_draw_loop		; 3c
+	\\ 7c
 
 	.fx_draw_done
 
 	\\ start of scanline 255
 
+	NOP
 	lda #127
-	sta &fe01			; R0=127 back to a full width line!
+	sta &fe01				; R0=127 back to a full width line!
 
 	lda #2:sta &fe00
-	lda #98:sta &fe01	; R2=98 hsync
+	lda #98:sta &fe01		; R2=98 hsync
+	\\ 16c
+
+	lda #9:sta &fe00
+	lda #7:sta &fe01		; R9=7 scanlines per row = 8
 	\\ 16c
 
 	lda #4:sta &fe00
-	lda #6*2+1:sta &fe01	; R4=7 more character rows total 39
+	lda #6:sta &fe01		; R4=7 more character rows total 39
 	\\ 16c
 
 	lda #7:sta &fe00
-	lda #3*2:sta &fe01	; R7=vsync at row 35
+	lda #3:sta &fe01		; R7=vsync at row 35
+	\\ 16c
+
+	lda #6:sta &fe00
+	lda #1:sta &fe01		; R6=1 vertical displayed
+	\\ 16c
 
     RTS
 \}
@@ -690,7 +720,7 @@ ENDIF
 }
 
 .osfile_filename
-EQUS "Mangled", 13
+EQUS "Screen", 13
 
 .osfile_params
 .osfile_nameaddr
@@ -713,22 +743,72 @@ EQUD 0
 \ ******************************************************************
 
 ALIGN &100
+IF 1
 .screen_LO
-FOR a,0,14,1
-
 FOR n,0,255,1
-y = (n DIV 2) + a * 2 * SIN(n * 4 * PI/256)
-EQUB LO((&3000 + (127-INT(y))*160)/8)
+y = 255-n
+row = y DIV 8
+EQUB LO((&3000 + row * 640)/8)
 NEXT
 
+.screen_HI
 FOR n,0,255,1
-y = (n DIV 2) + a * 2 * SIN(n * 4 * PI/256)
-EQUB HI((&3000 + (127-INT(y))*160)/8)
+y = 255-n
+row = y DIV 8
+EQUB HI((&3000 + row * 640)/8)
 NEXT
 
+\\ Actually 14 means +0 (same line)
+\\          13 -> +1 MOD 8 / -7
+\\          12 -> +2 MOD 8 / -6
+\\			11 -> +3 MOD 8 / -5
+\\			10 -> +4 MOD 8 / -4
+\\			 9 -> +5 MOD 8 / -3
+\\			 8 -> +6 MOD 8 / -2
+\\			 7 -> +7 MOD 8 / -1
+.screen_R9
+FOR n,0,255,1
+y = 255-n
+line = y MOD 8
+EQUB 7;14 - line
 NEXT
 
-screen_HI=screen_LO + &100
+ELSE
+a=14
+
+.screen_LO
+FOR n,0,255,1
+y = INT( (n DIV 2) + a * 2 * SIN(n * 4 * PI/256) )
+row = y DIV 8
+EQUB LO((&3000 + row * 640)/8)
+NEXT
+
+.screen_HI
+FOR n,0,255,1
+y = INT( (n DIV 2) + a * 2 * SIN(n * 4 * PI/256) )
+row = y DIV 8
+EQUB HI((&3000 + row * 640)/8)
+NEXT
+
+.screen_R9
+FOR n,0,255,1
+y = INT( (n DIV 2) + a * 2 * SIN(n * 4 * PI/256) )
+IF n=0
+	ydash = y
+ELSE
+	ydash = INT( ((n-1) DIV 2) + a * 2 * SIN((n-1) * 4 * PI/256) )
+ENDIF
+line = y MOD 8
+linedash = ydash MOD 8
+PRINT y, ydash, line, linedash
+IF line >= linedash
+	EQUB 14 - ((line - linedash) MOD 8)
+ELSE
+	EQUB 14 - ((linedash - line) MOD 8)
+ENDIF
+NEXT
+
+ENDIF
 
 .data_end
 
