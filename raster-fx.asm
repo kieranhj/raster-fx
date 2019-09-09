@@ -73,7 +73,7 @@ SCREEN_SIZE_BYTES = &8000 - screen_addr
 FramePeriod = 312*64-2
 
 ; Calculate here the timer value to interrupt at the desired line
-TimerValue = 32*64 - 2*64 - 2 - 22 - 9 - 64
+TimerValue = 32*64 - 2*64 - 2 - 22 - 9 - 64   +1
 
 \\ 40 lines for vblank
 \\ 32 lines for vsync (vertical position = 35 / 39)
@@ -476,8 +476,8 @@ ENDIF
 	lda #13:sta &fe00	; 8c
 	lda screen_LO, x:sta &fe01	; 10c
 
-	lda screen_R9, x
-	sta fx_draw_set_r9a+1
+;	lda screen_R9, x
+;	sta fx_draw_set_r9a+1
 
 	RTS
 }
@@ -499,73 +499,70 @@ ENDIF
 \ ******************************************************************
 
 \\ <--- 80c visible ---> <--- 22c hsync ---> <2c> <2c> ... <2c> = 128c
+\\ Too complicated!
+\\ <--- 100c total w/ 80c visible and hsync at 98c ---> <2c> <2c> ... <2c> = 128c
+
+NOP:NOP:NOP		; shift loop into same page
 
 .fx_draw_function
 \{
-	WAIT_CYCLES 128-12-5
+	\\ Enter fn at 64us before first raster line
+	WAIT_CYCLES 128-14-6
 
 	.fx_draw_here
-	ldx #1			; this is used as a register value :\
-	ldy #4
+	clc
+	ldx #0
+	ldy #2
 	stz &fe00
-	lda #79
-	\\ 12c
+	lda #97
+	\\ 14c
 	
-	\\ start of scanline 0 HCC=0 LVC=0 VCC=0
-	\\ start segment 0 [0-79]
-
-	sta &FE01				; R0=79 horizontal total = 80
+	sta &FE01				; R0=97 horizontal total = 98
 	\\ 6c
 
-	\\ First scanline hsync = 98 which is > horizontal total
-	\\ Set horizontal displayed?
+	\\ start of scanline 0 HCC=0 LVC=0 VCC=0
+	\\ start segment 0 [0-99]
 
 	sty &fe00
-	stz &FE01				; R4=0 vertical total = 1
+	sta &fe01				; R2=97 hsync
 	\\ 12c
+
+	lda #4: sta &fe00				; 8c
+	stz &FE01				; R4=0 vertical total = 1
+	\\ 14c
 
 	\\ Before end of segmnet 0 need to set R12/R13/R9 and R2!
 
 	\\ Set R12/R13
 	LDA #12:STA &fe00				; 8c
-	LDA screen_HI, X:STA &fe01		; 10c
+	LDA screen_HI+1, X:STA &fe01	; 10c		X=1
 
 	LDA #13:STA &fe00				; 8c
-	LDA screen_LO, X:STA &fe01		; 10c
+	LDA screen_LO+1, X:STA &fe01	; 10c		X=1
 	\\ 36c
 
 	\\ Set R9
 	LDA #9:STA &fe00				; 8c
-	.fx_draw_set_r9a
-	LDA #14:STA &fe01				; 10c TEMP fix R9 for now - could be SMC
-	\\ 18c
+	LDA screen_R9+1, X				; 4c
+	EOR #15							; 2c
+	; scanline=0 ADC screen_R9, X				; 4c
+	STA &fe01						; 6c
+	\\ 20c
 
-	\\ Set R2 hsync
-	LDA #2:STA &fe00
+	dey
+	\\ 2c
 
-	\\ start segment 1 [80-101]
+	inx
+	\\ 2c
 
-	LDA #18:STA &fe01		; R2=18 hysnc in segment 1
-	\\ 16c
-
-	\\ Set horizontal total
-	stz &fe00
-	lda #21:sta &fe01		; R0=21 horizontal total = 22
-	\\ 14c
-
-	\\ start segment 2 [102-103]
-	stx &fe01				; R0=1 horizontal total = 2
+	stz &fe00						; 6c
+	\\ This has to be bang on 98c!
+	\\ start segment 1 [98-99]
+	sty &fe01				; R0=1 horizontal total = 2
 	\\ 6c
 
-	\\ segments 3-14 [104-127]
-	WAIT_CYCLES 11*2 -4 -10
-
-	LDA screen_R9, X		; 4c
-	STA fx_draw_set_r9b+1	; 4c
-
-	ldy #1					; 2c
-
-	\\ Move cycles from end of the loop to the beginning
+	\\ segments 3-15 [100-127]
+	WAIT_CYCLES 22
 
 	\\ Start of scanline 1 <phew>
 
@@ -573,71 +570,96 @@ ENDIF
 	\\ start segment 0 [0-79]
 
 	\\ got to catch this before 2c!
-	lda #79
-	sta &FE01				; R0=79 horizontal total = 80
+	lda #97
+	sta &FE01				; R0=99 horizontal total = 100
 	\\ 6c
 
-	\\ Set hsync before 18c!
-	ldy #2:sty &fe00
-	sta &fe01			; R2=79 doesn't matter as will be reset must be > 18
+	lda #8:sta &fe00
+	stz &fe01
 	\\ 14c
 
-	\\ Before end of segmnet 0 need to set R12/R13/R9 and R2!
+	\\ Before end of segmnet 0 need to set R12/R13/R9
 
 	\\ Set R12/R13
 	LDA #12:STA &fe00				; 8c
-	LDA screen_HI, X:STA &fe01		; 10c
+	LDA screen_HI+1, X:STA &fe01		; 10c
 
 	LDA #13:STA &fe00				; 8c
-	LDA screen_LO, X:STA &fe01		; 10c
+	LDA screen_LO+1, X:STA &fe01		; 10c
 	\\ 36c
-
-	\\ Set R2 hsync
-	sty &fe00
-	ldy #1
-	LDA #18:STA &fe01		; R2=18 hysnc in segment 1
-	\\ 16c
 
 	\\ Set R9
 	LDA #9:STA &fe00				; 8c
-	.fx_draw_set_r9b
-	LDA #14:STA &fe01				; 10c TEMP fix R9 for now - could be SMC
-	\\ 16c
+	LDA screen_R9+1, X				; 4c
+	EOR #15							; 2c
+	ADC screen_R9, X				; 4c
+	STA &fe01						; 6c
+	\\ 24c
 
-	\\ start segment 1 [80-101]
+	WAIT_CYCLES 26 -14
 
 	\\ Set horizontal total
 	stz &fe00
-	lda #21:sta &fe01		; R0=21 horizontal total = 22
-	\\ 14c
 
-	\\ start segment 2 [102-103]
+	\\ start segment 1 [100-101]
+
+	\\ This must happen exactly on 100c
+
 	sty &fe01				; R0=1 horizontal total = 2
 	\\ 6c
 
 	\\ segments 3-14 [104-127]
-	WAIT_CYCLES 11*2 -4 -5 -8
-
-	LDA screen_R9, X		; 4c
-	STA fx_draw_set_r9b+1	; 4c
+	WAIT_CYCLES 22 -7
 
 	\\ Time for SHADOW switch in hblank?!
 
 	inx						; 2c
+	cpx #255				; 2c
 	bne fx_draw_loop		; 3c
 	\\ 7c
 
 	.fx_draw_done
 
 	\\ start of scanline 255
-
 	NOP
+
+	\\ Need to get scanlines & character rows back in sync...
+	\\ So if finish on scanline count N
+	\\ Set R9 to get us back to 0 on next scanline
+
+	\\ got to catch this before 2c!
+	lda #97
+	sta &FE01				; R0=97 horizontal total = 98
+	\\ 6c
+
+	\\ Set R9 so we get back to scanline 0 next line
+	LDA #9:STA &fe00				; 8c
+	clc								; 2c
+	LDA #15							; 2c
+	ADC screen_R9, X				; 4c
+	STA &fe01						; 6c
+	\\ 22c
+
+	WAIT_CYCLES 76 -12
+
+	\\ Set horizontal total
+	stz &fe00
+
+	\\ start segment 1 [98-99]
+
+	\\ This must happen exactly on 100c
+
+	sty &fe01				; R0=1 horizontal total = 2
+	\\ 6c
+
+	\\ segments 3-14 [100-127]
+	WAIT_CYCLES 22
+
+	\\ Should be start of scanline 256!
+
+	\\ got to catch this before 2c!
 	lda #127
 	sta &fe01				; R0=127 back to a full width line!
-
-	lda #2:sta &fe00
-	lda #98:sta &fe01		; R2=98 hsync
-	\\ 16c
 
 	lda #9:sta &fe00
 	lda #7:sta &fe01		; R9=7 scanlines per row = 8
@@ -770,7 +792,7 @@ NEXT
 FOR n,0,255,1
 y = 255-n
 line = y MOD 8
-EQUB 7;14 - line
+EQUB line
 NEXT
 
 ELSE
@@ -793,19 +815,8 @@ NEXT
 .screen_R9
 FOR n,0,255,1
 y = INT( (n DIV 2) + a * 2 * SIN(n * 4 * PI/256) )
-IF n=0
-	ydash = y
-ELSE
-	ydash = INT( ((n-1) DIV 2) + a * 2 * SIN((n-1) * 4 * PI/256) )
-ENDIF
 line = y MOD 8
-linedash = ydash MOD 8
-PRINT y, ydash, line, linedash
-IF line >= linedash
-	EQUB 14 - ((line - linedash) MOD 8)
-ELSE
-	EQUB 14 - ((linedash - line) MOD 8)
-ENDIF
+EQUB line
 NEXT
 
 ENDIF
