@@ -73,7 +73,7 @@ SCREEN_SIZE_BYTES = &8000 - screen_addr
 FramePeriod = 312*64-2
 
 ; Calculate here the timer value to interrupt at the desired line
-TimerValue = 32*64 - 2*64 - 2 - 22 - 9 - 64   +1
+TimerValue = 32*64 - 2*64 - 2 - 22 - 9 - 64  ; +1
 
 \\ 40 lines for vblank
 \\ 32 lines for vsync (vertical position = 35 / 39)
@@ -146,6 +146,11 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	LDA #10: STA &FE00
 	LDA #32: STA &FE01
+
+	\\ Shift hsync - IMPORTANT!
+
+	lda #2:sta &fe00
+	lda #97:sta &fe01
 
 	\\ Set Colour 2 to White - MODE 1 requires 4x writes to ULA Palette Register
 
@@ -507,12 +512,12 @@ NOP:NOP:NOP		; shift loop into same page
 .fx_draw_function
 \{
 	\\ Enter fn at 64us before first raster line
-	WAIT_CYCLES 128-14-6
+	WAIT_CYCLES 128-14-5
 
 	.fx_draw_here
 	clc
 	ldx #0
-	ldy #2
+	ldy #&70 + PAL_red		; set pal 4 to red
 	stz &fe00
 	lda #97
 	\\ 14c
@@ -520,12 +525,10 @@ NOP:NOP:NOP		; shift loop into same page
 	sta &FE01				; R0=97 horizontal total = 98
 	\\ 6c
 
+	sty &fe21				; 4c
+
 	\\ start of scanline 0 HCC=0 LVC=0 VCC=0
 	\\ start segment 0 [0-99]
-
-	sty &fe00
-	sta &fe01				; R2=97 hsync
-	\\ 12c
 
 	lda #4: sta &fe00				; 8c
 	stz &FE01				; R4=0 vertical total = 1
@@ -543,17 +546,17 @@ NOP:NOP:NOP		; shift loop into same page
 
 	\\ Set R9
 	LDA #9:STA &fe00				; 8c
-	LDA screen_R9+1, X				; 4c
-	EOR #15							; 2c
-	; scanline=0 ADC screen_R9, X				; 4c
+	LDA screen_R9, X				; 4c
+	clc								; 2c
+	adc #15							; 2c
+	sec								; 2c
+	sbc screen_R9+1, X				; 4c
 	STA &fe01						; 6c
-	\\ 20c
+	\\ 28c
 
-	dey
-	\\ 2c
-
+	ldy #1
 	inx
-	\\ 2c
+	\\ 4c
 
 	stz &fe00						; 6c
 	\\ This has to be bang on 98c!
@@ -561,8 +564,11 @@ NOP:NOP:NOP		; shift loop into same page
 	sty &fe01				; R0=1 horizontal total = 2
 	\\ 6c
 
+	lda #&70 + PAL_white		; set pal 4 back to blue
+	sta &fe21
+
 	\\ segments 3-15 [100-127]
-	WAIT_CYCLES 22
+	WAIT_CYCLES 22 -6
 
 	\\ Start of scanline 1 <phew>
 
@@ -588,15 +594,25 @@ NOP:NOP:NOP		; shift loop into same page
 	LDA screen_LO+1, X:STA &fe01		; 10c
 	\\ 36c
 
+	\\ The rule is, set R9 at the start of a displayed line as follows:
+	\\ R9 = this_line_number + 15 - next_line_number
+	\\ or, conveniently:
+	\\ R9 = (next_line_number EOR 15) + this_line_number (edited) 
+
+	\\ Eg. 0->7: 0+15-7 = 8 = (7^15)+0
+	\\ Eg. 7->0: 7+15-0 = 22 = (0^15)+7
+
 	\\ Set R9
 	LDA #9:STA &fe00				; 8c
-	LDA screen_R9+1, X				; 4c
-	EOR #15							; 2c
-	ADC screen_R9, X				; 4c
+	LDA screen_R9, X				; 4c
+	clc								; 2c
+	adc #15							; 2c
+	sec								; 2c
+	sbc screen_R9+1, X				; 4c
 	STA &fe01						; 6c
 	\\ 24c
 
-	WAIT_CYCLES 26 -14
+	WAIT_CYCLES 26 -14 -4
 
 	\\ Set horizontal total
 	stz &fe00
@@ -780,16 +796,9 @@ row = y DIV 8
 EQUB HI((&3000 + row * 640)/8)
 NEXT
 
-\\ Actually 14 means +0 (same line)
-\\          13 -> +1 MOD 8 / -7
-\\          12 -> +2 MOD 8 / -6
-\\			11 -> +3 MOD 8 / -5
-\\			10 -> +4 MOD 8 / -4
-\\			 9 -> +5 MOD 8 / -3
-\\			 8 -> +6 MOD 8 / -2
-\\			 7 -> +7 MOD 8 / -1
 .screen_R9
-FOR n,0,255,1
+EQUB 0
+FOR n,1,255,1
 y = 255-n
 line = y MOD 8
 EQUB line
@@ -813,7 +822,8 @@ EQUB HI((&3000 + row * 640)/8)
 NEXT
 
 .screen_R9
-FOR n,0,255,1
+EQUB 0
+FOR n,1,255,1
 y = INT( (n DIV 2) + a * 2 * SIN(n * 4 * PI/256) )
 line = y MOD 8
 EQUB line
@@ -863,7 +873,7 @@ PRINT "------"
 \ ******************************************************************
 
 PUTBASIC "circle.bas", "Circle"
-PUTFILE "screen.bin", "Screen", &3000
+PUTFILE "rtw_test.bin", "Screen", &3000
 PUTBASIC "mangle.bas", "Mangle"
 PUTFILE "mangled.bin", "Mangled", &3000
 
