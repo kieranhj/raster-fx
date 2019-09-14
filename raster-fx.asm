@@ -570,7 +570,9 @@ NOP:NOP:NOP		; shift loop into same page
 	\\ 6c
 
 	\\ segments 3-15 [100-127]
-	WAIT_CYCLES 16
+	WAIT_CYCLES 14
+
+	ldy #&40 + PAL_red			; 2c
 
 	\\ Start of scanline 1 <phew>
 
@@ -581,6 +583,9 @@ NOP:NOP:NOP		; shift loop into same page
 	lda #97
 	sta &FE01				; R0=99 horizontal total = 100
 	\\ 6c
+
+	\\ Set palette for timing test
+	sty &fe21				; 4c
 
 	\\ Before end of segmnet 0 need to set R12/R13/R9
 
@@ -610,7 +615,12 @@ NOP:NOP:NOP		; shift loop into same page
 	STA &fe01						; 6c
 	\\ 28c
 
-	WAIT_CYCLES 20
+	\\ Reset palette for timing test
+	lda #&40 + PAL_blue
+	sta &fe21
+	\\ 6c
+
+	WAIT_CYCLES 10
 
 	lda #1							; 2c
 
