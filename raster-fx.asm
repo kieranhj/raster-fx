@@ -525,10 +525,11 @@ NOP:NOP:NOP		; shift loop into same page
 	sta &FE01				; R0=97 horizontal total = 98
 	\\ 6c
 
-	sty &fe21				; 4c
-
 	\\ start of scanline 0 HCC=0 LVC=0 VCC=0
 	\\ start segment 0 [0-99]
+
+	sty &fe21				; set palette 7=red
+	\\ 4c
 
 	lda #4: sta &fe00				; 8c
 	stz &FE01				; R4=0 vertical total = 1
@@ -554,21 +555,22 @@ NOP:NOP:NOP		; shift loop into same page
 	STA &fe01						; 6c
 	\\ 28c
 
-	ldy #1
 	inx
+	lda #1
 	\\ 4c
 
 	stz &fe00						; 6c
 	\\ This has to be bang on 98c!
 	\\ start segment 1 [98-99]
-	sty &fe01				; R0=1 horizontal total = 2
+	sta &fe01				; R0=1 horizontal total = 2
 	\\ 6c
 
 	lda #&70 + PAL_white		; set pal 4 back to blue
 	sta &fe21
+	\\ 6c
 
 	\\ segments 3-15 [100-127]
-	WAIT_CYCLES 22 -6
+	WAIT_CYCLES 16
 
 	\\ Start of scanline 1 <phew>
 
@@ -579,10 +581,6 @@ NOP:NOP:NOP		; shift loop into same page
 	lda #97
 	sta &FE01				; R0=99 horizontal total = 100
 	\\ 6c
-
-	lda #8:sta &fe00
-	stz &fe01
-	\\ 14c
 
 	\\ Before end of segmnet 0 need to set R12/R13/R9
 
@@ -610,18 +608,19 @@ NOP:NOP:NOP		; shift loop into same page
 	sec								; 2c
 	sbc screen_R9+1, X				; 4c
 	STA &fe01						; 6c
-	\\ 24c
+	\\ 28c
 
-	WAIT_CYCLES 26 -14 -4
+	WAIT_CYCLES 20
+
+	lda #1							; 2c
 
 	\\ Set horizontal total
-	stz &fe00
+	stz &fe00						; 6c
 
 	\\ start segment 1 [100-101]
-
 	\\ This must happen exactly on 100c
 
-	sty &fe01				; R0=1 horizontal total = 2
+	sta &fe01				; R0=1 horizontal total = 2
 	\\ 6c
 
 	\\ segments 3-14 [104-127]
@@ -656,16 +655,16 @@ NOP:NOP:NOP		; shift loop into same page
 	STA &fe01						; 6c
 	\\ 22c
 
-	WAIT_CYCLES 76 -12
+	WAIT_CYCLES 62
+
+	lda #1							; 2c
 
 	\\ Set horizontal total
 	stz &fe00
-
-	\\ start segment 1 [98-99]
+	\\ 6c
 
 	\\ This must happen exactly on 100c
-
-	sty &fe01				; R0=1 horizontal total = 2
+	sta &fe01				; R0=1 horizontal total = 2
 	\\ 6c
 
 	\\ segments 3-14 [100-127]
