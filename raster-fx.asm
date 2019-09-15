@@ -73,7 +73,7 @@ SCREEN_SIZE_BYTES = &8000 - screen_addr
 FramePeriod = 312*64-2
 
 ; Calculate here the timer value to interrupt at the desired line
-TimerValue = 32*64 - 2*64 - 2 - 22 - 9 - 64  ; +1
+TimerValue = 32*64 - 2*64 - 2 - 22 - 9 - 64
 
 \\ 40 lines for vblank
 \\ 32 lines for vsync (vertical position = 35 / 39)
@@ -150,15 +150,27 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ Shift hsync - IMPORTANT!
 
 	lda #2:sta &fe00
-	lda #97:sta &fe01
+	lda #95:sta &fe01
 
-	\\ Set Colour 2 to White - MODE 1 requires 4x writes to ULA Palette Register
+	\\ Shift vsync - also important!
 
-	LDA #MODE1_COL2 + PAL_white
-	STA &FE21
-	EOR #&10: STA &FE21
-	EOR #&40: STA &FE21
-	EOR #&10: STA &FE21
+	lda #7:sta &fe00
+	lda #35:sta &fe01
+
+	\\ Ensure the CRTC column counter is incrementing starting from a
+	\\ known state with respect to the cycle stretching. Because the vsync
+	\\ signal is reported via the VIA, which is a 1MHz device, the timing
+	\\ could be out by 0.5 usec in 2MHz modes.
+	\\
+	\\ To fix: set R0=0, wait 256 cycles to ensure the horizontal counter
+	\\ is stuck at 0, then set the horizontal counter to its correct
+	\\ value. The 6845 is always accessed at 1MHz so the cycle counter
+	\\ starts running on a 1MHz boundary.
+	\\
+	\\ Note: when R0=0, DRAM refresh is off. Don't delay too long.
+	stz $fe00:stz $fe01
+	ldx #2:jsr cycles_wait_scanlines
+	stz $fe00:lda #127:sta $fe01
 
 	\\ Initialise system modules here!
 
@@ -512,14 +524,14 @@ NOP:NOP:NOP		; shift loop into same page
 .fx_draw_function
 \{
 	\\ Enter fn at 64us before first raster line
-	WAIT_CYCLES 128-14-5
+	WAIT_CYCLES 128-14-5 -1
 
 	.fx_draw_here
 	clc
 	ldx #0
 	ldy #&70 + PAL_red		; set pal 4 to red
 	stz &fe00
-	lda #97
+	lda #95
 	\\ 14c
 	
 	sta &FE01				; R0=97 horizontal total = 98
@@ -555,12 +567,9 @@ NOP:NOP:NOP		; shift loop into same page
 	STA &fe01						; 6c
 	\\ 28c
 
-	inx
-	lda #1
-	\\ 4c
-
+	lda #1							; 2c
 	stz &fe00						; 6c
-	\\ This has to be bang on 98c!
+	\\ This has to be bang on 98c! NOW 96
 	\\ start segment 1 [98-99]
 	sta &fe01				; R0=1 horizontal total = 2
 	\\ 6c
@@ -573,16 +582,26 @@ NOP:NOP:NOP		; shift loop into same page
 	WAIT_CYCLES 14
 
 	ldy #&40 + PAL_red			; 2c
+	inx							; 2c
 
 	\\ Start of scanline 1 <phew>
 
 	.fx_draw_loop
-	\\ start segment 0 [0-79]
 
 	\\ got to catch this before 2c!
-	lda #97
+	lda #95
 	sta &FE01				; R0=99 horizontal total = 100
 	\\ 6c
+
+	\\ Set R9
+	LDA #9:STA &fe00				; 8c
+	LDA screen_R9, X				; 4c
+	clc								; 2c
+	adc #15							; 2c
+	sec								; 2c
+	sbc screen_R9+1, X				; 4c
+	STA &fe01						; 6c
+	\\ 28c
 
 	\\ Set palette for timing test
 	sty &fe21				; 4c
@@ -605,36 +624,23 @@ NOP:NOP:NOP		; shift loop into same page
 	\\ Eg. 0->7: 0+15-7 = 8 = (7^15)+0
 	\\ Eg. 7->0: 7+15-0 = 22 = (0^15)+7
 
-	\\ Set R9
-	LDA #9:STA &fe00				; 8c
-	LDA screen_R9, X				; 4c
-	clc								; 2c
-	adc #15							; 2c
-	sec								; 2c
-	sbc screen_R9+1, X				; 4c
-	STA &fe01						; 6c
-	\\ 28c
-
 	\\ Reset palette for timing test
 	lda #&40 + PAL_blue
 	sta &fe21
 	\\ 6c
 
-	WAIT_CYCLES 10
+	WAIT_CYCLES 8
 
 	lda #1							; 2c
-
 	\\ Set horizontal total
+	\\ This has to be bang on 98c! NOW 96
 	stz &fe00						; 6c
-
-	\\ start segment 1 [100-101]
-	\\ This must happen exactly on 100c
 
 	sta &fe01				; R0=1 horizontal total = 2
 	\\ 6c
 
 	\\ segments 3-14 [104-127]
-	WAIT_CYCLES 22 -7
+	WAIT_CYCLES 24 -7
 
 	\\ Time for SHADOW switch in hblank?!
 
@@ -653,7 +659,7 @@ NOP:NOP:NOP		; shift loop into same page
 	\\ Set R9 to get us back to 0 on next scanline
 
 	\\ got to catch this before 2c!
-	lda #97
+	lda #95
 	sta &FE01				; R0=97 horizontal total = 98
 	\\ 6c
 
@@ -665,7 +671,7 @@ NOP:NOP:NOP		; shift loop into same page
 	STA &fe01						; 6c
 	\\ 22c
 
-	WAIT_CYCLES 62
+	WAIT_CYCLES 60
 
 	lda #1							; 2c
 
@@ -678,7 +684,7 @@ NOP:NOP:NOP		; shift loop into same page
 	\\ 6c
 
 	\\ segments 3-14 [100-127]
-	WAIT_CYCLES 22
+	WAIT_CYCLES 24
 
 	\\ Should be start of scanline 256!
 
@@ -883,6 +889,5 @@ PRINT "------"
 
 PUTBASIC "circle.bas", "Circle"
 PUTFILE "rtw_test.bin", "Screen", &3000
-PUTBASIC "mangle.bas", "Mangle"
-PUTFILE "mangled.bin", "Mangled", &3000
-
+PUTFILE "screen.bin", "Doom", &3000
+PUTFILE "kc_test.bin", "CircTri", &3000
