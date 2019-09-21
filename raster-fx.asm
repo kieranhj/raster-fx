@@ -66,7 +66,8 @@ ENDMACRO
 \ ******************************************************************
 
 ; Default screen address
-screen_addr = &3000
+screen_addr = &5800
+row_bytes = 320
 SCREEN_SIZE_BYTES = &8000 - screen_addr
 
 ; Exact time for a 50Hz frame less latch load time
@@ -139,8 +140,15 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	LDA #22
 	JSR oswrch
-	LDA #2
+	LDA #5
 	JSR oswrch
+
+	ldx #15
+	.pal_loop
+	lda palette, X
+	sta &fe21
+	dex
+	bpl pal_loop
 
 	JSR fx_init_function
 
@@ -152,7 +160,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ Shift hsync - IMPORTANT!
 
 	lda #2:sta &fe00
-	lda #95:sta &fe01
+	lda #48:sta &fe01
 
 	\\ Shift vsync - also important!
 
@@ -179,10 +187,10 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ starts running on a 1MHz boundary.
 	\\
 	\\ Note: when R0=0, DRAM refresh is off. Don't delay too long.
-	lda #0
-	sta $fe00:sta $fe01
-	ldx #2:jsr cycles_wait_scanlines
-	sta $fe00:lda #127:sta $fe01
+;	lda #0
+;	sta $fe00:sta $fe01
+;	ldx #2:jsr cycles_wait_scanlines
+;	sta $fe00:lda #127:sta $fe01
 
 	\\ Initialise system modules here!
 
@@ -543,7 +551,7 @@ NOP:NOP:NOP		; shift loop into same page
 	ldx #0
 	ldy #&70 + PAL_red		; set pal 4 to red
 	stx &fe00			; stz
-	lda #95
+	lda #48
 	\\ 14c
 	
 	sta &FE01				; R0=97 horizontal total = 98
@@ -552,8 +560,7 @@ NOP:NOP:NOP		; shift loop into same page
 	\\ start of scanline 0 HCC=0 LVC=0 VCC=0
 	\\ start segment 0 [0-99]
 
-	sty &fe21				; set palette 7=red
-	\\ 4c
+	;sty &fe21				; set palette 7=red
 
 	lda #4: sta &fe00				; 8c
 	stx &FE01			; stz	; R4=0 vertical total = 1
@@ -579,7 +586,9 @@ NOP:NOP:NOP		; shift loop into same page
 	STA &fe01						; 6c
 	\\ 28c
 
-	lda #1							; 2c
+	WAIT_CYCLES 6
+
+	lda #0							; 2c
 	stx &fe00			; stz		; 6c
 	\\ This has to be bang on 98c! NOW 96
 	\\ start segment 1 [98-99]
@@ -587,11 +596,11 @@ NOP:NOP:NOP		; shift loop into same page
 	\\ 6c
 
 	lda #&70 + PAL_white		; set pal 4 back to blue
-	sta &fe21
+	NOP:NOP;sta &fe21
 	\\ 6c
 
 	\\ segments 3-15 [100-127]
-	WAIT_CYCLES 14
+	WAIT_CYCLES 14 -2
 
 	ldy #0						; 2c
 	inx							; 2c
@@ -601,7 +610,7 @@ NOP:NOP:NOP		; shift loop into same page
 	.fx_draw_loop
 
 	\\ got to catch this before 2c!
-	lda #95
+	lda #48
 	sta &FE01				; R0=99 horizontal total = 100
 	\\ 6c
 
@@ -617,7 +626,7 @@ NOP:NOP:NOP		; shift loop into same page
 
 	\\ Set palette for timing test
 	lda #&40 + PAL_red				; 2c
-	sta &fe21						; 4c
+	NOP:NOP;sta &fe21						; 4c
 
 	\\ Before end of segmnet 0 need to set R12/R13/R9
 
@@ -639,12 +648,12 @@ NOP:NOP:NOP		; shift loop into same page
 
 	\\ Reset palette for timing test
 	lda #&40 + PAL_blue
-	sta &fe21
+	NOP:NOP;sta &fe21
 	\\ 6c
 
-	WAIT_CYCLES 6
+	WAIT_CYCLES 6 +2
 
-	lda #1							; 2c
+	lda #0							; 2c
 	\\ Set horizontal total
 	\\ This has to be bang on 98c! NOW 96
 	sty &fe00						; 6c
@@ -653,7 +662,7 @@ NOP:NOP:NOP		; shift loop into same page
 	\\ 6c
 
 	\\ segments 3-14 [104-127]
-	WAIT_CYCLES 24 -7
+	WAIT_CYCLES 24 -2 -7
 
 	\\ Time for SHADOW switch in hblank?!
 
@@ -672,7 +681,7 @@ NOP:NOP:NOP		; shift loop into same page
 	\\ Set R9 to get us back to 0 on next scanline
 
 	\\ got to catch this before 2c!
-	lda #95
+	lda #48
 	sta &FE01				; R0=97 horizontal total = 98
 	\\ 6c
 
@@ -684,9 +693,9 @@ NOP:NOP:NOP		; shift loop into same page
 	STA &fe01						; 6c
 	\\ 22c
 
-	WAIT_CYCLES 60
+	WAIT_CYCLES 60 +2
 
-	lda #1							; 2c
+	lda #0							; 2c
 
 	\\ Set horizontal total
 	sty &fe00
@@ -697,12 +706,12 @@ NOP:NOP:NOP		; shift loop into same page
 	\\ 6c
 
 	\\ segments 3-14 [100-127]
-	WAIT_CYCLES 24
+	WAIT_CYCLES 24 -2
 
 	\\ Should be start of scanline 256!
 
 	\\ got to catch this before 2c!
-	lda #127
+	lda #63
 	sta &fe01				; R0=127 back to a full width line!
 
 	lda #9:sta &fe00
@@ -785,6 +794,26 @@ NOP:NOP:NOP		; shift loop into same page
 	EQUB LO(screen_addr/8)	; R13 screen start address, low
 }
 
+.palette
+{
+	EQUB &00 + PAL_green
+	EQUB &10 + PAL_green
+	EQUB &20 + PAL_red
+	EQUB &30 + PAL_red
+	EQUB &40 + PAL_green
+	EQUB &50 + PAL_green
+	EQUB &60 + PAL_red
+	EQUB &70 + PAL_red
+	EQUB &80 + PAL_blue
+	EQUB &90 + PAL_blue
+	EQUB &A0 + PAL_white
+	EQUB &B0 + PAL_white
+	EQUB &C0 + PAL_blue
+	EQUB &D0 + PAL_blue
+	EQUB &E0 + PAL_white
+	EQUB &F0 + PAL_white
+}
+
 .osfile_filename
 EQUS "Screen", 13
 
@@ -814,14 +843,14 @@ IF 1
 FOR n,0,255,1
 y = 255-n
 row = y DIV 8
-EQUB LO((&3000 + row * 640)/8)
+EQUB LO((screen_addr + row * row_bytes)/8)
 NEXT
 
 .screen_HI
 FOR n,0,255,1
 y = 255-n
 row = y DIV 8
-EQUB HI((&3000 + row * 640)/8)
+EQUB HI((screen_addr + row * row_bytes)/8)
 NEXT
 
 .screen_R9
@@ -901,6 +930,8 @@ PRINT "------"
 \ ******************************************************************
 
 PUTBASIC "circle.bas", "Circle"
-PUTFILE "rtw_test.bin", "Screen", &3000
-PUTFILE "screen.bin", "Doom", &3000
+PUTFILE "test5.bin", "Screen", &5800
+PUTFILE "rtw_test.bin", "rtw", &3000
+PUTFILE "doom.bin", "Doom", &3000
 PUTFILE "kc_test.bin", "CircTri", &3000
+PUTBASIC "testscreen.bas", "Test"
