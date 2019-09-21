@@ -2,7 +2,7 @@
 \ *	RASTER FX FRAMEWORK
 \ ******************************************************************
 
-CPU 1
+CPU 0
 
 \ ******************************************************************
 \ *	OS defines
@@ -103,7 +103,7 @@ GUARD &9F
 \ *	CODE START
 \ ******************************************************************
 
-ORG &E00	      			; code origin (like P%=&2000)
+ORG &1900	      			; code origin (like P%=&2000)
 GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .start
@@ -142,6 +142,8 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #2
 	JSR oswrch
 
+	JSR fx_init_function
+
 	\\ Turn off cursor
 
 	LDA #10: STA &FE00
@@ -157,6 +159,15 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	lda #7:sta &fe00
 	lda #35:sta &fe01
 
+	\\ Turn off interlace
+
+	lda #8:sta &fe00
+	lda #0:sta &fe01
+
+	ldx #255:jsr cycles_wait_scanlines
+	ldx #255:jsr cycles_wait_scanlines
+	ldx #255:jsr cycles_wait_scanlines
+
 	\\ Ensure the CRTC column counter is incrementing starting from a
 	\\ known state with respect to the cycle stretching. Because the vsync
 	\\ signal is reported via the VIA, which is a 1MHz device, the timing
@@ -168,9 +179,10 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ starts running on a 1MHz boundary.
 	\\
 	\\ Note: when R0=0, DRAM refresh is off. Don't delay too long.
-	stz $fe00:stz $fe01
+	lda #0
+	sta $fe00:sta $fe01
 	ldx #2:jsr cycles_wait_scanlines
-	stz $fe00:lda #127:sta $fe01
+	sta $fe00:lda #127:sta $fe01
 
 	\\ Initialise system modules here!
 
@@ -232,7 +244,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ Initialise FX modules here
 
 	.call_init
-	JSR fx_init_function
+\\	JSR fx_init_function
 
 	\\ We don't know how long the init took so resync to timer 1
 
@@ -530,7 +542,7 @@ NOP:NOP:NOP		; shift loop into same page
 	clc
 	ldx #0
 	ldy #&70 + PAL_red		; set pal 4 to red
-	stz &fe00
+	stx &fe00			; stz
 	lda #95
 	\\ 14c
 	
@@ -544,7 +556,7 @@ NOP:NOP:NOP		; shift loop into same page
 	\\ 4c
 
 	lda #4: sta &fe00				; 8c
-	stz &FE01				; R4=0 vertical total = 1
+	stx &FE01			; stz	; R4=0 vertical total = 1
 	\\ 14c
 
 	\\ Before end of segmnet 0 need to set R12/R13/R9 and R2!
@@ -568,7 +580,7 @@ NOP:NOP:NOP		; shift loop into same page
 	\\ 28c
 
 	lda #1							; 2c
-	stz &fe00						; 6c
+	stx &fe00			; stz		; 6c
 	\\ This has to be bang on 98c! NOW 96
 	\\ start segment 1 [98-99]
 	sta &fe01				; R0=1 horizontal total = 2
@@ -581,7 +593,7 @@ NOP:NOP:NOP		; shift loop into same page
 	\\ segments 3-15 [100-127]
 	WAIT_CYCLES 14
 
-	ldy #&40 + PAL_red			; 2c
+	ldy #0						; 2c
 	inx							; 2c
 
 	\\ Start of scanline 1 <phew>
@@ -604,7 +616,8 @@ NOP:NOP:NOP		; shift loop into same page
 	\\ 28c
 
 	\\ Set palette for timing test
-	sty &fe21				; 4c
+	lda #&40 + PAL_red				; 2c
+	sta &fe21						; 4c
 
 	\\ Before end of segmnet 0 need to set R12/R13/R9
 
@@ -629,12 +642,12 @@ NOP:NOP:NOP		; shift loop into same page
 	sta &fe21
 	\\ 6c
 
-	WAIT_CYCLES 8
+	WAIT_CYCLES 6
 
 	lda #1							; 2c
 	\\ Set horizontal total
 	\\ This has to be bang on 98c! NOW 96
-	stz &fe00						; 6c
+	sty &fe00						; 6c
 
 	sta &fe01				; R0=1 horizontal total = 2
 	\\ 6c
@@ -676,7 +689,7 @@ NOP:NOP:NOP		; shift loop into same page
 	lda #1							; 2c
 
 	\\ Set horizontal total
-	stz &fe00
+	sty &fe00
 	\\ 6c
 
 	\\ This must happen exactly on 100c
