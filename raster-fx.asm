@@ -160,7 +160,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ Shift hsync - IMPORTANT!
 
 	lda #2:sta &fe00
-	lda #48:sta &fe01
+	lda #33:sta &fe01
 
 	\\ Shift vsync - also important!
 
@@ -549,9 +549,9 @@ NOP:NOP:NOP		; shift loop into same page
 	.fx_draw_here
 	clc
 	ldx #0
-	ldy #&70 + PAL_red		; set pal 4 to red
-	stx &fe00			; stz
-	lda #48
+	ldy #0
+	sty &fe00			; stz
+	lda #33
 	\\ 14c
 	
 	sta &FE01				; R0=97 horizontal total = 98
@@ -560,13 +560,29 @@ NOP:NOP:NOP		; shift loop into same page
 	\\ start of scanline 0 HCC=0 LVC=0 VCC=0
 	\\ start segment 0 [0-99]
 
-	;sty &fe21				; set palette 7=red
-
 	lda #4: sta &fe00				; 8c
 	stx &FE01			; stz	; R4=0 vertical total = 1
 	\\ 14c
 
 	\\ Before end of segmnet 0 need to set R12/R13/R9 and R2!
+
+	\\ Set R9
+	LDA #9:STA &fe00				; 8c
+	LDA screen_R9, X				; 4c
+	clc								; 2c
+	adc #15							; 2c
+	sec								; 2c
+	sbc screen_R9+1, X				; 4c
+	STA &fe01						; 6c
+	\\ 28c
+
+	WAIT_CYCLES 12
+
+	lda #1							; 2c
+	sty &fe00			; stz		; 6c
+	\\ at char 68
+	sta &fe01				; R0=1 horizontal total = 2
+	\\ 6c
 
 	\\ Set R12/R13
 	LDA #12:STA &fe00				; 8c
@@ -576,33 +592,8 @@ NOP:NOP:NOP		; shift loop into same page
 	LDA screen_LO+1, X:STA &fe01	; 10c		X=1
 	\\ 36c
 
-	\\ Set R9
-	LDA #9:STA &fe00				; 8c
-	LDA screen_R9, X				; 4c
-	clc								; 2c
-	adc #15							; 2c
-	sec								; 2c
-	sbc screen_R9+1, X				; 4c
-	STA &fe01						; 6c
-	\\ 28c
+	WAIT_CYCLES 8
 
-	WAIT_CYCLES 6
-
-	lda #0							; 2c
-	stx &fe00			; stz		; 6c
-	\\ This has to be bang on 98c! NOW 96
-	\\ start segment 1 [98-99]
-	sta &fe01				; R0=1 horizontal total = 2
-	\\ 6c
-
-	lda #&70 + PAL_white		; set pal 4 back to blue
-	NOP:NOP;sta &fe21
-	\\ 6c
-
-	\\ segments 3-15 [100-127]
-	WAIT_CYCLES 14 -2
-
-	ldy #0						; 2c
 	inx							; 2c
 
 	\\ Start of scanline 1 <phew>
@@ -610,9 +601,12 @@ NOP:NOP:NOP		; shift loop into same page
 	.fx_draw_loop
 
 	\\ got to catch this before 2c!
-	lda #48
+	sty &fe00			; stz		; 6c
+	lda #33
 	sta &FE01				; R0=99 horizontal total = 100
 	\\ 6c
+
+	\\ Before end of segmnet 0 need to set R12/R13/R9
 
 	\\ Set R9
 	LDA #9:STA &fe00				; 8c
@@ -624,19 +618,14 @@ NOP:NOP:NOP		; shift loop into same page
 	STA &fe01						; 6c
 	\\ 28c
 
-	\\ Set palette for timing test
-	lda #&40 + PAL_red				; 2c
-	NOP:NOP;sta &fe21						; 4c
+	WAIT_CYCLES 26
 
-	\\ Before end of segmnet 0 need to set R12/R13/R9
-
-	\\ Set R12/R13
-	LDA #12:STA &fe00				; 8c
-	LDA screen_HI+1, X:STA &fe01		; 10c
-
-	LDA #13:STA &fe00				; 8c
-	LDA screen_LO+1, X:STA &fe01		; 10c
-	\\ 36c
+	\\ Set horizontal total
+	\\ This has to be bang on 98c! NOW 96
+	sty &fe00						; 6c
+	lda #1							; 2c
+	sta &fe01				; R0=1 horizontal total = 2
+	\\ 6c
 
 	\\ The rule is, set R9 at the start of a displayed line as follows:
 	\\ R9 = this_line_number + 15 - next_line_number
@@ -646,23 +635,16 @@ NOP:NOP:NOP		; shift loop into same page
 	\\ Eg. 0->7: 0+15-7 = 8 = (7^15)+0
 	\\ Eg. 7->0: 7+15-0 = 22 = (0^15)+7
 
-	\\ Reset palette for timing test
-	lda #&40 + PAL_blue
-	NOP:NOP;sta &fe21
-	\\ 6c
+	\\ Set R12/R13
+	LDA #12:STA &fe00				; 8c
+	LDA screen_HI+1, X:STA &fe01		; 10c
 
-	WAIT_CYCLES 6 +2
-
-	lda #0							; 2c
-	\\ Set horizontal total
-	\\ This has to be bang on 98c! NOW 96
-	sty &fe00						; 6c
-
-	sta &fe01				; R0=1 horizontal total = 2
-	\\ 6c
+	LDA #13:STA &fe00				; 8c
+	LDA screen_LO+1, X:STA &fe01		; 10c
+	\\ 36c
 
 	\\ segments 3-14 [104-127]
-	WAIT_CYCLES 24 -2 -7
+	WAIT_CYCLES 10 -7 +1
 
 	\\ Time for SHADOW switch in hblank?!
 
@@ -674,14 +656,14 @@ NOP:NOP:NOP		; shift loop into same page
 	.fx_draw_done
 
 	\\ start of scanline 255
-	NOP
 
 	\\ Need to get scanlines & character rows back in sync...
 	\\ So if finish on scanline count N
 	\\ Set R9 to get us back to 0 on next scanline
 
 	\\ got to catch this before 2c!
-	lda #48
+	sty &fe00
+	lda #33
 	sta &FE01				; R0=97 horizontal total = 98
 	\\ 6c
 
@@ -693,20 +675,18 @@ NOP:NOP:NOP		; shift loop into same page
 	STA &fe01						; 6c
 	\\ 22c
 
-	WAIT_CYCLES 60 +2
-
-	lda #0							; 2c
+	WAIT_CYCLES 32
 
 	\\ Set horizontal total
 	sty &fe00
 	\\ 6c
-
+	lda #1							; 2c
 	\\ This must happen exactly on 100c
 	sta &fe01				; R0=1 horizontal total = 2
 	\\ 6c
 
 	\\ segments 3-14 [100-127]
-	WAIT_CYCLES 24 -2
+	WAIT_CYCLES 52
 
 	\\ Should be start of scanline 256!
 
