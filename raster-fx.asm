@@ -2,7 +2,8 @@
 \ *	RASTER FX FRAMEWORK
 \ ******************************************************************
 
-CPU 0
+CPU 1
+_REAL_HW = FALSE
 
 \ ******************************************************************
 \ *	OS defines
@@ -68,6 +69,7 @@ ENDMACRO
 ; Default screen address
 screen_addr = &3000
 SCREEN_SIZE_BYTES = &8000 - screen_addr
+row_bytes = 640
 
 ; Exact time for a 50Hz frame less latch load time
 FramePeriod = 312*64-2
@@ -96,8 +98,10 @@ GUARD &9F
 
 \\ FX variables
 
-.fx_colour_index		SKIP 1		; index into our colour palette
 .fx_raster_count		SKIP 1
+.second_line			skip 1
+.table_idx				skip 1
+.table_top				skip 1
 
 \ ******************************************************************
 \ *	CODE START
@@ -429,11 +433,25 @@ ENDIF
 	LDA #&FF
     JSR osfile
 
-	LDA #HI(screen_LO)
-	STA fx_colour_index
+	.outer
+	lda #0
+	ldy #7
+	.loop
+	sta screen_addr,y
+	dey
+	bpl loop
 
-	LDA #1
-	STA fx_raster_count
+	clc
+	lda loop+1
+	adc #LO(row_bytes)
+	sta loop+1
+	lda loop+2
+	adc #HI(row_bytes)
+	sta loop+2
+	bpl outer
+
+	lda #0
+	sta table_top
 
 	RTS
 }
@@ -455,49 +473,6 @@ ENDIF
 
 .fx_update_function
 {
-IF 0
-	LDA fx_raster_count
-	BMI backwards
-
-	\\ Forwards
-	LDX fx_colour_index
-	STX lookup_load_LO + 2
-	INX
-	STX lookup_load_HI + 2
-	INX
-	CPX #HI(data_end)
-	BCC ok1
-	DEX:DEX
-	LDA #&80
-	STA fx_raster_count
-	.ok1
-	STX fx_colour_index
-	JMP continue
-
-	.backwards
-	LDX fx_colour_index
-	STX lookup_load_LO + 2
-	INX
-	STX lookup_load_HI + 2
-	DEX
-	CPX #HI(screen_LO)
-	BNE ok2
-	INX:INX
-	LDA #1
-	STA fx_raster_count
-	.ok2
-	DEX:DEX
-	STX fx_colour_index
-
-	.continue
-	ldy #255
-	lda #12:sta &fe00	; 8c
-	lda screen_HI, y:sta &fe01	; 10c
-
-	lda #13:sta &fe00	; 8c
-	lda screen_LO, y:sta &fe01	; 10c
-ENDIF
-
 	ldx #0
 	lda #12:sta &fe00	; 8c
 	lda screen_HI, x:sta &fe01	; 10c
@@ -505,8 +480,17 @@ ENDIF
 	lda #13:sta &fe00	; 8c
 	lda screen_LO, x:sta &fe01	; 10c
 
-;	lda screen_R9, x
-;	sta fx_draw_set_r9a+1
+	LDA #254
+	STA fx_raster_count		; fx_draw_loop counter
+
+	dec table_top
+
+	ldx table_top
+	stx table_idx
+
+	\\ First line always 0
+	lda table_y, X
+	sta second_line
 
 	RTS
 }
@@ -527,23 +511,27 @@ ENDIF
 \ A FULL AND VALID 312 line PAL signal before exiting!
 \ ******************************************************************
 
-\\ <--- 80c visible ---> <--- 22c hsync ---> <2c> <2c> ... <2c> = 128c
-\\ Too complicated!
-\\ <--- 100c total w/ 80c visible and hsync at 98c ---> <2c> <2c> ... <2c> = 128c
+\\ <--- 96c total w/ 80c visible and hsync at 95c ---> <2c> <2c> ... <2c> = 128c
+\\ 1 visible segment + 16 short invisible segments = 17 'scanlines' per 'row' along a single raster line
 
 NOP:NOP:NOP		; shift loop into same page
 
 .fx_draw_function
 \{
 	\\ Enter fn at 64us before first raster line
-	WAIT_CYCLES 128-14-5 -1
+	WAIT_CYCLES 128-14-6 -1
 
 	.fx_draw_here
 	clc
-	ldx #0
-	ldy #&70 + PAL_red		; set pal 4 to red
-	stx &fe00			; stz
+	ldx second_line		; next scanline
+	ldy #0				; this scanline
+	stz &fe00			; stz
+
+IF _REAL_HW
 	lda #95
+ELSE
+	lda #97
+ENDIF
 	\\ 14c
 	
 	sta &FE01				; R0=97 horizontal total = 98
@@ -552,82 +540,79 @@ NOP:NOP:NOP		; shift loop into same page
 	\\ start of scanline 0 HCC=0 LVC=0 VCC=0
 	\\ start segment 0 [0-99]
 
-	sty &fe21				; set palette 7=red
-	\\ 4c
-
 	lda #4: sta &fe00				; 8c
-	stx &FE01			; stz	; R4=0 vertical total = 1
+	stz &FE01			; stz	; R4=0 vertical total = 1
 	\\ 14c
 
 	\\ Before end of segmnet 0 need to set R12/R13/R9 and R2!
 
-	\\ Set R12/R13
-	LDA #12:STA &fe00				; 8c
-	LDA screen_HI+1, X:STA &fe01	; 10c		X=1
-
-	LDA #13:STA &fe00				; 8c
-	LDA screen_LO+1, X:STA &fe01	; 10c		X=1
-	\\ 36c
-
 	\\ Set R9
 	LDA #9:STA &fe00				; 8c
-	LDA screen_R9, X				; 4c
-	clc								; 2c
-	adc #15							; 2c
-	sec								; 2c
-	sbc screen_R9+1, X				; 4c
+	LDA screen_line, X				; 4c
+	eor #15							; 2c
+	adc screen_line, Y				; 3c
 	STA &fe01						; 6c
 	\\ 28c
 
+	\\ Set R12/R13
+	LDA #12:STA &fe00				; 8c
+	LDA screen_HI, X:STA &fe01	; 10c		X=1
+
+	LDA #13:STA &fe00				; 8c
+	LDA screen_LO, X:STA &fe01	; 10c		X=1
+	\\ 36c
+
+	WAIT_CYCLES 9
+
+IF _REAL_HW=FALSE
+	NOP
+ENDIF
+
+	\\ start segment 1..
+	stz &fe00			; stz		; 6c
 	lda #1							; 2c
-	stx &fe00			; stz		; 6c
-	\\ This has to be bang on 98c! NOW 96
-	\\ start segment 1 [98-99]
+	\\ This has to be bang on 96c on real hw
 	sta &fe01				; R0=1 horizontal total = 2
 	\\ 6c
 
-	lda #&70 + PAL_white		; set pal 4 back to blue
-	sta &fe21
+	lda #6:sta &fe00
+	lda #1:sta &fe01		; R6=1 vertical displayed
+	\\ 16c
+
+	stz &fe00
 	\\ 6c
 
-	\\ segments 3-15 [100-127]
-	WAIT_CYCLES 14
-
-	ldy #0						; 2c
-	inx							; 2c
+IF _REAL_HW
+	NOP
+ENDIF
 
 	\\ Start of scanline 1 <phew>
+	\\ X is the raster line we want to display
+	\\ Use Y to look up a table to increment X
 
 	.fx_draw_loop
 
-	\\ got to catch this before 2c!
+IF _REAL_HW
 	lda #95
-	sta &FE01				; R0=99 horizontal total = 100
+ELSE
+	lda #97
+ENDIF
+	\\ got to catch this before 2c!
+	sta &FE01				; R0=95 horizontal total = 96
 	\\ 6c
 
-	\\ Set R9
-	LDA #9:STA &fe00				; 8c
-	LDA screen_R9, X				; 4c
-	clc								; 2c
-	adc #15							; 2c
-	sec								; 2c
-	sbc screen_R9+1, X				; 4c
-	STA &fe01						; 6c
-	\\ 28c
+	txa		; next scanline			; 2c
+	tay		; becomes current scanline	; 2c
 
-	\\ Set palette for timing test
-	lda #&40 + PAL_red				; 2c
-	sta &fe21						; 4c
+	ldx table_idx					; 3c
+	inx								; 2c
+	stx table_idx					; 3c
+
+	clc								; 2c
+	adc table_y, X					; 4c
+	tax		; becomes next scanline	; 2c
 
 	\\ Before end of segmnet 0 need to set R12/R13/R9
-
-	\\ Set R12/R13
-	LDA #12:STA &fe00				; 8c
-	LDA screen_HI+1, X:STA &fe01		; 10c
-
-	LDA #13:STA &fe00				; 8c
-	LDA screen_LO+1, X:STA &fe01		; 10c
-	\\ 36c
 
 	\\ The rule is, set R9 at the start of a displayed line as follows:
 	\\ R9 = this_line_number + 15 - next_line_number
@@ -637,28 +622,44 @@ NOP:NOP:NOP		; shift loop into same page
 	\\ Eg. 0->7: 0+15-7 = 8 = (7^15)+0
 	\\ Eg. 7->0: 7+15-0 = 22 = (0^15)+7
 
-	\\ Reset palette for timing test
-	lda #&40 + PAL_blue
-	sta &fe21
-	\\ 6c
+	\\ Set R9
+	LDA #9:STA &fe00				; 8c
+	LDA screen_line, X				; 4c
+	eor #15							; 2c
+	clc								; 2c
+	adc screen_line, Y				; 4c
+	STA &fe01						; 6c
+	\\ 28c
 
-	WAIT_CYCLES 6
+	\\ Set R12/R13
+	LDA #12:STA &fe00				; 8c
+	LDA screen_HI, X:STA &fe01		; 10c
 
-	lda #1							; 2c
+	LDA #13:STA &fe00				; 8c
+	LDA screen_LO, X:STA &fe01		; 10c
+	\\ 36c
+
+IF _REAL_HW=FALSE
+	NOP
+ENDIF
+
 	\\ Set horizontal total
-	\\ This has to be bang on 98c! NOW 96
-	sty &fe00						; 6c
-
+	\\ This has to be bang on 96c!
+	stz &fe00						; 6c
+	lda #1							; 2c
 	sta &fe01				; R0=1 horizontal total = 2
 	\\ 6c
 
 	\\ segments 3-14 [104-127]
-	WAIT_CYCLES 24 -7
+	WAIT_CYCLES 22 -8
+
+IF _REAL_HW
+	NOP
+ENDIF
 
 	\\ Time for SHADOW switch in hblank?!
 
-	inx						; 2c
-	cpx #255				; 2c
+	dec fx_raster_count		; 5c
 	bne fx_draw_loop		; 3c
 	\\ 7c
 
@@ -672,32 +673,42 @@ NOP:NOP:NOP		; shift loop into same page
 	\\ Set R9 to get us back to 0 on next scanline
 
 	\\ got to catch this before 2c!
+IF _REAL_HW
 	lda #95
-	sta &FE01				; R0=97 horizontal total = 98
+ELSE
+	lda #97
+ENDIF
+	sta &FE01				; R0=95 horizontal total = 96
 	\\ 6c
 
 	\\ Set R9 so we get back to scanline 0 next line
 	LDA #9:STA &fe00				; 8c
 	clc								; 2c
 	LDA #15							; 2c
-	ADC screen_R9, X				; 4c
+	ADC screen_line, X				; 4c
 	STA &fe01						; 6c
 	\\ 22c
 
 	WAIT_CYCLES 60
 
-	lda #1							; 2c
+IF _REAL_HW=FALSE
+	NOP
+ENDIF
 
 	\\ Set horizontal total
-	sty &fe00
+	stz &fe00
 	\\ 6c
-
+	lda #1							; 2c
 	\\ This must happen exactly on 100c
 	sta &fe01				; R0=1 horizontal total = 2
 	\\ 6c
 
 	\\ segments 3-14 [100-127]
-	WAIT_CYCLES 24
+	WAIT_CYCLES 22
+
+IF _REAL_HW
+	NOP
+ENDIF
 
 	\\ Should be start of scanline 256!
 
@@ -718,7 +729,7 @@ NOP:NOP:NOP		; shift loop into same page
 	\\ 16c
 
 	lda #6:sta &fe00
-	lda #1:sta &fe01		; R6=1 vertical displayed
+	lda #0:sta &fe01		; R6=1 vertical displayed
 	\\ 16c
 
     RTS
@@ -809,55 +820,38 @@ EQUD 0
 \ ******************************************************************
 
 ALIGN &100
-IF 1
+
 .screen_LO
 FOR n,0,255,1
-y = 255-n
+y = n
 row = y DIV 8
-EQUB LO((&3000 + row * 640)/8)
+EQUB LO((screen_addr + row * row_bytes)/8)
 NEXT
 
 .screen_HI
 FOR n,0,255,1
-y = 255-n
+y = n
 row = y DIV 8
-EQUB HI((&3000 + row * 640)/8)
+EQUB HI((screen_addr + row * row_bytes)/8)
 NEXT
 
-.screen_R9
+.screen_line
 EQUB 0
 FOR n,1,255,1
-y = 255-n
+y = n
 line = y MOD 8
 EQUB line
 NEXT
 
-ELSE
-a=14
-
-.screen_LO
+.table_y
 FOR n,0,255,1
-y = INT( (n DIV 2) + a * 2 * SIN(n * 4 * PI/256) )
-row = y DIV 8
-EQUB LO((&3000 + row * 640)/8)
+EQUB 4 * SIN(2 * PI * n / 256)
 NEXT
 
-.screen_HI
+.table_i
 FOR n,0,255,1
-y = INT( (n DIV 2) + a * 2 * SIN(n * 4 * PI/256) )
-row = y DIV 8
-EQUB HI((&3000 + row * 640)/8)
+EQUB 64 * SIN(2 * PI * n / 256)
 NEXT
-
-.screen_R9
-EQUB 0
-FOR n,1,255,1
-y = INT( (n DIV 2) + a * 2 * SIN(n * 4 * PI/256) )
-line = y MOD 8
-EQUB line
-NEXT
-
-ENDIF
 
 .data_end
 
@@ -901,6 +895,6 @@ PRINT "------"
 \ ******************************************************************
 
 PUTBASIC "circle.bas", "Circle"
-PUTFILE "rtw_test.bin", "Screen", &3000
-PUTFILE "screen.bin", "Doom", &3000
+PUTFILE "rtw_test.bin", "T", &3000
+PUTFILE "screen.bin", "Screen", &3000
 PUTFILE "kc_test.bin", "CircTri", &3000
