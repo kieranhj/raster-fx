@@ -102,6 +102,9 @@ GUARD &9F
 .second_line			skip 1
 .table_idx				skip 1
 .table_top				skip 1
+.raster_y				skip 1
+.raster_max				skip 1
+.temp					skip 1
 
 \ ******************************************************************
 \ *	CODE START
@@ -425,19 +428,22 @@ ENDIF
 \ The function can take as long as is necessary to initialise.
 \ ******************************************************************
 
-.fx_init_function
+IF 0
+.blank_left_column
 {
-    \ Ask OSFILE to load our screen
-	LDX #LO(osfile_params)
-	LDY #HI(osfile_params)
-	LDA #&FF
-    JSR osfile
+	lda #LO(screen_addr)
+	sta loop+1
+	lda #HI(screen_addr)
+	sta loop+2
 
+	\\ Blank first column of image
 	.outer
-	lda #0
 	ldy #7
+	ldy #15
+
+	lda #0
 	.loop
-	sta screen_addr,y
+	sta &FFFF,y
 	dey
 	bpl loop
 
@@ -450,8 +456,49 @@ ENDIF
 	sta loop+2
 	bpl outer
 
+	rts
+}
+ENDIF
+
+.fx_init_function
+{
+	lda &fe34
+	and #255-4		; MAIN RAM
+	sta &fe34
+
+    \ Ask OSFILE to load our screen
+	LDX #LO(osfile_params)
+	LDY #HI(osfile_params)
+	LDA #&FF
+    JSR osfile
+;	jsr blank_left_column
+
+	lda &fe34
+	ora #4			; SHADOW RAM
+	sta &fe34
+
+	lda #LO(shadow_filename)
+	sta osfile_nameaddr
+	lda #HI(shadow_filename)
+	sta osfile_nameaddr+1
+
+    \ Ask OSFILE to load our screen
+	LDX #LO(osfile_params)
+	LDY #HI(osfile_params)
+	LDA #&FF
+    JSR osfile
+;	jsr blank_left_column
+
+	lda &fe34
+	and #255-4		; MAIN RAM
+	sta &fe34
+
+	\\ Init vars
 	lda #0
 	sta table_top
+
+	lda #255
+	sta raster_max
 
 	RTS
 }
@@ -482,6 +529,9 @@ ENDIF
 
 	LDA #254
 	STA fx_raster_count		; fx_draw_loop counter
+
+	lda #1
+	sta raster_y			; we start counting on second line
 
 	dec table_top
 
@@ -558,7 +608,7 @@ ENDIF
 	\\ Set R9
 	LDA #9:STA &fe00				; 8c
 	LDA y_to_scanline, Y			; 4c
-	sta smc_prev_line+1				; 4c
+	sta fx_draw_prev_line+1				; 4c
 	eor #15							; 2c
 	\\ First scanline always 0
 	STA &fe01						; 6c
@@ -572,7 +622,11 @@ ENDIF
 	LDA screen_LO, Y:STA &fe01		; 10c		X=1
 	\\ 36c
 
-	WAIT_CYCLES 9
+	\\ Load Y ahead of raster
+	ldy raster_y					; 3c	could be LDY #1
+	ldx table_idx
+
+	WAIT_CYCLES 2
 
 IF _REAL_HW=FALSE
 	NOP
@@ -586,7 +640,7 @@ ENDIF
 	\\ 14c
 
 	lda #6:sta &fe00
-	lda #1:sta &fe01		; R6=1 vertical displayed
+	lda #1:sta &fe01		; R6=1 vertical displayed <-- could this be moved to update?
 	\\ 16c
 
 	stz &fe00
@@ -611,75 +665,44 @@ ENDIF
 	sta &FE01				; R0=95 horizontal total = 96
 	\\ 8c
 
-IF 1
-	ldy table_idx					; 3c
-	iny								; 2c
-	sty table_idx					; 3c
+	\\ image_y = raster_y + table_y[index]
+	tya								; 2c	Y=raster Y
+	adc table_y, X					; 4c	X=table index
+	tay								; 2c	Y=image Y
 
-	\\ If X is current raster line
-	txa								; 2c
-	adc table_y, Y					; 4c
-
-	tay								; 2c
-	\\ Now Y=next screen line [0-255]
-
-	\\ Set R12/R13
-	lda #12:sta &fe00				; 8c
-	lda screen_HI, Y:sta &fe01		; 10c
-
+	\\ Screen start address = table_x[index] + screen[image_y]
 	lda #13:sta &fe00				; 8c
-	lda screen_LO, Y:sta &fe01		; 10c
 
-	\\ Set R9
-	lda #9:sta &fe00				; 8c
-
-	lda y_to_scanline, Y			; 4c		or tya:and #7
-	tay								; 2c		don't need Y after this point	
-	eor #15							; 2c
+	lda table_x, X					; 4c	X=table index
 	clc								; 2c
-	.smc_prev_line
+	adc screen_LO, Y				; 4c	Y=image y
+	sta &fe01						; 6c
+	\\ could be a carry!  <-- can probably arrange table so this doesn't happen?
+	lda #12:sta &fe00				; 8c	shouldn't affect carry?
+	lda screen_HI, Y				; 4c    Y=image y
 	adc #0							; 2c
 	sta &fe01						; 6c
 
-	\\ Need to reset prev_line for next time
-	sty smc_prev_line+1				; 4c
+	\\ 52c total
 
-ELSE
+	\\ Set R9=image_y AND 7
+	lda #9:sta &fe00				; 8c
 
-	txa		; next scanline			; 2c
-	tay		; becomes current scanline	; 2c
-
-	ldx table_idx					; 3c
-	inx								; 2c
-	stx table_idx					; 3c
-
-	NOP;clc								; 2c
-	adc table_y, X					; 4c
-	tax		; becomes next scanline	; 2c
-	\\ 20c
-
-	\\ Set R9
-	LDA #9:STA &fe00				; 8c
-	LDA y_to_scanline, X				; 4c
+	lda y_to_scanline, Y			; 4c	Y=image Y
+	tay								; 2c	Y=image scanline
 	eor #15							; 2c
 	clc								; 2c
-	adc y_to_scanline, Y				; 4c
-	STA &fe01						; 6c
-	\\ 26c
+	.fx_draw_prev_line
+	adc #0							; 2c	SELF-MOD CODE
+	sta &fe01						; 6c
 
-	\\ Set R12/R13
-	LDA #12:STA &fe00				; 8c
-	LDA screen_HI, X:STA &fe01		; 10c
-
-	LDA #13:STA &fe00				; 8c
-	LDA screen_LO, X:STA &fe01		; 10c
-	\\ 36c
-ENDIF
+	\\ Need to reset prev_line for next time
+	sty fx_draw_prev_line+1			; 4c
 
 	\\ Available 20+26+36 = 82c to set R9/12/13 note minimum overhead of 3x14c = 42c to select and set registers
 
 IF _REAL_HW=FALSE
-	NOP
+	inx								; 2c		MUST BE 2c!
 ENDIF
 
 	\\ Set horizontal total
@@ -689,19 +712,24 @@ ENDIF
 	sta &fe01				; R0=1 horizontal total = 2
 	\\ 14c
 
-	\\ segments 3-14 [104-127]
-	WAIT_CYCLES 20 -8
-
-	inx
-
 IF _REAL_HW
-	NOP
+	inx								; 2c		MUST BE 2c!
 ENDIF
 
-	\\ Time for SHADOW switch in hblank?!
+	\\ Remaining segments until we have 128 chars in total
+	\\ 22 cycles in total inc loop
 
-	dec fx_raster_count		; 5c
-	bne fx_draw_loop		; 3c
+	\\ Time for SHADOW switch in hblank?! NEED TO FIND 8c!! and done :)
+	lda table_s, X					; 4c
+	sta &fe34						; 4c
+
+	\\ Next raster line
+	ldy raster_y					; 3c
+	iny								; 2c
+	sty raster_y					; 3c
+
+	cpy raster_max					; 3c		was #255 ;2c
+	bne fx_draw_loop				; 3c
 	\\ 7c
 
 	.fx_draw_done
@@ -726,7 +754,7 @@ ENDIF
 	LDA #9:STA &fe00				; 8c
 	clc								; 2c
 	LDA #15							; 2c
-	ADC smc_prev_line+1				; 4c
+	ADC fx_draw_prev_line+1				; 4c
 	STA &fe01						; 6c
 	\\ 22c
 
@@ -840,6 +868,9 @@ ENDIF
 .osfile_filename
 EQUS "Screen", 13
 
+.shadow_filename
+EQUS "Shifted", 13
+
 .osfile_params
 .osfile_nameaddr
 EQUW osfile_filename
@@ -886,12 +917,19 @@ NEXT
 
 .table_y
 FOR n,0,255,1
-EQUB 16 * SIN(2* PI * n / 256)
+EQUB 16 * SIN(2 * PI * n / 256)
 NEXT
 
-.table_i
+.table_x
 FOR n,0,255,1
-EQUB 64 * SIN(2 * PI * n / 256)
+xoff = 10 + 8 * SIN(2 * PI * n / 256)
+EQUB xoff DIV 2
+NEXT
+
+.table_s
+FOR n,0,255,1
+xoff = 10 + 8 * SIN(2 * PI * (n-1) / 256)
+EQUB 1-(xoff MOD 2)
 NEXT
 
 .data_end
@@ -936,6 +974,7 @@ PRINT "------"
 \ ******************************************************************
 
 PUTBASIC "circle.bas", "Circle"
-PUTFILE "rtw_test.bin", "T", &3000
-PUTFILE "screen.bin", "Screen", &3000
-PUTFILE "kc_test.bin", "CircTri", &3000
+PUTFILE "rtw_test.bin", "RTW", &3000
+PUTFILE "doom.bin", "Screen", &3000
+PUTBASIC "shift.bas", "Shift"
+PUTFILE "doom2.bin", "Shifted", &3000
