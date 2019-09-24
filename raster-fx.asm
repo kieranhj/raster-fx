@@ -489,6 +489,7 @@ ENDIF
 	stx table_idx
 
 	\\ First line always 0
+	\\ Second line = raster line 1 + first table entry
 	lda table_y, X
 	sta second_line
 
@@ -523,8 +524,8 @@ NOP:NOP:NOP		; shift loop into same page
 
 	.fx_draw_here
 	clc
-	ldx second_line		; next scanline
-	ldy #0				; this scanline
+	ldy second_line		; next scanline
+	ldx #1				; this rasterline
 	stz &fe00			; stz
 
 IF _REAL_HW
@@ -544,22 +545,31 @@ ENDIF
 	stz &FE01			; stz	; R4=0 vertical total = 1
 	\\ 14c
 
-	\\ Before end of segmnet 0 need to set R12/R13/R9 and R2!
+	\\ Before end of segmnet 0 need to set R12/R13/R9
+
+	\\ The rule is, set R9 at the start of a displayed line as follows:
+	\\ R9 = this_line_number + 15 - next_line_number
+	\\ or, conveniently:
+	\\ R9 = (next_line_number EOR 15) + this_line_number (edited) 
+
+	\\ Eg. 0->7: 0+15-7 = 8 = (7^15)+0
+	\\ Eg. 7->0: 7+15-0 = 22 = (0^15)+7
 
 	\\ Set R9
 	LDA #9:STA &fe00				; 8c
-	LDA screen_line, X				; 4c
+	LDA y_to_scanline, Y			; 4c
+	sta smc_prev_line+1				; 4c
 	eor #15							; 2c
-	adc screen_line, Y				; 3c
+	\\ First scanline always 0
 	STA &fe01						; 6c
-	\\ 28c
+	\\ 24c
 
 	\\ Set R12/R13
 	LDA #12:STA &fe00				; 8c
-	LDA screen_HI, X:STA &fe01	; 10c		X=1
+	LDA screen_HI, Y:STA &fe01		; 10c		X=1
 
 	LDA #13:STA &fe00				; 8c
-	LDA screen_LO, X:STA &fe01	; 10c		X=1
+	LDA screen_LO, Y:STA &fe01		; 10c		X=1
 	\\ 36c
 
 	WAIT_CYCLES 9
@@ -573,7 +583,7 @@ ENDIF
 	lda #1							; 2c
 	\\ This has to be bang on 96c on real hw
 	sta &fe01				; R0=1 horizontal total = 2
-	\\ 6c
+	\\ 14c
 
 	lda #6:sta &fe00
 	lda #1:sta &fe01		; R6=1 vertical displayed
@@ -599,7 +609,42 @@ ELSE
 ENDIF
 	\\ got to catch this before 2c!
 	sta &FE01				; R0=95 horizontal total = 96
-	\\ 6c
+	\\ 8c
+
+IF 1
+	ldy table_idx					; 3c
+	iny								; 2c
+	sty table_idx					; 3c
+
+	\\ If X is current raster line
+	txa								; 2c
+	adc table_y, Y					; 4c
+
+	tay								; 2c
+	\\ Now Y=next screen line [0-255]
+
+	\\ Set R12/R13
+	lda #12:sta &fe00				; 8c
+	lda screen_HI, Y:sta &fe01		; 10c
+
+	lda #13:sta &fe00				; 8c
+	lda screen_LO, Y:sta &fe01		; 10c
+
+	\\ Set R9
+	lda #9:sta &fe00				; 8c
+
+	lda y_to_scanline, Y			; 4c		or tya:and #7
+	tay								; 2c		don't need Y after this point	
+	eor #15							; 2c
+	clc								; 2c
+	.smc_prev_line
+	adc #0							; 2c
+	sta &fe01						; 6c
+
+	\\ Need to reset prev_line for next time
+	sty smc_prev_line+1				; 4c
+
+ELSE
 
 	txa		; next scanline			; 2c
 	tay		; becomes current scanline	; 2c
@@ -608,28 +653,19 @@ ENDIF
 	inx								; 2c
 	stx table_idx					; 3c
 
-	clc								; 2c
+	NOP;clc								; 2c
 	adc table_y, X					; 4c
 	tax		; becomes next scanline	; 2c
-
-	\\ Before end of segmnet 0 need to set R12/R13/R9
-
-	\\ The rule is, set R9 at the start of a displayed line as follows:
-	\\ R9 = this_line_number + 15 - next_line_number
-	\\ or, conveniently:
-	\\ R9 = (next_line_number EOR 15) + this_line_number (edited) 
-
-	\\ Eg. 0->7: 0+15-7 = 8 = (7^15)+0
-	\\ Eg. 7->0: 7+15-0 = 22 = (0^15)+7
+	\\ 20c
 
 	\\ Set R9
 	LDA #9:STA &fe00				; 8c
-	LDA screen_line, X				; 4c
+	LDA y_to_scanline, X				; 4c
 	eor #15							; 2c
 	clc								; 2c
-	adc screen_line, Y				; 4c
+	adc y_to_scanline, Y				; 4c
 	STA &fe01						; 6c
-	\\ 28c
+	\\ 26c
 
 	\\ Set R12/R13
 	LDA #12:STA &fe00				; 8c
@@ -638,6 +674,9 @@ ENDIF
 	LDA #13:STA &fe00				; 8c
 	LDA screen_LO, X:STA &fe01		; 10c
 	\\ 36c
+ENDIF
+
+	\\ Available 20+26+36 = 82c to set R9/12/13 note minimum overhead of 3x14c = 42c to select and set registers
 
 IF _REAL_HW=FALSE
 	NOP
@@ -648,10 +687,12 @@ ENDIF
 	stz &fe00						; 6c
 	lda #1							; 2c
 	sta &fe01				; R0=1 horizontal total = 2
-	\\ 6c
+	\\ 14c
 
 	\\ segments 3-14 [104-127]
-	WAIT_CYCLES 22 -8
+	WAIT_CYCLES 20 -8
+
+	inx
 
 IF _REAL_HW
 	NOP
@@ -685,7 +726,7 @@ ENDIF
 	LDA #9:STA &fe00				; 8c
 	clc								; 2c
 	LDA #15							; 2c
-	ADC screen_line, X				; 4c
+	ADC smc_prev_line+1				; 4c
 	STA &fe01						; 6c
 	\\ 22c
 
@@ -835,7 +876,7 @@ row = y DIV 8
 EQUB HI((screen_addr + row * row_bytes)/8)
 NEXT
 
-.screen_line
+.y_to_scanline
 EQUB 0
 FOR n,1,255,1
 y = n
@@ -845,7 +886,7 @@ NEXT
 
 .table_y
 FOR n,0,255,1
-EQUB 4 * SIN(2 * PI * n / 256)
+EQUB 16 * SIN(2* PI * n / 256)
 NEXT
 
 .table_i
