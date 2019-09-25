@@ -893,18 +893,20 @@ EQUD 0
 
 ALIGN &100
 
+COLUMN_START = -8
+
 .screen_LO
 FOR n,0,255,1
 y = n
 row = y DIV 8
-EQUB LO((screen_addr + row * row_bytes)/8)
+EQUB LO((screen_addr + row * row_bytes + COLUMN_START*8)/8)
 NEXT
 
 .screen_HI
 FOR n,0,255,1
 y = n
 row = y DIV 8
-EQUB HI((screen_addr + row * row_bytes)/8)
+EQUB HI((screen_addr + row * row_bytes + COLUMN_START*8)/8)
 NEXT
 
 .y_to_scanline
@@ -922,14 +924,15 @@ NEXT
 
 .table_x
 FOR n,0,255,1
-xoff = 10 + 8 * SIN(2 * PI * n / 256)
+xoff = 12 + 12 * SIN(1 * PI * n / 256)
 EQUB xoff DIV 2
 NEXT
 
 .table_s
-FOR n,0,255,1
-xoff = 10 + 8 * SIN(2 * PI * (n-1) / 256)
-EQUB 1-(xoff MOD 2)
+FOR m,0,255,1
+n = m-1		; need to -1 as the table is looked up post index increment
+xoff = 12 + 12 * SIN(1 * PI * n / 256)
+EQUB 1-(xoff MOD 2)	; because positive offset is a left shift not a right shift
 NEXT
 
 .data_end
