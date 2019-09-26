@@ -103,8 +103,12 @@ GUARD &9F
 .table_idx				skip 1
 .table_top				skip 1
 .raster_y				skip 1
-.raster_max				skip 1
+.mirror_y				skip 1
 .temp					skip 1
+
+.image_top				skip 1
+.image_y				skip 1
+.raster_max				skip 1
 
 \ ******************************************************************
 \ *	CODE START
@@ -500,6 +504,9 @@ ENDIF
 	lda #255
 	sta raster_max
 
+	lda #255
+	sta image_top
+
 	RTS
 }
 
@@ -538,10 +545,28 @@ ENDIF
 	ldx table_top
 	stx table_idx
 
+	ldx image_top
+	beq stop_top
+	dex
+	.stop_top
+	stx image_top
+
+	lda #192
+	sta mirror_y
+
 	\\ First line always 0
 	\\ Second line = raster line 1 + first table entry
-	lda table_y, X
-	sta second_line
+	ldy #0
+	sty image_y
+
+	lda image_top
+	bne set_second
+	iny 
+	.set_second
+	sty second_line
+
+	lda table_s					; 4c
+	sta &fe34						; 4c
 
 	RTS
 }
@@ -651,8 +676,8 @@ IF _REAL_HW
 ENDIF
 
 	\\ Start of scanline 1 <phew>
-	\\ X is the raster line we want to display
-	\\ Use Y to look up a table to increment X
+	\\ X=table index
+	\\ Y=raster y
 
 	.fx_draw_loop
 
@@ -665,23 +690,39 @@ ENDIF
 	sta &FE01				; R0=95 horizontal total = 96
 	\\ 8c
 
-	\\ image_y = raster_y + table_y[index]
-	tya								; 2c	Y=raster Y
-	adc table_y, X					; 4c	X=table index
-	tay								; 2c	Y=image Y
+	\\ IF raster_y < image_top THEN image_y = 0
+	\\ ELSE image_y++ each loop
+
+	cpy image_top					; 3c
+
+	{
+		bcc above_image
+		\\ Use & increment image_y
+		; 2c
+		inc image_y						; 5c
+		bra load_image_y				; 3c
+		\\ this branch is 10c total
+
+		.above_image
+		; 3c
+		WAIT_CYCLES 10-3
+		\\ this branch is 10c total
+	}
+
+	.load_image_y
+	ldy image_y						; 3c
+
+	\\ 16c total
 
 	\\ Screen start address = table_x[index] + screen[image_y]
 	lda #13:sta &fe00				; 8c
+	lda screen_LO, Y				; 4c	Y=image y
+	sta &fe01						; 6c
 
-	lda table_x, X					; 4c	X=table index
-	clc								; 2c
-	adc screen_LO, Y				; 4c	Y=image y
-	sta &fe01						; 6c
-	\\ could be a carry!  <-- can probably arrange table so this doesn't happen?
-	lda #12:sta &fe00				; 8c	shouldn't affect carry?
+	lda #12:sta &fe00				; 8c
 	lda screen_HI, Y				; 4c    Y=image y
-	adc #0							; 2c
 	sta &fe01						; 6c
+	\\ 36c
 
 	\\ 52c total
 
@@ -698,6 +739,165 @@ ENDIF
 
 	\\ Need to reset prev_line for next time
 	sty fx_draw_prev_line+1			; 4c
+
+	\\ Available 20+26+36 = 82c to set R9/12/13 note minimum overhead of 3x14c = 42c to select and set registers
+
+IF _REAL_HW=FALSE
+	NOP								; 2c		MUST BE 2c!
+ENDIF
+
+	\\ Set horizontal total
+	\\ This has to be bang on 96c!
+	stz &fe00						; 6c
+	lda #1							; 2c
+	sta &fe01				; R0=1 horizontal total = 2
+	\\ 14c
+
+IF _REAL_HW
+	NOP								; 2c		MUST BE 2c!
+ENDIF
+
+	\\ Remaining segments until we have 128 chars in total
+	\\ 22 cycles in total inc loop
+
+	\\ Time for SHADOW switch in hblank?! NEED TO FIND 8c!! and done :)
+;	lda table_s, X					; 4c
+;	sta &fe34						; 4c
+	WAIT_CYCLES 8
+
+	\\ Next raster line
+	ldy raster_y					; 3c
+	iny								; 2c
+	sty raster_y					; 3c
+
+	cpy mirror_y					; 3c		was #255 ;2c
+	bne fx_draw_loop				; 3c
+	\\ 7c
+
+	\\ NEED A SCANLINE TO RESET PARAMS HERE - OTHERWISE TIMING TOO TIGHT
+	\\ start of scanline raster_y == mirror_y
+	.fx_draw_mirror
+
+	{
+		\\ We lost a cycle due to the branch not taken above!
+		clc								; 2c
+
+	IF _REAL_HW
+		lda #95
+	ELSE
+		lda #97
+	ENDIF
+		\\ got to catch this before 2c!
+		sta &FE01				; R0=95 horizontal total = 96
+		\\ 8c
+
+		\\ Reverse our image_y for mirror effect
+
+		ldy image_y						; 3c
+		dey								; 2c
+		dey								; 2c
+		sty image_y						; 3c
+
+		\\ Screen start address = table_x[index] + screen[image_y]
+		lda #13:sta &fe00				; 8c
+		lda table_x, X					; 4c	X=table idx
+		adc screen_LO, Y				; 4c	Y=image y
+		sta &fe01						; 6c
+
+		lda #12:sta &fe00				; 8c
+		lda screen_HI, Y				; 4c    Y=image y
+		adc #0							; 2c
+		sta &fe01						; 6c
+
+		\\ 52c total
+
+		\\ Set R9=image_y AND 7
+		lda #9:sta &fe00				; 8c
+
+		lda y_to_scanline, Y			; 4c	Y=image Y
+		tay								; 2c	Y=image scanline
+		eor #15							; 2c
+		adc fx_draw_prev_line+1			; 4c
+		sta &fe01						; 6c
+
+		\\ Need to reset prev_line for next time
+		sty fx_draw_prev_line2+1		; 4c
+
+		\\ Available 20+26+36 = 82c to set R9/12/13 note minimum overhead of 3x14c = 42c to select and set registers
+
+	IF _REAL_HW=FALSE
+		inx								; 2c		MUST BE 2c!
+	ENDIF
+
+		\\ Set horizontal total
+		\\ This has to be bang on 96c!
+		stz &fe00						; 6c
+		lda #1							; 2c
+		sta &fe01				; R0=1 horizontal total = 2
+		\\ 14c
+
+	IF _REAL_HW
+		inx								; 2c		MUST BE 2c!
+	ENDIF
+
+		\\ Remaining segments until we have 128 chars in total
+		\\ 22 cycles in total inc loop
+
+		\\ Toggle SHADOW according to table_s[index]
+		lda table_s, X					; 4c
+		sta &fe34						; 4c
+
+		\\ Next raster line
+		ldy raster_y					; 3c
+		iny								; 2c
+		sty raster_y					; 3c
+
+		WAIT_CYCLES 8 -1; an extra cycle for the branch we didn't take above
+	}
+
+	.fx_mirror_loop
+IF _REAL_HW
+	lda #95
+ELSE
+	lda #97
+ENDIF
+	\\ got to catch this before 2c!
+	sta &FE01				; R0=95 horizontal total = 96
+	\\ 8c
+
+	\\ Reverse our image_y for mirror effect
+
+	ldy image_y						; 3c
+	dey								; 2c
+	dey								; 2c
+	sty image_y						; 3c
+
+	\\ Screen start address = table_x[index] + screen[image_y]
+	lda #13:sta &fe00				; 8c
+	lda table_x, X					; 4c	X=table idx
+	clc								; 2c
+	adc screen_LO, Y				; 4c	Y=image y
+	sta &fe01						; 6c
+
+	lda #12:sta &fe00				; 8c
+	lda screen_HI, Y				; 4c    Y=image y
+	adc #0							; 2c
+	sta &fe01						; 6c
+
+	\\ 52c total
+
+	\\ Set R9=image_y AND 7
+	lda #9:sta &fe00				; 8c
+
+	lda y_to_scanline, Y			; 4c	Y=image Y
+	tay								; 2c	Y=image scanline
+	eor #15							; 2c
+	.fx_draw_prev_line2
+	adc #0							; 2c	SELF-MOD CODE
+	sta &fe01						; 6c
+
+	\\ Need to reset prev_line for next time
+	sty fx_draw_prev_line2+1		; 4c
 
 	\\ Available 20+26+36 = 82c to set R9/12/13 note minimum overhead of 3x14c = 42c to select and set registers
 
@@ -729,7 +929,7 @@ ENDIF
 	sty raster_y					; 3c
 
 	cpy raster_max					; 3c		was #255 ;2c
-	bne fx_draw_loop				; 3c
+	bne fx_mirror_loop				; 3c
 	\\ 7c
 
 	.fx_draw_done
@@ -754,7 +954,7 @@ ENDIF
 	LDA #9:STA &fe00				; 8c
 	clc								; 2c
 	LDA #15							; 2c
-	ADC fx_draw_prev_line+1				; 4c
+	ADC fx_draw_prev_line2+1				; 4c
 	STA &fe01						; 6c
 	\\ 22c
 
@@ -893,45 +1093,42 @@ EQUD 0
 
 ALIGN &100
 
-COLUMN_START = -8
+COLUMN_START = -4
 
 .screen_LO
-FOR n,0,255,1
-y = n
+FOR y,0,255,1
 row = y DIV 8
 EQUB LO((screen_addr + row * row_bytes + COLUMN_START*8)/8)
 NEXT
 
 .screen_HI
-FOR n,0,255,1
-y = n
+FOR y,0,255,1
 row = y DIV 8
 EQUB HI((screen_addr + row * row_bytes + COLUMN_START*8)/8)
 NEXT
 
-.y_to_scanline
+.y_to_scanline	; aka y MOD 8
 EQUB 0
-FOR n,1,255,1
-y = n
+FOR y,1,255,1
 line = y MOD 8
 EQUB line
 NEXT
 
 .table_y
 FOR n,0,255,1
-EQUB 16 * SIN(2 * PI * n / 256)
+EQUB 0;16 * SIN(2 * PI * n / 256)
 NEXT
 
 .table_x
 FOR n,0,255,1
-xoff = 12 + 12 * SIN(1 * PI * n / 256)
+xoff = 4 + 4 * SIN(8 * PI * n / 256)
 EQUB xoff DIV 2
 NEXT
 
 .table_s
 FOR m,0,255,1
 n = m-1		; need to -1 as the table is looked up post index increment
-xoff = 12 + 12 * SIN(1 * PI * n / 256)
+xoff = 4 + 4 * SIN(8 * PI * n / 256)
 EQUB 1-(xoff MOD 2)	; because positive offset is a left shift not a right shift
 NEXT
 
