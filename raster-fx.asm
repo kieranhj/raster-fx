@@ -55,9 +55,11 @@ ELIF (n AND 1) = 0
 	NEXT
 ELSE
 	BIT 0
+	IF n>3
 	FOR i,1,(n-3)/2,1
 	NOP
 	NEXT
+	ENDIF
 ENDIF
 
 ENDMACRO
@@ -432,7 +434,7 @@ ENDIF
 \ The function can take as long as is necessary to initialise.
 \ ******************************************************************
 
-IF 0
+IF 1
 .blank_left_column
 {
 	lda #LO(screen_addr)
@@ -475,7 +477,7 @@ ENDIF
 	LDY #HI(osfile_params)
 	LDA #&FF
     JSR osfile
-;	jsr blank_left_column
+	jsr blank_left_column
 
 	lda &fe34
 	ora #4			; SHADOW RAM
@@ -491,7 +493,7 @@ ENDIF
 	LDY #HI(osfile_params)
 	LDA #&FF
     JSR osfile
-;	jsr blank_left_column
+	jsr blank_left_column
 
 	lda &fe34
 	and #255-4		; MAIN RAM
@@ -794,19 +796,19 @@ ENDIF
 		\\ Reverse our image_y for mirror effect
 
 		ldy image_y						; 3c
-		dey								; 2c
-		dey								; 2c
-		sty image_y						; 3c
+		lda sub_table, Y				; 4c
+		sta load_sub_table+1			; 4c
+		tay								; 2c
+
+		WAIT_CYCLES 3 +1 ; an extra cycle for the branch we didn't take above
 
 		\\ Screen start address = table_x[index] + screen[image_y]
 		lda #13:sta &fe00				; 8c
-		lda table_x, X					; 4c	X=table idx
-		adc screen_LO, Y				; 4c	Y=image y
+		lda screen_LO, Y				; 4c	Y=image y
 		sta &fe01						; 6c
 
 		lda #12:sta &fe00				; 8c
 		lda screen_HI, Y				; 4c    Y=image y
-		adc #0							; 2c
 		sta &fe01						; 6c
 
 		\\ 52c total
@@ -847,12 +849,15 @@ ENDIF
 		lda table_s, X					; 4c
 		sta &fe34						; 4c
 
-		\\ Next raster line
+		\\ Next raster line (+1 so we CMP #0 not CMP #255)
 		ldy raster_y					; 3c
-		iny								; 2c
+		iny:iny							; 4c
 		sty raster_y					; 3c
 
-		WAIT_CYCLES 8 -1; an extra cycle for the branch we didn't take above
+		\\ Set up pre-mirror loop
+		.load_sub_table
+		; Y=image_y effectively ldy image_y:lda sub_table, Y:tay !
+		ldy sub_table					; 4c
 	}
 
 	.fx_mirror_loop
@@ -866,22 +871,28 @@ ENDIF
 	\\ 8c
 
 	\\ Reverse our image_y for mirror effect
+	\\ Use a table to clamp subtraction to zero!
 
-	ldy image_y						; 3c
-	dey								; 2c
-	dey								; 2c
-	sty image_y						; 3c
+	\\ Y=image_y
+	sty fx_mirror_read_table+1		; 4c
+
+	\\ Add our wibbly offset for lookup y
+	tya								; 2c
+	adc table_y, X					; 4c
+
+	\\ Clamp it to zero if image_y is 0
+	and clamp_table, Y				; 4c
+
+	\\ Y=image y (texture lookup)
+	tay								; 2c
 
 	\\ Screen start address = table_x[index] + screen[image_y]
 	lda #13:sta &fe00				; 8c
-	lda table_x, X					; 4c	X=table idx
-	clc								; 2c
-	adc screen_LO, Y				; 4c	Y=image y
+	lda screen_LO, Y				; 4c	Y=image y
 	sta &fe01						; 6c
 
 	lda #12:sta &fe00				; 8c
 	lda screen_HI, Y				; 4c    Y=image y
-	adc #0							; 2c
 	sta &fe01						; 6c
 
 	\\ 52c total
@@ -892,6 +903,7 @@ ENDIF
 	lda y_to_scanline, Y			; 4c	Y=image Y
 	tay								; 2c	Y=image scanline
 	eor #15							; 2c
+	clc								; 2c
 	.fx_draw_prev_line2
 	adc #0							; 2c	SELF-MOD CODE
 	sta &fe01						; 6c
@@ -923,12 +935,15 @@ ENDIF
 	lda table_s, X					; 4c
 	sta &fe34						; 4c
 
-	\\ Next raster line
-	ldy raster_y					; 3c
-	iny								; 2c
-	sty raster_y					; 3c
+	WAIT_CYCLES 2
 
-	cpy raster_max					; 3c		was #255 ;2c
+	.fx_mirror_read_table
+	; Y=image_y effectively ldy image_y:lda sub_table, Y:tay !
+	ldy sub_table					; 4c	SELF-MOD
+
+	\\ Next raster line
+
+	inc raster_y					; 5c
 	bne fx_mirror_loop				; 3c
 	\\ 7c
 
@@ -1093,7 +1108,7 @@ EQUD 0
 
 ALIGN &100
 
-COLUMN_START = -4
+COLUMN_START = 0
 
 .screen_LO
 FOR y,0,255,1
@@ -1116,20 +1131,36 @@ NEXT
 
 .table_y
 FOR n,0,255,1
-EQUB 0;16 * SIN(2 * PI * n / 256)
+EQUB 4 + 3 * SIN(4 * PI * n / 256)
 NEXT
 
 .table_x
 FOR n,0,255,1
-xoff = 4 + 4 * SIN(8 * PI * n / 256)
+xoff = 4 + 4 * SIN(2 * PI * n / 256)
 EQUB xoff DIV 2
 NEXT
 
 .table_s
 FOR m,0,255,1
 n = m-1		; need to -1 as the table is looked up post index increment
-xoff = 4 + 4 * SIN(8 * PI * n / 256)
+xoff = 4 + 4 * SIN(2 * PI * n / 256)
 EQUB 1-(xoff MOD 2)	; because positive offset is a left shift not a right shift
+NEXT
+
+.sub_table
+FOR n,0,255,1
+v = n-2
+IF v < 0
+EQUB 0
+ELSE
+EQUB v
+ENDIF
+NEXT
+
+.clamp_table
+EQUB 0
+FOR n,1,255,1
+EQUB &FF
 NEXT
 
 .data_end
