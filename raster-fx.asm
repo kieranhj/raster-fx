@@ -2,7 +2,8 @@
 \ *	RASTER FX FRAMEWORK
 \ ******************************************************************
 
-CPU 0
+CPU 1
+_USE_SHADOW = TRUE
 
 \ ******************************************************************
 \ *	OS defines
@@ -36,6 +37,18 @@ MODE1_COL1=&20
 MODE1_COL2=&80
 MODE1_COL3=&A0
 
+IF _USE_SHADOW
+TOGGLE_VALUE_ON  = 1
+TOGGLE_VALUE_OFF = 0
+TOGGLE_REGISTER	 = &fe34
+ELSE
+TOGGLE_VALUE_ON  = PAL_red
+TOGGLE_VALUE_OFF = PAL_black
+TOGGLE_REGISTER	 = &fe21
+ENDIF
+
+TEST_DELAY = 25
+
 \ ******************************************************************
 \ *	MACROS
 \ ******************************************************************
@@ -54,9 +67,11 @@ ELIF (n AND 1) = 0
 	NEXT
 ELSE
 	BIT 0
+	IF n>3
 	FOR i,1,(n-3)/2,1
 	NOP
 	NEXT
+	ENDIF
 ENDIF
 
 ENDMACRO
@@ -96,8 +111,27 @@ GUARD &9F
 
 \\ FX variables
 
-.fx_colour_index		SKIP 1		; index into our colour palette
-.fx_raster_count		SKIP 1
+.startx					skip 1
+.starty					skip 1
+
+.endx					skip 1
+.endy					skip 1
+
+.dx						skip 1
+.dy						skip 1
+
+.count					skip 1
+.accum					skip 1
+
+
+.startx_dir				skip 1
+.starty_dir				skip 1
+.endx_dir				skip 1
+.endy_dir				skip 1
+
+.miny					skip 1
+.delay					skip 1
+.test_index				skip 1
 
 \ ******************************************************************
 \ *	CODE START
@@ -149,10 +183,10 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #10: STA &FE00
 	LDA #32: STA &FE01
 
-	\\ Shift hsync - IMPORTANT!
+	\\ Shift hsync - IMPORTANT for RVI!
 
-	lda #2:sta &fe00
-	lda #95:sta &fe01
+;	lda #2:sta &fe00
+;	lda #95:sta &fe01
 
 	\\ Shift vsync - also important!
 
@@ -163,6 +197,8 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	lda #8:sta &fe00
 	lda #0:sta &fe01
+
+	\\ Wait at least two frames to let vsync, hsync and interlace changes shake out:
 
 	ldx #255:jsr cycles_wait_scanlines
 	ldx #255:jsr cycles_wait_scanlines
@@ -316,7 +352,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 		\\ Observed values $FA (early) - $F7 (late) so map these from 7 - 0
 		\\ then branch into NOPs to even this out.
-
+	IF 1
 		AND #15
 		SEC
 		SBC #7
@@ -333,6 +369,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 		NOP
 		.stable
 		BIT 0
+	ENDIF
 	}
 
 	\\ Check if Escape pressed
@@ -429,13 +466,53 @@ ENDIF
 	LDA #&FF
     JSR osfile
 
-	LDA #HI(screen_LO)
-	STA fx_colour_index
+	\ Select SHADOW to write
+	lda &fe34:ora #4:sta &fe34
 
-	LDA #1
-	STA fx_raster_count
+	lda #lo(shadow_filename):sta osfile_nameaddr+0
+	lda #hi(shadow_filename):sta osfile_nameaddr+1
+	LDX #LO(osfile_params)
+	LDY #HI(osfile_params)
+	LDA #&FF
+    JSR osfile
+
+	\ Select MAIN to write
+	lda &fe34:and #&ff-4:sta &fe34
+	
+	lda #0
+	sta test_index
+	jsr load_test
+	jsr drawline
+	jsr setup_draw
 
 	RTS
+}
+
+.load_test
+{
+	ldx test_index
+	lda test_table, x
+	sta startx
+	inx
+	lda test_table, x
+	sta starty
+	inx
+	lda test_table, x
+	sta endx
+	inx
+	lda test_table, x
+	sta endy
+	inx
+
+	cpx #LO(test_end)
+	bcc index_ok
+	ldx #0
+	.index_ok
+	stx test_index
+
+	lda #TEST_DELAY
+	sta delay
+	rts
 }
 
 \ ******************************************************************
@@ -453,60 +530,149 @@ ENDIF
 \ be late and your raster timings will be wrong!
 \ ******************************************************************
 
+\\ Assume lines always reach to the extents of the screen so
+\\ a --- b
+\\ |     |
+\\ c --- d
+\\
+
+.setup_draw
+{
+	\\ Set up any smc for the draw fn
+	{
+		lda starty
+		cmp endy
+		bcs swap_ys
+		
+		sta miny
+		lda endy
+		sta fx_draw_ymax+1
+		bra done_ends
+
+		.swap_ys
+		sta fx_draw_ymax+1
+		lda endy
+		sta miny
+
+		.done_ends
+	}
+
+\\ If starty=0 (a->b)
+\\   endx=0   initial=don't care, reset=0, toggle=1, final=1
+\\   endy=255 initial=don't care, reset=0, toggle=1, final=don't care
+\\   endx=255 initial=don't care, reset=0, toggle=1, final=0
+	{
+		lda starty
+		bne not_a_b
+
+		lda #TOGGLE_VALUE_OFF
+		sta fx_draw_initial_value+1
+		sta fx_draw_reset_value+1
+
+		ldx endx
+		bne end_d_b
+		lda #TOGGLE_VALUE_ON
+		.end_d_b
+		sta fx_draw_final_value+1
+		BRA done
+
+		.not_a_b
+	}
+
+\\ If startx=0 (a->c)
+\\   endy=0   initial=don't care, reset=1, toggle=0, final=0
+\\	 endx=255 initial=1, reset=dy<0?1:0, toggle=!reset, final=0
+\\   endy=255 initial=1, reset=0, toggle=1, final=don't care
+	{
+		lda startx
+		bne not_a_c
+
+		ldx #TOGGLE_VALUE_ON
+		stx fx_draw_initial_value+1
+
+		ldx #TOGGLE_VALUE_OFF
+		stx fx_draw_final_value+1
+
+		lda starty
+		cmp endy
+		bcc dy_pos
+		ldx #TOGGLE_VALUE_ON
+		.dy_pos
+		stx fx_draw_reset_value+1
+		BRA done
+
+		.not_a_c
+	}
+
+\\ If starty=255 (c->d)
+\\	 endx=0   initial=0, reset=1, toggle=0, final=don't care
+\\   endy=0   initial=don't care, reset=1, toggle=0, final=don't care
+\\   endx=255 initial=1, reset=1, toggle=0, final=don't care
+	{
+		lda starty
+		cmp #255
+		bne not_c_d
+
+		lda #TOGGLE_VALUE_ON
+		sta fx_draw_reset_value+1
+		sta fx_draw_final_value+1
+
+		ldx endx
+		bne not_end_a_c
+		lda #TOGGLE_VALUE_OFF
+
+		.not_end_a_c
+		sta fx_draw_initial_value+1
+		BRA done
+
+		.not_c_d	
+	}
+
+\\ If startx=255 (d->b)
+\\   endy=255 initial=0, reset=0, toggle=1, final=don't care
+\\   endx=0   initial=0, reset=dy<0?1:0, toggle=!reset, final=1
+\\	 endy=0	  initial=don't care, reset=1, toggle=0, final=1
+	{
+		lda startx
+		cmp #79
+		bne not_d_b
+
+		lda #TOGGLE_VALUE_ON
+		sta fx_draw_final_value+1
+
+		ldx #TOGGLE_VALUE_OFF
+		stx fx_draw_initial_value+1
+
+		lda starty
+		cmp endy
+		bcc dy_pos
+		ldx #TOGGLE_VALUE_ON
+		.dy_pos
+		stx fx_draw_reset_value+1
+		BRA done
+
+		.not_d_b
+		BRK			; shouldn't happen!
+	}
+
+	.done
+	lda fx_draw_reset_value+1
+	eor #(TOGGLE_VALUE_ON EOR TOGGLE_VALUE_OFF)
+	sta fx_draw_toggle_value+1
+
+	rts
+}
+
 .fx_update_function
 {
-IF 0
-	LDA fx_raster_count
-	BMI backwards
+	dec delay
+	bne wait
 
-	\\ Forwards
-	LDX fx_colour_index
-	STX lookup_load_LO + 2
-	INX
-	STX lookup_load_HI + 2
-	INX
-	CPX #HI(data_end)
-	BCC ok1
-	DEX:DEX
-	LDA #&80
-	STA fx_raster_count
-	.ok1
-	STX fx_colour_index
-	JMP continue
+	jsr load_test
+	jsr drawline
+	jsr setup_draw
 
-	.backwards
-	LDX fx_colour_index
-	STX lookup_load_LO + 2
-	INX
-	STX lookup_load_HI + 2
-	DEX
-	CPX #HI(screen_LO)
-	BNE ok2
-	INX:INX
-	LDA #1
-	STA fx_raster_count
-	.ok2
-	DEX:DEX
-	STX fx_colour_index
-
-	.continue
-	ldy #255
-	lda #12:sta &fe00	; 8c
-	lda screen_HI, y:sta &fe01	; 10c
-
-	lda #13:sta &fe00	; 8c
-	lda screen_LO, y:sta &fe01	; 10c
-ENDIF
-
-	ldx #0
-	lda #12:sta &fe00	; 8c
-	lda screen_HI, x:sta &fe01	; 10c
-
-	lda #13:sta &fe00	; 8c
-	lda screen_LO, x:sta &fe01	; 10c
-
-;	lda screen_R9, x
-;	sta fx_draw_set_r9a+1
+	.wait
 
 	RTS
 }
@@ -527,199 +693,100 @@ ENDIF
 \ A FULL AND VALID 312 line PAL signal before exiting!
 \ ******************************************************************
 
-\\ <--- 80c visible ---> <--- 22c hsync ---> <2c> <2c> ... <2c> = 128c
-\\ Too complicated!
-\\ <--- 100c total w/ 80c visible and hsync at 98c ---> <2c> <2c> ... <2c> = 128c
-
-NOP:NOP:NOP		; shift loop into same page
-
+ALIGN &100
 .fx_draw_function
 \{
 	\\ Enter fn at 64us before first raster line
-	WAIT_CYCLES 128-14-5 -1
+	\\ Minus setup, clockslide calc, minimum slide, toggle, hadj
+	WAIT_CYCLES 128 -19 -24 -5 -4 -1
+
+	.fx_draw_initial_value
+	lda #PAL_black				; 2c	; toggle off value
+	sta TOGGLE_REGISTER			; 4c	; start off
+	\\ 6c
+
+	\\ Potentially wait N scanlines until y_min
+
+	ldx miny					; 3c
+	beq y_min_is_zero			
+	; 2c
+	jsr cycles_wait_scanlines	; N scanlines
+	bra fx_draw_here			; 3c
+	\\ branch = 5c (effectively)
+
+	.y_min_is_zero
+	; 3c
+	nop							; 2c
+	\\ branch = 5c
 
 	.fx_draw_here
-	clc
-	ldx #0
-	ldy #&70 + PAL_red		; set pal 4 to red
-	stx &fe00			; stz
-	lda #95
-	\\ 14c
-	
-	sta &FE01				; R0=97 horizontal total = 98
-	\\ 6c
+	ldy miny					; 3c	; y index
+	.fx_draw_toggle_value
+	ldx #PAL_red				; 2c	; toggle on value
+	\\ 5c
 
-	\\ start of scanline 0 HCC=0 LVC=0 VCC=0
-	\\ start segment 0 [0-99]
-
-	sty &fe21				; set palette 7=red
-	\\ 4c
-
-	lda #4: sta &fe00				; 8c
-	stx &FE01			; stz	; R4=0 vertical total = 1
-	\\ 14c
-
-	\\ Before end of segmnet 0 need to set R12/R13/R9 and R2!
-
-	\\ Set R12/R13
-	LDA #12:STA &fe00				; 8c
-	LDA screen_HI+1, X:STA &fe01	; 10c		X=1
-
-	LDA #13:STA &fe00				; 8c
-	LDA screen_LO+1, X:STA &fe01	; 10c		X=1
-	\\ 36c
-
-	\\ Set R9
-	LDA #9:STA &fe00				; 8c
-	LDA screen_R9, X				; 4c
-	clc								; 2c
-	adc #15							; 2c
-	sec								; 2c
-	sbc screen_R9+1, X				; 4c
-	STA &fe01						; 6c
-	\\ 28c
-
-	lda #1							; 2c
-	stx &fe00			; stz		; 6c
-	\\ This has to be bang on 98c! NOW 96
-	\\ start segment 1 [98-99]
-	sta &fe01				; R0=1 horizontal total = 2
-	\\ 6c
-
-	lda #&70 + PAL_white		; set pal 4 back to blue
-	sta &fe21
-	\\ 6c
-
-	\\ segments 3-15 [100-127]
-	WAIT_CYCLES 14
-
-	ldy #0						; 2c
-	inx							; 2c
-
-	\\ Start of scanline 1 <phew>
+	\\ To here = 6+3+5+5=19c
 
 	.fx_draw_loop
 
-	\\ got to catch this before 2c!
-	lda #95
-	sta &FE01				; R0=99 horizontal total = 100
-	\\ 6c
+	.fx_draw_reset_value
+	lda #PAL_blue				; 2c
+	sta TOGGLE_REGISTER			; 4c
 
-	\\ Set R9
-	LDA #9:STA &fe00				; 8c
-	LDA screen_R9, X				; 4c
-	clc								; 2c
-	adc #15							; 2c
-	sec								; 2c
-	sbc screen_R9+1, X				; 4c
-	STA &fe01						; 6c
-	\\ 28c
+	\\ Load next X value and calculate clockslide
+	lda table_x, y				; 4c
+	sta clockslide_right+1		; 4c
+	eor #&ff					; 2c
+	sec							; 2c
+	adc #79						; 2c
+	sta clockslide_left+1		; 4c
+	\\ 24c
 
-	\\ Set palette for timing test
-	lda #&40 + PAL_red				; 2c
-	sta &fe21						; 4c
+	.clockslide_left
+	{
+		BRA clockslide_left		; 3c
+		\\ Between 2 and 81 cycle delay
+		FOR n,1,39,1		
+		cmp #&c9				; 2c
+		NEXT
+		cmp &ea					; 3c, 2c
+	}
+	\\ Min 5c, max 84c
 
-	\\ Before end of segmnet 0 need to set R12/R13/R9
+	\\ Toggle on - this should be at C0=0 when table_x=0
+	stx TOGGLE_REGISTER			; 4c
 
-	\\ Set R12/R13
-	LDA #12:STA &fe00				; 8c
-	LDA screen_HI+1, X:STA &fe01		; 10c
+	.clockslide_right
+	{
+		BRA clockslide_right	; 3c
+		\\ Between 2 and 81 cycle delay
+		FOR n,1,39,1		
+		cmp #&c9				; 2c
+		NEXT
+		cmp &ea					; 3c, 2c
+	}
+	\\ Min 5c, max 84c
 
-	LDA #13:STA &fe00				; 8c
-	LDA screen_LO+1, X:STA &fe01		; 10c
-	\\ 36c
+	.fx_draw_ymax
+	cpy #&ff					; 2c
+	beq fx_draw_done			; 2c
 
-	\\ The rule is, set R9 at the start of a displayed line as follows:
-	\\ R9 = this_line_number + 15 - next_line_number
-	\\ or, conveniently:
-	\\ R9 = (next_line_number EOR 15) + this_line_number (edited) 
+	\\ Don't spend them all at once
+	WAIT_CYCLES 2
 
-	\\ Eg. 0->7: 0+15-7 = 8 = (7^15)+0
-	\\ Eg. 7->0: 7+15-0 = 22 = (0^15)+7
+	\\ Next line
+	iny							; 2c
+	jmp fx_draw_loop			; 3c
+	\\ 13c
 
-	\\ Reset palette for timing test
-	lda #&40 + PAL_blue
-	sta &fe21
-	\\ 6c
-
-	WAIT_CYCLES 6
-
-	lda #1							; 2c
-	\\ Set horizontal total
-	\\ This has to be bang on 98c! NOW 96
-	sty &fe00						; 6c
-
-	sta &fe01				; R0=1 horizontal total = 2
-	\\ 6c
-
-	\\ segments 3-14 [104-127]
-	WAIT_CYCLES 24 -7
-
-	\\ Time for SHADOW switch in hblank?!
-
-	inx						; 2c
-	cpx #255				; 2c
-	bne fx_draw_loop		; 3c
-	\\ 7c
+	\\ May finish before y=256
 
 	.fx_draw_done
 
-	\\ start of scanline 255
-	NOP
-
-	\\ Need to get scanlines & character rows back in sync...
-	\\ So if finish on scanline count N
-	\\ Set R9 to get us back to 0 on next scanline
-
-	\\ got to catch this before 2c!
-	lda #95
-	sta &FE01				; R0=97 horizontal total = 98
-	\\ 6c
-
-	\\ Set R9 so we get back to scanline 0 next line
-	LDA #9:STA &fe00				; 8c
-	clc								; 2c
-	LDA #15							; 2c
-	ADC screen_R9, X				; 4c
-	STA &fe01						; 6c
-	\\ 22c
-
-	WAIT_CYCLES 60
-
-	lda #1							; 2c
-
-	\\ Set horizontal total
-	sty &fe00
-	\\ 6c
-
-	\\ This must happen exactly on 100c
-	sta &fe01				; R0=1 horizontal total = 2
-	\\ 6c
-
-	\\ segments 3-14 [100-127]
-	WAIT_CYCLES 24
-
-	\\ Should be start of scanline 256!
-
-	\\ got to catch this before 2c!
-	lda #127
-	sta &fe01				; R0=127 back to a full width line!
-
-	lda #9:sta &fe00
-	lda #7:sta &fe01		; R9=7 scanlines per row = 8
-	\\ 16c
-
-	lda #4:sta &fe00
-	lda #6:sta &fe01		; R4=7 more character rows total 39
-	\\ 16c
-
-	lda #7:sta &fe00
-	lda #3:sta &fe01		; R7=vsync at row 35
-	\\ 16c
-
-	lda #6:sta &fe00
-	lda #1:sta &fe01		; R6=1 vertical displayed
-	\\ 16c
+	\\ Remainder is on
+	.fx_draw_final_value
+	lda #PAL_green				; 2c
+	sta TOGGLE_REGISTER			; 4c
 
     RTS
 \}
@@ -759,6 +826,164 @@ NOP:NOP:NOP		; shift loop into same page
 	RTS
 }
 
+.drawline
+{
+	; don't need a screen address
+	; calc screen row of starty
+	LDY starty
+	
+	; calc pixel within byte of startx
+	LDX startx
+
+	; calc dx = ABS(startx - endx)
+	SEC
+	LDA startx
+	SBC endx
+	BCS posdx
+	EOR #255
+	ADC #1
+	.posdx
+	STA dx
+	
+	; C=0 if dir of startx -> endx is positive, otherwise C=1
+	PHP
+	
+	; calc dy = ABS(starty - endy)
+	SEC
+	LDA starty
+	SBC endy
+	BCS posdy
+	EOR #255
+	ADC #1
+	.posdy
+	STA dy
+	
+	; C=0 if dir of starty -> endy is positive, otherwise C=1
+	PHP
+	
+	; Coincident start and end points exit early
+	ORA dx
+	BEQ exitline
+	
+	; determine which type of line it is
+	LDA dy
+	CMP dx
+	BCC shallowline
+		
+.steepline
+
+	; self-modify code so that line progresses according to direction remembered earlier
+	PLP
+	lda #&c8		; INY	\\ going down
+	BCC P%+4
+	lda #&88		; DEY	\\ going up
+	sta branchupdown
+	
+	PLP
+	lda #&e8		; INX	\\ going right
+	BCC P%+4
+	lda #&ca		; DEX	\\ going left
+	sta branchleftright
+
+	sty steep_write+1
+
+	lda endy
+	sta steep_check+1
+
+	; initialise accumulator for 'steep' line
+	LDA dy
+;	STA count
+
+	LSR A
+
+.steeplineloop
+
+	\\ Keep accum in A
+	
+	; plot 'pixel'
+	.steep_write
+	stx table_x				; 4c	SELF-MOD low byte
+
+	; check if done
+;	DEC count				; 5c
+	.steep_check
+	cpy #&ff				; 2c
+	BEQ exitline			; 2c
+
+	.branchupdown
+	nop						; 2c	SELF-MOD INY/DEY
+	sty steep_write+1		; 4c
+	
+	; check move to next pixel column
+	.movetonextcolumn
+	SEC						; 2c
+	\\ Keep accum in A
+	SBC dx					; 3c
+	BCS steeplineloop		; 2c
+	ADC dy					; 3c
+	
+	.branchleftright
+	nop						; 2c	SELF-MOD INX/DEX
+	BRA steeplineloop		; 3c
+
+	.exitline
+	RTS
+	
+.shallowline
+
+	; self-modify code so that line progresses according to direction remembered earlier
+	PLP
+	lda #&c8		; INY	\\ going down
+	BCC P%+4
+	lda #&88		; DEY	\\ going up
+	sta branchupdown2
+
+	PLP
+	lda #&e8		; INX	\\ going right
+	BCC P%+4
+	lda #&ca		; DEX	\\ going left
+	sta branchleftright2
+
+	sty shallow_write+1
+
+	; initialise accumulator for 'shadllow' line
+	LDA dx
+	STA count
+	LSR A
+
+	INC count
+
+.shallowlineloop
+;	STA accum
+
+	; plot 'pixel'
+;	txa
+	.shallow_write
+;	sta table_x, Y			; SELF-MOD low byte
+	stx table_x
+
+	; check if done
+	DEC count
+	beq exitline
+
+	.branchleftright2
+	nop						; SELF-MOD INX/DEX
+	
+	; check whether we move to the next line
+	.movetonextline
+	SEC
+;	LDA accum
+	SBC dy
+	BCS shallowlineloop
+	ADC dx
+
+	.branchupdown2
+	nop						; SELF-MOD INY/DEY
+	sty shallow_write+1
+
+	BRA shallowlineloop		; always taken
+}
+
 .fx_end
 
 \ ******************************************************************
@@ -788,6 +1013,9 @@ NOP:NOP:NOP		; shift loop into same page
 .osfile_filename
 EQUS "Screen", 13
 
+.shadow_filename
+EQUS "Doom", 13
+
 .osfile_params
 .osfile_nameaddr
 EQUW osfile_filename
@@ -809,55 +1037,46 @@ EQUD 0
 \ ******************************************************************
 
 ALIGN &100
-IF 1
-.screen_LO
-FOR n,0,255,1
-y = 255-n
-row = y DIV 8
-EQUB LO((&3000 + row * 640)/8)
-NEXT
+.test_table
+{
+	\\ startx, starty, endx, endy
+	EQUB 0, 0, 79, 128
+	EQUB 0, 0, 79, 255
+	EQUB 0, 0, 40, 255
 
-.screen_HI
-FOR n,0,255,1
-y = 255-n
-row = y DIV 8
-EQUB HI((&3000 + row * 640)/8)
-NEXT
+	EQUB 79, 0, 0, 128
+	EQUB 79, 0, 0, 255
+	EQUB 79, 0, 40, 255
 
-.screen_R9
-EQUB 0
-FOR n,1,255,1
-y = 255-n
-line = y MOD 8
-EQUB line
-NEXT
+	EQUB 79, 255, 0, 128
+	EQUB 79, 255, 0, 0
+	EQUB 79, 255, 40, 0
 
-ELSE
-a=14
+	EQUB 0, 255, 79, 128
+	EQUB 0, 255, 79, 0
+	EQUB 0, 255, 40, 0
 
-.screen_LO
-FOR n,0,255,1
-y = INT( (n DIV 2) + a * 2 * SIN(n * 4 * PI/256) )
-row = y DIV 8
-EQUB LO((&3000 + row * 640)/8)
-NEXT
+	EQUB 40, 0, 0, 128		; ab -> ac
+	EQUB 40, 0, 20, 255		; ab -> cd
+	EQUB 40, 0, 60, 255		; ab -> cd
+	EQUB 40, 0, 79, 128		; ab -> db
 
-.screen_HI
-FOR n,0,255,1
-y = INT( (n DIV 2) + a * 2 * SIN(n * 4 * PI/256) )
-row = y DIV 8
-EQUB HI((&3000 + row * 640)/8)
-NEXT
+	EQUB 0, 128, 40, 0		; ac -> ab
+	EQUB 0, 128, 79, 64		; ac -> db
+	EQUB 0, 128, 79, 192	; ac -> db	; takes too long?
+	EQUB 0, 128, 40, 255	; ac -> cd
 
-.screen_R9
-EQUB 0
-FOR n,1,255,1
-y = INT( (n DIV 2) + a * 2 * SIN(n * 4 * PI/256) )
-line = y MOD 8
-EQUB line
-NEXT
+	EQUB 40, 255, 0, 128	; cd -> ac
+	EQUB 40, 255, 20, 0		; cd -> ab
+	EQUB 40, 255, 60, 0		; cd -> ab
+	EQUB 40, 255, 79, 128	; cd -> db
 
-ENDIF
+	EQUB 79, 128, 40, 255	; db -> cd
+	EQUB 79, 128, 0, 192	; db -> ac
+	EQUB 79, 128, 0, 64		; db -> ac	; takes too long?
+	EQUB 79, 128, 40, 0		; db -> ab	
+}
+.test_end
 
 .data_end
 
@@ -878,6 +1097,11 @@ SAVE "MyFX", start, end
 \ ******************************************************************
 
 .bss_start
+
+ALIGN &100
+.table_x
+skip &100
+
 .bss_end
 
 \ ******************************************************************
@@ -900,7 +1124,5 @@ PRINT "------"
 \ *	Any other files for the disc
 \ ******************************************************************
 
-PUTBASIC "circle.bas", "Circle"
-PUTFILE "rtw_test.bin", "Screen", &3000
+PUTFILE "title.bin", "Screen", &3000
 PUTFILE "screen.bin", "Doom", &3000
-PUTFILE "kc_test.bin", "CircTri", &3000
