@@ -47,7 +47,7 @@ TOGGLE_VALUE_OFF = PAL_black
 TOGGLE_REGISTER	 = &fe21
 ENDIF
 
-TEST_DELAY = 25
+TEST_DELAY = 1;25
 
 \ ******************************************************************
 \ *	MACROS
@@ -123,15 +123,16 @@ GUARD &9F
 .count					skip 1
 .accum					skip 1
 
-
-.startx_dir				skip 1
-.starty_dir				skip 1
-.endx_dir				skip 1
-.endy_dir				skip 1
-
 .miny					skip 1
+
 .delay					skip 1
 .test_index				skip 1
+
+.x_dir					skip 1
+.y_dir					skip 1
+.x_dir2					skip 1
+.y_dir2					skip 1
+
 
 \ ******************************************************************
 \ *	CODE START
@@ -479,11 +480,17 @@ ENDIF
 	\ Select MAIN to write
 	lda &fe34:and #&ff-4:sta &fe34
 	
+	lda #0:sta x_dir2:sta y_dir
+	lda #1:sta y_dir2:sta x_dir
+
 	lda #0
 	sta test_index
 	jsr load_test
 	jsr drawline
 	jsr setup_draw
+
+	lda #TEST_DELAY
+	sta delay
 
 	RTS
 }
@@ -510,8 +517,6 @@ ENDIF
 	.index_ok
 	stx test_index
 
-	lda #TEST_DELAY
-	sta delay
 	rts
 }
 
@@ -663,15 +668,147 @@ ENDIF
 	rts
 }
 
+.animate_start
+{
+	lda x_dir
+	beq no_x_anim
+
+	\\ Animate x
+	clc
+	adc startx
+	beq x_is_zero
+	cmp #79
+	bcs x_is_max
+	bra done_x
+
+	.x_is_zero
+	lda #0
+	sta x_dir
+	lda #1
+	sta y_dir
+	lda #0
+	bra done_x
+
+	.x_is_max
+	lda #&ff
+	sta x_dir
+	lda #79
+
+	.done_x
+	sta startx
+	bra done
+
+	.no_x_anim
+	lda y_dir
+	beq no_y_anim
+
+	\\ Animate y
+	clc
+	adc starty
+	beq y_is_zero
+	cmp #&ff
+	beq y_is_max
+	bra done_y
+
+	.y_is_zero
+	lda #0
+	sta y_dir
+	lda #1
+	sta x_dir
+	lda #0
+	bra done_y
+
+	.y_is_max
+	lda #&ff
+	sta y_dir
+	lda #255
+
+	.done_y
+	sta starty
+	
+	.no_y_anim
+
+	.done
+	rts
+}
+
+.animate_end
+{
+	lda x_dir2
+	beq no_x_anim
+
+	\\ Animate x
+	clc
+	adc endx
+	beq x_is_zero
+	cmp #79
+	bcs x_is_max
+	bra done_x
+
+	.x_is_zero
+	lda #1
+	sta x_dir2
+	lda #0
+	bra done_x
+
+	.x_is_max
+	lda #0
+	sta x_dir2
+	lda #&ff
+	sta y_dir2
+	lda #79
+
+	.done_x
+	sta endx
+	bra done
+
+	.no_x_anim
+	lda y_dir2
+	beq no_y_anim
+
+	\\ Animate y
+	clc
+	adc endy
+	beq y_is_zero
+	cmp #&ff
+	beq y_is_max
+	bra done_y
+
+	.y_is_zero
+	lda #1
+	sta y_dir2
+	lda #0
+	bra done_y
+
+	.y_is_max
+	lda #0
+	sta y_dir2
+	lda #&ff
+	sta x_dir2
+	lda #255
+
+	.done_y
+	sta endy
+	
+	.no_y_anim
+
+	.done
+	rts
+}
+
 .fx_update_function
 {
 	dec delay
 	bne wait
 
-	jsr load_test
+;	jsr load_test
+	jsr animate_start
+	jsr animate_end
 	jsr drawline
 	jsr setup_draw
 
+	lda #TEST_DELAY
+	sta delay
 	.wait
 
 	RTS
@@ -1039,6 +1176,8 @@ EQUD 0
 ALIGN &100
 .test_table
 {
+	EQUB RND(79), 0, 79, RND(255)
+
 	\\ startx, starty, endx, endy
 	EQUB 0, 0, 79, 128
 	EQUB 0, 0, 79, 255
