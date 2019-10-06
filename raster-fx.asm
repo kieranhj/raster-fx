@@ -133,6 +133,8 @@ GUARD &9F
 .x_dir2					skip 1
 .y_dir2					skip 1
 
+.index					skip 1
+
 
 \ ******************************************************************
 \ *	CODE START
@@ -485,12 +487,14 @@ ENDIF
 
 	lda #0
 	sta test_index
+IF 0
 	jsr load_test
 	jsr drawline
 	jsr setup_draw
 
 	lda #TEST_DELAY
 	sta delay
+ENDIF
 
 	RTS
 }
@@ -798,6 +802,7 @@ ENDIF
 
 .fx_update_function
 {
+IF 0
 	dec delay
 	bne wait
 
@@ -810,6 +815,16 @@ ENDIF
 	lda #TEST_DELAY
 	sta delay
 	.wait
+ELSE
+	inc test_index
+
+	lda test_index
+	dec a
+	sta fx_draw_ymax+1
+
+	lda #0
+	sta miny
+ENDIF
 
 	RTS
 }
@@ -834,11 +849,11 @@ ALIGN &100
 .fx_draw_function
 \{
 	\\ Enter fn at 64us before first raster line
-	\\ Minus setup, clockslide calc, minimum slide, toggle, hadj
-	WAIT_CYCLES 128 -19 -24 -5 -4 -1
+	\\ Minus setup, clockslide calc, minimum slide, toggle, hadj + centre
+	WAIT_CYCLES 128 -19 -30 -5 -4 -1 +2
 
 	.fx_draw_initial_value
-	lda #PAL_black				; 2c	; toggle off value
+	lda #TOGGLE_VALUE_OFF		; 2c	; toggle off value
 	sta TOGGLE_REGISTER			; 4c	; start off
 	\\ 6c
 
@@ -857,9 +872,8 @@ ALIGN &100
 	\\ branch = 5c
 
 	.fx_draw_here
-	ldy miny					; 3c	; y index
-	.fx_draw_toggle_value
-	ldx #PAL_red				; 2c	; toggle on value
+	ldy test_index				; 3c	; y index
+	ldx #0						; 2c
 	\\ 5c
 
 	\\ To here = 6+3+5+5=19c
@@ -867,49 +881,53 @@ ALIGN &100
 	.fx_draw_loop
 
 	.fx_draw_reset_value
-	lda #PAL_blue				; 2c
+	lda #TOGGLE_VALUE_OFF		; 2c
 	sta TOGGLE_REGISTER			; 4c
 
 	\\ Load next X value and calculate clockslide
 	lda table_x, y				; 4c
+	clc							; 2c
+	adc table_2, x				; 4c
 	sta clockslide_right+1		; 4c
 	eor #&ff					; 2c
 	sec							; 2c
-	adc #79						; 2c
+	adc #71						; 2c	; MAX VALUE = 71
 	sta clockslide_left+1		; 4c
-	\\ 24c
+	\\ 30c
+
+	.fx_draw_toggle_value
+	lda #TOGGLE_VALUE_ON		; 2c	; toggle on value
 
 	.clockslide_left
 	{
 		BRA clockslide_left		; 3c
 		\\ Between 2 and 81 cycle delay
-		FOR n,1,39,1		
+		FOR n,1,35,1		
 		cmp #&c9				; 2c
 		NEXT
 		cmp &ea					; 3c, 2c
 	}
-	\\ Min 5c, max 84c
+	\\ Slide = 3c + 35*2c + 2c = 75c
 
 	\\ Toggle on - this should be at C0=0 when table_x=0
-	stx TOGGLE_REGISTER			; 4c
+	sta TOGGLE_REGISTER			; 4c
 
 	.clockslide_right
 	{
 		BRA clockslide_right	; 3c
 		\\ Between 2 and 81 cycle delay
-		FOR n,1,39,1		
+		FOR n,1,35,1		
 		cmp #&c9				; 2c
 		NEXT
 		cmp &ea					; 3c, 2c
 	}
-	\\ Min 5c, max 84c
+	\\ Slide = 3c + 35*2c + 2c = 75c
 
 	.fx_draw_ymax
 	cpy #&ff					; 2c
 	beq fx_draw_done			; 2c
 
-	\\ Don't spend them all at once
-	WAIT_CYCLES 2
+	inx							; 2c
 
 	\\ Next line
 	iny							; 2c
@@ -922,7 +940,7 @@ ALIGN &100
 
 	\\ Remainder is on
 	.fx_draw_final_value
-	lda #PAL_green				; 2c
+	lda #TOGGLE_VALUE_ON		; 2c
 	sta TOGGLE_REGISTER			; 4c
 
     RTS
@@ -1217,6 +1235,17 @@ ALIGN &100
 }
 .test_end
 
+ALIGN &100
+.table_x
+FOR y,0,255,1
+EQUB 36 + 18 * SIN(2 * PI * y / 256)
+NEXT
+
+.table_2
+FOR y,0,255,1
+EQUB 17 * SIN(4 * PI * y / 256)
+NEXT
+
 .data_end
 
 \ ******************************************************************
@@ -1236,10 +1265,6 @@ SAVE "MyFX", start, end
 \ ******************************************************************
 
 .bss_start
-
-ALIGN &100
-.table_x
-skip &100
 
 .bss_end
 
