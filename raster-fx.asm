@@ -149,12 +149,12 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #2
 	JSR oswrch
 
-	JSR fx_init_function
-
 	\\ Turn off cursor
 
 	LDA #10: STA &FE00
 	LDA #32: STA &FE01
+
+	JSR fx_init_function
 
 	\\ Shift hsync - IMPORTANT!
 
@@ -893,20 +893,28 @@ EQUD 0
 
 ALIGN &100
 
-COLUMN_START = -8
+COLUMN_START = 0
 
 .screen_LO
 FOR n,0,255,1
 y = n
 row = y DIV 8
+IF n=0
+EQUB LO((screen_addr + row * row_bytes)/8)
+ELSE 
 EQUB LO((screen_addr + row * row_bytes + COLUMN_START*8)/8)
+ENDIF
 NEXT
 
 .screen_HI
 FOR n,0,255,1
 y = n
 row = y DIV 8
+IF n=0
+EQUB HI((screen_addr + row * row_bytes)/8)
+ELSE 
 EQUB HI((screen_addr + row * row_bytes + COLUMN_START*8)/8)
+ENDIF
 NEXT
 
 .y_to_scanline
@@ -919,19 +927,19 @@ NEXT
 
 .table_y
 FOR n,0,255,1
-EQUB 16 * SIN(2 * PI * n / 256)
+EQUB 32 * SIN(2 * PI * n / 256)
 NEXT
 
 .table_x
 FOR n,0,255,1
-xoff = 12 + 12 * SIN(1 * PI * n / 256)
+xoff = 11 + 11 * SIN(4 * PI * n / 256)
 EQUB xoff DIV 2
 NEXT
 
 .table_s
 FOR m,0,255,1
 n = m-1		; need to -1 as the table is looked up post index increment
-xoff = 12 + 12 * SIN(1 * PI * n / 256)
+xoff = 11 + 11 * SIN(4 * PI * n / 256)
 EQUB 1-(xoff MOD 2)	; because positive offset is a left shift not a right shift
 NEXT
 
@@ -978,6 +986,6 @@ PRINT "------"
 
 PUTBASIC "circle.bas", "Circle"
 PUTFILE "rtw_test.bin", "RTW", &3000
-PUTFILE "doom.bin", "Screen", &3000
+PUTFILE "logo.bin", "Screen", &3000
 PUTBASIC "shift.bas", "Shift"
-PUTFILE "doom2.bin", "Shifted", &3000
+PUTFILE "logo2.bin", "Shifted", &3000
