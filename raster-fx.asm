@@ -146,7 +146,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	LDA #22
 	JSR oswrch
-	LDA #2
+	LDA #1
 	JSR oswrch
 
 	\\ Turn off cursor
@@ -533,7 +533,8 @@ ENDIF
 	lda #1
 	sta raster_y			; we start counting on second line
 
-	dec table_top
+	inc table_top
+	inc table_top
 
 	ldx table_top
 	stx table_idx
@@ -623,7 +624,7 @@ ENDIF
 	\\ 36c
 
 	\\ Load Y ahead of raster
-	ldy raster_y					; 3c	could be LDY #1
+	lda raster_y					; 3c	could be LDY #1
 	ldx table_idx
 
 	WAIT_CYCLES 2
@@ -634,13 +635,13 @@ ENDIF
 
 	\\ start segment 1..
 	stz &fe00			; stz		; 6c
-	lda #1							; 2c
+	ldy #1							; 2c
 	\\ This has to be bang on 96c on real hw
-	sta &fe01				; R0=1 horizontal total = 2
+	sty &fe01				; R0=1 horizontal total = 2
 	\\ 14c
 
-	lda #6:sta &fe00
-	lda #1:sta &fe01		; R6=1 vertical displayed <-- could this be moved to update?
+	ldy #6:sty &fe00
+	ldy #1:sty &fe01		; R6=1 vertical displayed <-- could this be moved to update?
 	\\ 16c
 
 	stz &fe00
@@ -657,18 +658,19 @@ ENDIF
 	.fx_draw_loop
 
 IF _REAL_HW
-	lda #95
+	ldy #95
 ELSE
-	lda #97
+	ldy #97
 ENDIF
 	\\ got to catch this before 2c!
-	sta &FE01				; R0=95 horizontal total = 96
+	sty &FE01				; R0=95 horizontal total = 96
 	\\ 8c
 
 	\\ image_y = raster_y + table_y[index]
-	tya								; 2c	Y=raster Y
 	adc table_y, X					; 4c	X=table index
 	tay								; 2c	Y=image Y
+
+	NOP								; 2c
 
 	\\ Screen start address = table_x[index] + screen[image_y]
 	lda #13:sta &fe00				; 8c
@@ -680,7 +682,7 @@ ENDIF
 	\\ could be a carry!  <-- can probably arrange table so this doesn't happen?
 	lda #12:sta &fe00				; 8c	shouldn't affect carry?
 	lda screen_HI, Y				; 4c    Y=image y
-	adc #0							; 2c
+	adc table_x_HI, X				; 4c
 	sta &fe01						; 6c
 
 	\\ 52c total
@@ -691,7 +693,6 @@ ENDIF
 	lda y_to_scanline, Y			; 4c	Y=image Y
 	tay								; 2c	Y=image scanline
 	eor #15							; 2c
-	clc								; 2c
 	.fx_draw_prev_line
 	adc #0							; 2c	SELF-MOD CODE
 	sta &fe01						; 6c
@@ -724,11 +725,11 @@ ENDIF
 	sta &fe34						; 4c
 
 	\\ Next raster line
-	ldy raster_y					; 3c
-	iny								; 2c
-	sty raster_y					; 3c
+	lda raster_y					; 3c
+	inc a								; 2c
+	sta raster_y					; 3c
 
-	cpy raster_max					; 3c		was #255 ;2c
+	cmp raster_max					; 3c		was #255 ;2c
 	bne fx_draw_loop				; 3c
 	\\ 7c
 
@@ -897,24 +898,24 @@ COLUMN_START = 0
 
 .screen_LO
 FOR n,0,255,1
-y = n
-row = y DIV 8
-IF n=0
-EQUB LO((screen_addr + row * row_bytes)/8)
-ELSE 
-EQUB LO((screen_addr + row * row_bytes + COLUMN_START*8)/8)
+IF n>=64 AND n<192
+y = n-64
+ELSE
+y = 0
 ENDIF
+row = y DIV 8
+EQUB LO((screen_addr + row * row_bytes + COLUMN_START*8)/8)
 NEXT
 
 .screen_HI
 FOR n,0,255,1
-y = n
-row = y DIV 8
-IF n=0
-EQUB HI((screen_addr + row * row_bytes)/8)
-ELSE 
-EQUB HI((screen_addr + row * row_bytes + COLUMN_START*8)/8)
+IF n>=64 AND n<192
+y = n-64
+ELSE
+y = 0
 ENDIF
+row = y DIV 8
+EQUB HI((screen_addr + row * row_bytes + COLUMN_START*8)/8)
 NEXT
 
 .y_to_scanline
@@ -927,20 +928,34 @@ NEXT
 
 .table_y
 FOR n,0,255,1
-EQUB 32 * SIN(2 * PI * n / 256)
+EQUB 48 * SIN(2 * PI * n / 256)
 NEXT
 
 .table_x
 FOR n,0,255,1
 xoff = 11 + 11 * SIN(4 * PI * n / 256)
-EQUB xoff DIV 2
+;xoff = n MOD 32
+xchar = xoff DIV 4
+xshift = 3-(xoff MOD 4)	; shifts 0&1 and 2&3
+EQUB LO(xchar + (xshift MOD 2) * ((row_bytes * 16)/8))
+NEXT
+
+.table_x_HI
+FOR n,0,255,1
+xoff = 11 + 11 * SIN(4 * PI * n / 256)
+;xoff = n MOD 32
+xchar = xoff DIV 4
+xshift = 3-(xoff MOD 4)
+EQUB HI(xchar + (xshift MOD 2) * ((row_bytes * 16)/8))
 NEXT
 
 .table_s
 FOR m,0,255,1
 n = m-1		; need to -1 as the table is looked up post index increment
 xoff = 11 + 11 * SIN(4 * PI * n / 256)
-EQUB 1-(xoff MOD 2)	; because positive offset is a left shift not a right shift
+;xoff = n MOD 32
+xshift = 3-(xoff MOD 4)	; shifts 0&1 and 2&3
+EQUB xshift DIV 2	; because positive offset is a left shift not a right shift
 NEXT
 
 .data_end
@@ -986,6 +1001,8 @@ PRINT "------"
 
 PUTBASIC "circle.bas", "Circle"
 PUTFILE "rtw_test.bin", "RTW", &3000
-PUTFILE "logo.bin", "Screen", &3000
+PUTFILE "logo_mode1.bin", "Screen", &3000
 PUTBASIC "shift.bas", "Shift"
-PUTFILE "logo2.bin", "Shifted", &3000
+PUTFILE "logo_mode1a.bin", "Shifted", &3000
+PUTBASIC "scale.bas", "Scale"
+
