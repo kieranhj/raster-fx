@@ -106,6 +106,7 @@ GUARD &9F
 .raster_y				skip 1
 .image_y				skip 1
 .table_idx				skip 1
+.table_top				skip 1
 .count					skip 1
 .write_rts				skip 2
 
@@ -471,19 +472,7 @@ ENDIF
 	and #255-4		; MAIN RAM
 	sta &fe34
 
-	ldy #1
-	ldx #NUM_PLOTS-1
-	.loop
-	lda plot_at_table, X
-	sta plot_at_scale, X
-	tya
-	sta plot_at_dir, X
-	eor #&fe
-	tay
-	dex
-	bpl loop
-
-	lda #2:sta plot_at_y+0
+	lda #0:sta table_top
 
 	RTS
 }
@@ -503,40 +492,6 @@ ENDIF
 \ be late and your raster timings will be wrong!
 \ ******************************************************************
 
-.animate_plot
-{
-	lda plot_at_dir, X
-	bmi negative
-	\\ positive
-
-	clc
-	adc plot_at_scale, X
-	cmp #15
-	bcc still_pos
-	\\ bounce
-	tay
-	lda #&ff
-	sta plot_at_dir, X
-	tya
-
-	.still_pos
-	bra done
-
-	.negative
-	clc
-	adc plot_at_scale, X
-	bne still_neg
-	\\ bounce
-	tay
-	lda #1
-	sta plot_at_dir, X
-	tya
-	.still_neg
-	.done
-	sta plot_at_scale, X
-	rts
-}
-
 .fx_update_function
 {
 	ldx #0
@@ -552,54 +507,29 @@ ENDIF
 	ldx #0
 	stx table_idx
 
-	\\ 16 scanlines burnt right here.
-	jsr naive_tables_wipe
+	ldx table_top
+	dex:dex
+	stx table_top
 
-	ldx plot_at_scale+0
-	ldy plot_at_y+0
-	sty plot_y
-	jsr naive_table_draw_S_at_Y
 
-	ldx #0
+	ldy #1
+	clc
 	.loop
+\	lda #64					; 2c
+	lda circle_table, Y
+\	adc sine_table, X		; 4c
+\	adc sine_table, Y		; 4c
+	sta table_image_y, Y	; 5c
 
-	\\ Next Y
-	lda plot_at_scale, X
-	tay
-	lda plot_y
-	clc
-	adc scale_height,Y
-	bcc y_ok1
-	lda #255
-	.y_ok1
-	clc
-	adc #2
-	bcc y_ok2
-	lda #255
-	.y_ok2
-	sta plot_y
-	tay
+	inx						; 2c
+	iny						; 2c
+	bne loop				; 3c
+	\\ 22c * 256 = 5632c ~= 44 scanlines!!
+	\\ This is the problem with computing large tables...
+	\\ Only 10 scanlines free!!!
+	\\ Could do the above loop during draw fn.
 
-	inx
-	stx table_idx
-	lda plot_at_scale, X
-	tax
-	jsr naive_table_draw_S_at_Y
-
-	ldx table_idx
-	cpx #NUM_PLOTS-1
-	bcc loop
-
-	\\ 11 scanline left...
-	\\ After unrolling 25 scanlines left!
-
-	ldx #NUM_PLOTS-1
-	.anim_loop
-	jsr animate_plot
-	dex
-	bpl anim_loop
-
-	lda naive_table_y+1
+	lda table_image_y+1
 	sta image_y
 
 	RTS
@@ -620,9 +550,6 @@ ENDIF
 \ If messing with CRTC registers, THIS FUNCTION MUST ALWAYS PRODUCE
 \ A FULL AND VALID 312 line PAL signal before exiting!
 \ ******************************************************************
-
-\\ <--- 96c total w/ 80c visible and hsync at 95c ---> <2c> <2c> ... <2c> = 128c
-\\ 1 visible segment + 16 short invisible segments = 17 'scanlines' per 'row' along a single raster line
 
 .fx_draw_function
 \{
@@ -725,7 +652,7 @@ ENDIF
 	\\ Only 18 cycles available!
 
 	sty raster_y					; 3c
-	lda naive_table_y, Y			; 4c
+	lda table_image_y, Y			; 4c
 	tay								; 2c
 
 	WAIT_CYCLES 9
@@ -777,8 +704,8 @@ ENDIF
 	WAIT_CYCLES 4
 
 	ldy raster_y					; 3c
-
-	lda naive_table_b, Y			; 4c
+	tya								; 2c
+	and #1							; 2c
 	sta &fe34						; 4c
 
 	iny								; 2c
@@ -894,13 +821,14 @@ ENDIF
 	RTS
 }
 
+IF 0
 .naive_tables_wipe
 {
 	lda #&ff
 	ldx #0
 	FOR n,0,255,1
-	sta naive_table_y+n
-	stx naive_table_b+n
+	sta table_image_y+n
+	stx table_image_bank+n
 	NEXT
 	rts
 }	\\ 256 * 4 * 2 = 2048c = 16 scanlines
@@ -908,44 +836,13 @@ ENDIF
 .naive_code_unrolled
 {
 	FOR n,0,255,1
-	stx naive_table_b+n
-	sty naive_table_y+n
+	stx table_image_bank+n
+	sty table_image_y+n
 	iny
 	NEXT
 	rts
 }
 
-IF 0
-.naive_table_draw_S_at_Y
-{
-	lda scale_height, X
-	sta count
-
-	lda scale_y_bank, X
-	sta load_bank+1
-
-	lda scale_y_offset, X
-	tax
-
-	.loop
-	txa						; 2c
-	sta naive_table_y, Y	; 5c
-
-	.load_bank
-	lda #0					; 2c
-	sta naive_table_b, Y	; 5c
-
-	inx						; 2c
-	iny						; 2c
-
-	dec count				; 5c
-	bne loop				; 3c
-	\\ 26c * height = 416c min, 1196c max
-	\\ 3.25 scanlines min, 9.35 scanlines max
-
-	rts
-}
-ELSE
 .naive_table_draw_S_at_Y
 {
 	\\ Calc entry point
@@ -1014,10 +911,10 @@ ENDIF
 }
 
 .osfile_filename
-EQUS "Screen", 13
+EQUS "Width1", 13
 
 .shadow_filename
-EQUS "Shifted", 13
+EQUS "Width2", 13
 
 .osfile_params
 .osfile_nameaddr
@@ -1063,6 +960,7 @@ line = y MOD 8
 EQUB line
 NEXT
 
+IF 0
 .unrolled_code_LO
 FOR n,0,255,1
 EQUB LO(naive_code_unrolled + n*7)
@@ -1072,41 +970,39 @@ NEXT
 FOR n,0,255,1
 EQUB HI(naive_code_unrolled + n*7)
 NEXT
+ENDIF
 
-.scale_height
-FOR h,16,46,2
-scale=h/46
-PRINT "height=", h, "scale=", scale, "width=", INT(224*scale)
-EQUB h
+ALIGN &100
+.sine_table
+FOR n,0,255,1
+EQUB 32 * SIN(2 * PI * n / 256)
 NEXT
 
-.scale_y_offset
+MIN_W=52
+MAX_W=304
+
+IF 1
+ALIGN &100
+.circle_table
+FOR n,0,255,1
+r = 100
+y = 128-n
+IF ABS(y) > r
 EQUB 0
-EQUB 16
-EQUB 16+18
-EQUB 16+18+20
-EQUB 16+18+20+22
-EQUB 16+18+20+22+24
-EQUB 16+18+20+22+24+26
-EQUB 16+18+20+22+24+26+28
-EQUB 16+18+20+22+24+26+28+30
-EQUB 16+18+20+22+24+26+28+30+32	; 34
-
-EQUB 0	; 36
-EQUB 36
-EQUB 36+38
-EQUB 36+38+40
-EQUB 36+38+40+42
-EQUB 36+38+40+42+44	; 46
-
-.scale_y_bank
-EQUB 0,0,0,0,0,0,0,0,0,0
-EQUB 1,1,1,1,1,1
-
-.plot_at_table
-EQUB 1,4,9,15,3,7,11,13
-
-.plot_
+ELSE
+x = SQR(r * r - y * y)
+PRINT r,y,x
+w = 2 * x
+IF w < MIN_W
+	EQUB 0
+ELIF w > MAX_W
+	EQUB 127
+ELSE
+	EQUB (w - MIN_W)/2
+ENDIF
+ENDIF
+NEXT
+ENDIF
 
 .data_end
 
@@ -1129,10 +1025,10 @@ SAVE "MyFX", start, end
 .bss_start
 
 ALIGN &100
-.naive_table_y
+.table_image_y
 skip &100
 
-.naive_table_b
+.table_image_bank
 skip &100
 
 .bss_end
@@ -1160,11 +1056,11 @@ PRINT "------"
 
 PUTBASIC "circle.bas", "Circle"
 PUTFILE "rtw_test.bin", "RTW", &3000
-PUTFILE "scaled1.bin", "Screen", &3000
+PUTFILE "width1.bin", "Width1", &3000
 PUTBASIC "shift.bas", "Shift"
-PUTFILE "scaled2.bin", "Shifted", &3000
+PUTFILE "width2.bin", "Width2", &3000
 PUTBASIC "scale.bas", "Scale"
-
+PUTBASIC "widths.bas", "Widths"
 
 IF HI(fx_draw_loop) <> HI(fx_draw_loop)
 	PRINT "WARNING: fx_draw_loop crossed page boundary!!"
