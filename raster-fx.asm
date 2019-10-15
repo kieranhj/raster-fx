@@ -106,16 +106,18 @@ GUARD &9F
 .raster_y				skip 1
 .image_y				skip 1
 .table_idx				skip 1
-.table_top				skip 1
 .count					skip 1
 .write_rts				skip 2
 
-.plot_y					skip 1
+.startx					skip 1
+.starty					skip 1
+.endx					skip 1
+.endy					skip 1
+.dx						skip 1
+.dy						skip 1
 
-NUM_PLOTS = 8
-.plot_at_y				skip NUM_PLOTS
-.plot_at_scale			skip NUM_PLOTS
-.plot_at_dir			skip NUM_PLOTS
+.startx_dir				skip 1
+
 
 \ ******************************************************************
 \ *	CODE START
@@ -472,7 +474,13 @@ ENDIF
 	and #255-4		; MAIN RAM
 	sta &fe34
 
-	lda #0:sta table_top
+	lda #1:sta startx_dir
+
+	lda #0:sta startx
+	lda #64:sta endx
+
+	lda #64:sta starty
+	lda #192:sta endy
 
 	RTS
 }
@@ -501,17 +509,7 @@ ENDIF
 	lda #13:sta &fe00	; 8c
 	lda screen_LO, x:sta &fe01	; 10c
 
-	lda #1
-	sta raster_y			; we start counting on second line
-
-	ldx #0
-	stx table_idx
-
-	ldx table_top
-	dex:dex
-	stx table_top
-
-
+IF 0
 	ldy #1
 	clc
 	.loop
@@ -528,6 +526,31 @@ ENDIF
 	\\ This is the problem with computing large tables...
 	\\ Only 10 scanlines free!!!
 	\\ Could do the above loop during draw fn.
+ENDIF
+
+	jsr wipe_image_table
+
+	lda startx
+	clc
+	adc startx_dir
+	sta startx
+	beq bounce_low
+	cmp #127
+	bne ok
+	.bounce_low
+	lda startx_dir
+	eor #&ff EOR 1
+	sta startx_dir
+	.ok
+
+	ldx table_idx
+	inx
+	stx table_idx
+
+	lda sine_table, x
+	sta endx
+
+	jsr drawline
 
 	lda table_image_y+1
 	sta image_y
@@ -607,10 +630,10 @@ ENDIF
 	\\ 36c
 
 	\\ Load Y ahead of raster
-	ldy raster_y					; 3c	could be LDY #1
-	ldx table_idx
+	ldy #1							; 2c	could be LDY #1
+	ldx #0							; 2c
 
-	WAIT_CYCLES 2
+	WAIT_CYCLES 4
 
 IF _REAL_HW=FALSE
 	NOP
@@ -821,18 +844,18 @@ ENDIF
 	RTS
 }
 
-IF 0
-.naive_tables_wipe
+.wipe_image_table
 {
-	lda #&ff
-	ldx #0
+	lda #0
+;	ldx #0
 	FOR n,0,255,1
 	sta table_image_y+n
-	stx table_image_bank+n
+;	stx table_image_bank+n
 	NEXT
 	rts
 }	\\ 256 * 4 * 2 = 2048c = 16 scanlines
 
+IF 0
 .naive_code_unrolled
 {
 	FOR n,0,255,1
@@ -883,6 +906,159 @@ IF 0
 	rts
 }
 ENDIF
+
+.drawline
+{
+	; don't need a screen address
+	; calc screen row of starty
+	LDY starty
+	
+	; calc pixel within byte of startx
+	LDX startx
+
+	; calc dx = ABS(startx - endx)
+	SEC
+	LDA startx
+	SBC endx
+	BCS posdx
+	EOR #255
+	ADC #1
+	.posdx
+	STA dx
+	
+	; C=0 if dir of startx -> endx is positive, otherwise C=1
+	PHP
+	
+	\\ We should be able to guarantee endy>starty for this FX
+	; calc dy = ABS(starty - endy)
+	SEC
+	LDA starty
+	SBC endy
+	BCS posdy
+	EOR #255
+	ADC #1
+	.posdy
+	STA dy
+	
+	; C=0 if dir of starty -> endy is positive, otherwise C=1
+	PHP
+	
+	; Coincident start and end points exit early
+	ORA dx
+	BEQ exitline
+	
+	; determine which type of line it is
+	LDA dy
+	CMP dx
+	BCC shallowline
+		
+.steepline
+
+	; self-modify code so that line progresses according to direction remembered earlier
+	PLP
+	lda #&c8		; INY	\\ going down
+	BCC P%+4
+	lda #&88		; DEY	\\ going up
+	sta branchupdown
+	
+	PLP
+	lda #&e8		; INX	\\ going right
+	BCC P%+4
+	lda #&ca		; DEX	\\ going left
+	sta branchleftright
+
+	sty steep_write+1
+
+	lda endy
+	sta steep_check+1
+
+	; initialise accumulator for 'steep' line
+	LDA dy
+	LSR A
+
+.steeplineloop
+
+	\\ Keep accum in A
+	
+	; plot 'pixel'
+	.steep_write
+	stx table_image_y		; 4c	SELF-MOD low byte
+
+	; check if done
+	.steep_check
+	cpy #&ff				; 2c
+	BEQ exitline			; 2c
+
+	.branchupdown
+	nop						; 2c	SELF-MOD INY/DEY
+	sty steep_write+1		; 4c
+	
+	; check move to next pixel column
+	.movetonextcolumn
+	SEC						; 2c
+	\\ Keep accum in A
+	SBC dx					; 3c
+	BCS steeplineloop		; 2c
+	ADC dy					; 3c
+	
+	.branchleftright
+	nop						; 2c	SELF-MOD INX/DEX
+	BRA steeplineloop		; 3c
+
+	.exitline
+	RTS
+	
+.shallowline
+
+	; self-modify code so that line progresses according to direction remembered earlier
+	PLP
+	lda #&c8		; INY	\\ going down
+	BCC P%+4
+	lda #&88		; DEY	\\ going up
+	sta branchupdown2
+
+	PLP
+	lda #&e8		; INX	\\ going right
+	BCC P%+4
+	lda #&ca		; DEX	\\ going left
+	sta branchleftright2
+
+	sty shallow_write+1
+
+	; initialise accumulator for 'shadllow' line
+	LDA dx
+	STA count
+	LSR A
+
+	INC count
+
+.shallowlineloop
+
+	; plot 'pixel'
+	.shallow_write
+	stx table_image_y		; SELF-MOD low byte
+
+	; check if done
+	DEC count
+	beq exitline
+
+	.branchleftright2
+	nop						; SELF-MOD INX/DEX
+	
+	; check whether we move to the next line
+	.movetonextline
+	SEC
+	SBC dy
+	BCS shallowlineloop
+	ADC dx
+
+	.branchupdown2
+	nop						; SELF-MOD INY/DEY
+	sty shallow_write+1
+
+	BRA shallowlineloop		; always taken
+}
+
 
 .fx_end
 
@@ -975,7 +1151,7 @@ ENDIF
 ALIGN &100
 .sine_table
 FOR n,0,255,1
-EQUB 32 * SIN(2 * PI * n / 256)
+EQUB 64 + 63 * SIN(2 * PI * n / 256)
 NEXT
 
 MIN_W=52
