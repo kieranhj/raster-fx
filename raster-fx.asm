@@ -117,7 +117,7 @@ GUARD &9F
 .dy						skip 1
 
 .startx_dir				skip 1
-
+.readptr				skip 2
 
 \ ******************************************************************
 \ *	CODE START
@@ -482,7 +482,17 @@ ENDIF
 	lda #64:sta starty
 	lda #192:sta endy
 
-	RTS
+	\rts
+	; fall through
+}
+
+.reset_readptr
+{
+	lda #lo(projection_list)
+	sta readptr
+	lda #hi(projection_list)
+	sta readptr+1
+	rts
 }
 
 \ ******************************************************************
@@ -509,48 +519,46 @@ ENDIF
 	lda #13:sta &fe00	; 8c
 	lda screen_LO, x:sta &fe01	; 10c
 
-IF 0
-	ldy #1
-	clc
-	.loop
-\	lda #64					; 2c
-	lda circle_table, Y
-\	adc sine_table, X		; 4c
-\	adc sine_table, Y		; 4c
-	sta table_image_y, Y	; 5c
-
-	inx						; 2c
-	iny						; 2c
-	bne loop				; 3c
-	\\ 22c * 256 = 5632c ~= 44 scanlines!!
-	\\ This is the problem with computing large tables...
-	\\ Only 10 scanlines free!!!
-	\\ Could do the above loop during draw fn.
-ENDIF
-
 	jsr wipe_image_table
 
-	lda startx
-	clc
-	adc startx_dir
+	lda (readptr)
+	cmp #128
+	bne loop
+
+	jsr reset_readptr
+
+	.loop
+	ldy #0
+	lda (readptr), y
+	beq done_loop
+
 	sta startx
-	beq bounce_low
-	cmp #127
-	bne ok
-	.bounce_low
-	lda startx_dir
-	eor #&ff EOR 1
-	sta startx_dir
-	.ok
-
-	ldx table_idx
-	inx
-	stx table_idx
-
-	lda sine_table, x
+	iny
+	lda (readptr), y
+	sta starty
+	iny
+	lda (readptr), y
 	sta endx
+	iny
+	lda (readptr), y
+	sta endy
+
+	clc
+	lda readptr
+	adc #4
+	sta readptr
+	bcc no_carry
+	inc readptr+1
+	.no_carry
 
 	jsr drawline
+	bra loop
+	.done_loop
+
+	inc readptr
+	bne ok
+	inc readptr+1
+	.ok
 
 	lda table_image_y+1
 	sta image_y
@@ -1148,37 +1156,121 @@ EQUB HI(naive_code_unrolled + n*7)
 NEXT
 ENDIF
 
-ALIGN &100
-.sine_table
-FOR n,0,255,1
-EQUB 64 + 63 * SIN(2 * PI * n / 256)
-NEXT
-
 MIN_W=52
 MAX_W=304
+ERR=1e-7
 
-IF 1
-ALIGN &100
-.circle_table
-FOR n,0,255,1
-r = 100
-y = 128-n
-IF ABS(y) > r
+cz=-160
+oz=100
+vp_scale=256		; was 160
+centre_x=160
+centre_y=128
+
+MACRO PROJECT_EDGE x1,y1,z1,x2,y2,z2,colour
+{
+	s1x = centre_x + vp_scale * x1 / (z1 + oz - cz)
+	s1y = centre_y + vp_scale * y1 / (z1 + oz - cz)
+	s2x = centre_x + vp_scale * x2 / (z2 + oz - cz)
+	s2y = centre_y + vp_scale * y2 / (z2 + oz - cz)
+
+;	PRINT "LINE FROM y=",s1y,"to",s2y
+	w1 = (s1x - centre_x) * 2
+	w2 = (s2x - centre_x) * 2
+;	PRINT "WIDTH FROM ",w1,"to",w2
+
+	IF s2y<s1y
+		PRINT "CULL EDGE"
+	ELSE
+
+		IF w1<MIN_W
+			EQUB colour+1
+		ELIF w1>MAX_W
+			EQUB colour+127
+		ELSE
+			EQUB colour+(INT(w1)-MIN_W)/2
+		ENDIF
+
+		\\ startx,starty, endx,endy
+		EQUB INT(s1y)
+		
+		IF w2<MIN_W
+			EQUB colour+1
+		ELIF w2>MAX_W
+			EQUB colour+127
+		ELSE
+			EQUB colour+(INT(w2)-MIN_W)/2
+		ENDIF
+		
+		EQUB INT(s2y)
+	ENDIF
+}
+ENDMACRO
+
+\\ Verts on side of a cube (square)
+v1x=64:v1y=16:v1z=64
+v2x=64:v2y=-16:v2z=64
+v3x=64:v3y=-16:v3z=-64
+v4x=64:v4y=16:v4z=-64
+
+PRINT "v1=(",v1y,v1z,") v2=(",v2y,v2z,") v3=",v3y,v3z,") v4=",v4y,v4z,")"
+
+.projection_list
+FOR a,0,255,2
+s = SIN(2 * PI * a / 256)
+c = COS(2 * PI * a / 256)
+\\ Rotate around X axis
+\\ Project onto screen
+\\ Pick the 2x visible faces
+
+\\ Rotate around X axis
+r1y = c*v1y - s*v1z
+r1z = s*v1y + c*v1z
+r2y = c*v2y - s*v2z
+r2z = s*v2y + c*v2z
+r3y = c*v3y - s*v3z
+r3z = s*v3y + c*v3z
+r4y = c*v4y - s*v4z
+r4z = s*v4y + c*v4z
+
+PRINT "a=",(360*a/256)
+;PRINT "r1=(",r1y,r1z,") r2=(",r2y,r2z,") r3=",r3y,r3z,") r4=",r4y,r4z,")"
+
+\\ Sides of the square (edge of the cube looking down X axis)
+l1y = r2y-r1y : l1z = r2z-r1z
+l2y = r3y-r2y : l2z = r3z-r2z
+l3y = r4y-r3y : l3z = r4z-r3z
+l4y = r1y-r4y : l4z = r1z-r4z
+
+\\ Normals to the edges
+n1z = l4z : n2z = l1z : n3z = l2z : n4z = l3z
+
+\\ Only edges with positive Z component of normal are visible (facing camera at +ve Z)
+
+;PRINT "l1y=",l1y,"l2y=",l2y,"l3y=",l3y,"l4y=",l4y
+;PRINT "l1z=",l1z,"l2z=",l2z,"l3z=",l3z,"l4z=",l4z
+
+IF n1z<-ERR
+	PRINT "Edge 1 visible: (",r1y,r1z,") -> (",r2y,r2z,")"
+	PROJECT_EDGE v1x,r1y,r1z,v2x,r2y,r2z, 0
+ENDIF
+IF n2z<-ERR
+	PRINT "Edge 2 visible: (",r2y,r2z,") -> (",r3y,r3z,")"
+	PROJECT_EDGE v2x,r2y,r2z,v3x,r3y,r3z, 128
+ENDIF
+IF n3z<-ERR
+	PRINT "Edge 3 visible: (",r3y,r3z,") -> (",r4y,r4z,")"
+	PROJECT_EDGE v3x,r3y,r3z,v4x,r4y,r4z, 0
+ENDIF
+IF n4z<-ERR
+	PRINT "Edge 4 visible: (",r4y,r4z,") -> (",r1y,r1z,")"
+	PROJECT_EDGE v4x,r4y,r4z,v1x,r1y,r1z, 128
+ENDIF
+
 EQUB 0
-ELSE
-x = SQR(r * r - y * y)
-PRINT r,y,x
-w = 2 * x
-IF w < MIN_W
-	EQUB 0
-ELIF w > MAX_W
-	EQUB 127
-ELSE
-	EQUB (w - MIN_W)/2
-ENDIF
-ENDIF
+
 NEXT
-ENDIF
+
+EQUB 128
 
 .data_end
 
