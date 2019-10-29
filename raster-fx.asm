@@ -28,6 +28,8 @@ PAL_cyan	= (6 EOR 7)
 PAL_yellow	= (3 EOR 7)
 PAL_white	= (7 EOR 7)
 
+ULA_Mode1 = &D8
+
 \ ******************************************************************
 \ *	SYSTEM defines
 \ ******************************************************************
@@ -119,6 +121,33 @@ GUARD &9F
 .startx_dir				skip 1
 .readptr				skip 2
 
+.check_width			skip 1		; [0-66] => 14 to 80 pixels
+.check_scanline			skip 1
+
+.check_x_offset_chars	skip 1
+.check_x_offset_pix		skip 1
+
+.check_x				skip 1		; offset by X pixels
+.check_y				skip 1		; offset by Y lines
+
+.check_N				skip 1
+.check_XdivN			skip 2
+.check_XmodN			skip 1
+.check_YdivN			skip 2
+.check_YmodN			skip 1
+
+.check_dir				skip 1
+.check_idx				skip 1
+.check_idy				skip 1
+
+MAX_CHECK_SIZE=66
+MIN_CHECK_SIZE=0
+
+\\ Display the same scanline for now.
+\\ Toggle palette on vertical count according to check size
+\\ Add in X & Y movement - required parity
+\\ Then think about having multiple widths per frame...
+
 \ ******************************************************************
 \ *	CODE START
 \ ******************************************************************
@@ -161,6 +190,14 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	JSR oswrch
 	LDA #1
 	JSR oswrch
+
+	\\ Set palette
+	ldx #15
+	.pal_loop
+	lda palette, X
+	sta &fe21
+	dex
+	bpl pal_loop
 
 	\\ Turn off cursor
 
@@ -474,24 +511,11 @@ ENDIF
 	and #255-4		; MAIN RAM
 	sta &fe34
 
-	lda #1:sta startx_dir
+	lda #50			; should be 64 pixels
+	sta check_width
+	lda #1
+	sta check_dir
 
-	lda #0:sta startx
-	lda #64:sta endx
-
-	lda #64:sta starty
-	lda #192:sta endy
-
-	\rts
-	; fall through
-}
-
-.reset_readptr
-{
-	lda #lo(projection_list)
-	sta readptr
-	lda #hi(projection_list)
-	sta readptr+1
 	rts
 }
 
@@ -512,56 +536,162 @@ ENDIF
 
 .fx_update_function
 {
-	ldx #0
-	lda #12:sta &fe00	; 8c
-	lda screen_HI, x:sta &fe01	; 10c
+	\\ X = 40 + sin(iy) / 4
+    CLC
+	LDY check_idx
+	LDA checkzoom_table_sin, Y
+	ADC #128
+	STA check_x
+
+	\\ Y = 37 + cos(iy) / 4
+    CLC
+	LDY check_idy
+	LDA checkzoom_table_cos, Y
+	ADC #128
+	STA check_y
+
+    \\ Update indices
+    INC check_idx
+    INC check_idx
+    INC check_idy
+
+IF 0
+    {
+        \\ Update N
+        LDA check_dir
+        BMI shrink
+        \\ Grow
+        CLC
+        ADC check_width
+        CMP #MAX_CHECK_SIZE-1
+        BCC ok
+
+        LDX #&FF
+        STX check_dir
+        BNE ok
+
+        .shrink
+        CLC
+        ADC check_width
+        CMP #MIN_CHECK_SIZE+1
+        BCS ok
+
+        LDX #1
+        STX check_dir
+
+        .ok
+        STA check_width
+        .not_today
+    }
+ENDIF
+
+	lda check_width
+	clc
+	adc #14
+	sta check_N
+
+	\\ Divide xoff by N
+	LDA check_x
+	STA check_XdivN
+    STZ check_XdivN+1
+
+	\\ 16bit/8bit math = 16bit result
+    {
+        LDX #16
+        LDA #0
+        .div_loop
+        ASL check_XdivN
+        ROL check_XdivN+1
+        ROL A
+        CMP check_N
+        BCC no_sub
+        SBC check_N
+        INC check_XdivN
+        .no_sub
+        DEX
+        BNE div_loop
+        
+        \\ A contains remainder (X MOD N)
+        STA check_XmodN
+    }
+
+	\\ Divide yoff by N
+	LDA check_y
+	STA check_YdivN
+    STZ check_YdivN+1
+
+	\\ 16bit/8bit math = 16bit result
+    {
+        LDX #16
+        LDA #0
+        .div_loop
+        ASL check_YdivN
+        ROL check_YdivN+1
+        ROL A
+        CMP check_N
+        BCC no_sub
+        SBC check_N
+        INC check_YdivN
+        .no_sub
+        DEX
+        BNE div_loop
+        
+        \\ A contains remainder (Y MOD N)
+        STA check_YmodN
+    }
+
+	\\ Set X & Y offsets
+	lda check_XmodN
+	lsr a: lsr a
+	sta check_x_offset_chars
+
+	lda check_XmodN
+	and #3
+	sta check_x_offset_pix
+
+	ldx check_width
 
 	lda #13:sta &fe00	; 8c
-	lda screen_LO, x:sta &fe01	; 10c
-
-	jsr wipe_image_table
-
-	lda (readptr)
-	cmp #128
-	bne loop
-
-	jsr reset_readptr
-
-	.loop
-	ldy #0
-	lda (readptr), y
-	beq done_loop
-
-	sta startx
-	iny
-	lda (readptr), y
-	sta starty
-	iny
-	lda (readptr), y
-	sta endx
-	iny
-	lda (readptr), y
-	sta endy
-
+	lda start_addr_for_width_LO, x
 	clc
-	lda readptr
-	adc #4
-	sta readptr
-	bcc no_carry
-	inc readptr+1
-	.no_carry
+	adc check_x_offset_chars
+	sta &fe01	; 10c
 
-	jsr drawline
-	bra loop
-	.done_loop
+	lda #12:sta &fe00	; 8c
+	lda start_addr_for_width_HI, x
+	adc #0
+	sta &fe01	; 10c
 
-	inc readptr
-	bne ok
-	inc readptr+1
-	.ok
-
-	lda table_image_y+1
+	lda scanline_for_width, X
+	sta check_scanline
 	sta image_y
+
+	lda bank_for_width, X
+	sta &fe34
+
+	lda check_XdivN
+	and #1
+	sta parity+1
+	lda check_YdivN
+	and #1
+	.parity
+	eor #0
+	ora #ULA_Mode1
+	sta &fe20
+
+	\\ Now need to loop over Y
+	ldy #0
+	ldx check_YmodN
+	.parity_loop
+	sta ula_value_for_y, Y
+	inx
+	cpx check_N
+	bcc no_flip
+	eor #1
+	ldx #0
+	.no_flip
+	iny
+	bne parity_loop
 
 	RTS
 }
@@ -588,10 +718,10 @@ ENDIF
 	WAIT_CYCLES 128-14-6 -1
 
 	.fx_draw_here
-	clc
-	ldy image_y			; next scanline
-	nop
-	stz &fe00			; stz
+	clc					; 2c
+	ldx check_width		; 3c
+	ldy #1				; 2c
+	stz &fe00			; 6c
 
 IF _REAL_HW
 	lda #95
@@ -622,24 +752,23 @@ ENDIF
 
 	\\ Set R9
 	LDA #9:STA &fe00				; 8c
-	LDA y_to_scanline, Y			; 4c
+	LDA scanline_for_width, x			; 4c
+	adc check_x_offset_pix			; 3c
 	sta fx_draw_prev_line+1				; 4c
 	eor #15							; 2c
 	\\ First scanline always 0
-	STA &fe01						; 6c
+	STA &fe01						; 6c-1
 	\\ 24c
 
 	\\ Set R12/R13
-	LDA #12:STA &fe00				; 8c
-	LDA screen_HI, Y:STA &fe01		; 10c		X=1
-
 	LDA #13:STA &fe00				; 8c
-	LDA screen_LO, Y:STA &fe01		; 10c		X=1
+	LDA start_addr_for_width_LO, X
+	adc check_x_offset_chars		; 3c
+	STA &fe01		; 6c-1
 	\\ 36c
 
-	\\ Load Y ahead of raster
-	ldy #1							; 2c	could be LDY #1
-	ldx #0							; 2c
+	LDA #12:STA &fe00				; 8c
+	LDA start_addr_for_width_HI, X:STA &fe01		; 10c
 
 	WAIT_CYCLES 4
 
@@ -683,18 +812,20 @@ ENDIF
 	\\ Only 18 cycles available!
 
 	sty raster_y					; 3c
-	lda table_image_y, Y			; 4c
-	tay								; 2c
+	ldx check_width					; 3c
 
-	WAIT_CYCLES 9
+	lda ula_value_for_y+1, Y		; 4c
+	sta load_ula_value+1			; 4c
+	;WAIT_CYCLES 2+2
 
 	\\ Screen start address = screen[image_y]
 	lda #13:sta &fe00				; 8c
-	lda screen_LO, y				; 4c	Y=image y
-	sta &fe01						; 6c
+	lda start_addr_for_width_LO, X				; 4c	Y=image y
+	adc check_x_offset_chars		; 3c
+	sta &fe01						; 6c-1
 
-	lda #12:sta &fe00				; 8c	shouldn't affect carry?
-	lda screen_HI, Y				; 4c    Y=image y
+	lda #12:sta &fe00				; 8c
+	lda start_addr_for_width_HI, X				; 4c    Y=image y
 	sta &fe01						; 6c
 
 	\\ 54c total
@@ -702,12 +833,13 @@ ENDIF
 	\\ Set R9=image_y AND 7
 	lda #9:sta &fe00				; 8c
 
-	lda y_to_scanline, Y			; 4c	Y=image Y
+	lda scanline_for_width, X		; 4c	Y=image Y
+	adc check_x_offset_pix			; 3c
 	tay								; 2c	Y=image scanline
 	eor #15							; 2c
 	.fx_draw_prev_line
 	adc #0							; 2c	SELF-MOD CODE
-	sta &fe01						; 6c
+	sta &fe01						; 6c-1
 
 	\\ Need to reset prev_line for next time
 	sty fx_draw_prev_line+1			; 4c
@@ -715,7 +847,9 @@ ENDIF
 	\\ Available 20+26+36 = 82c to set R9/12/13 note minimum overhead of 3x14c = 42c to select and set registers
 
 IF _REAL_HW=FALSE
-	nop								; 2c		MUST BE 2c!
+	.load_ula_value
+	ldy #ULA_Mode1
+;	nop								; 2c		MUST BE 2c!
 ENDIF
 
 	\\ Set horizontal total
@@ -726,21 +860,20 @@ ENDIF
 	\\ 14c
 
 IF _REAL_HW
-	nop								; 2c		MUST BE 2c!
+	.load_ula_value
+	ldy #ULA_Mode1
+;	nop								; 2c		MUST BE 2c!
 ENDIF
 
 	\\ Remaining segments until we have 128 chars in total
 	\\ 22 cycles in total inc loop
+	sty &fe20						; 4c
 
-	WAIT_CYCLES 4
-
-	ldy raster_y					; 3c
-	tya								; 2c
-	and #1							; 2c
+	lda bank_for_width, X			; 4c
 	sta &fe34						; 4c
 
+	ldy raster_y					; 3c
 	iny								; 2c
-
 	cpy #255						; 2c
 	bne fx_draw_loop				; 3c
 	\\ 7c
@@ -852,6 +985,7 @@ ENDIF
 	RTS
 }
 
+IF 0
 .wipe_image_table
 {
 	lda #0
@@ -862,57 +996,6 @@ ENDIF
 	NEXT
 	rts
 }	\\ 256 * 4 * 2 = 2048c = 16 scanlines
-
-IF 0
-.naive_code_unrolled
-{
-	FOR n,0,255,1
-	stx table_image_bank+n
-	sty table_image_y+n
-	iny
-	NEXT
-	rts
-}
-
-.naive_table_draw_S_at_Y
-{
-	\\ Calc entry point
-	lda unrolled_code_LO, Y
-	sta jmp_to_code+1
-	lda unrolled_code_HI, Y
-	sta jmp_to_code+2
-
-	\\ Calc exit
-	tya
-	clc
-	adc scale_height, X
-	bcc end_ok
-	lda #255
-	.end_ok
-	tay
-
-	lda unrolled_code_LO, Y
-	sta write_rts
-	lda unrolled_code_HI, Y
-	sta write_rts+1
-
-	lda #&60		; RTS
-	sta (write_rts)
-
-	lda scale_y_offset, X
-	tay
-	lda scale_y_bank, X
-	tax
-
-	.jmp_to_code
-	jsr &ffff
-
-	\\ Need to put code back afterwards
-
-	lda #&8e		; STX
-	sta (write_rts)
-	rts
-}
 ENDIF
 
 .drawline
@@ -1067,7 +1150,6 @@ ENDIF
 	BRA shallowlineloop		; always taken
 }
 
-
 .fx_end
 
 \ ******************************************************************
@@ -1094,11 +1176,31 @@ ENDIF
 	EQUB LO(screen_addr/8)	; R13 screen start address, low
 }
 
+.palette
+{
+	EQUB &00 + 15
+	EQUB &10 + 15
+	EQUB &20 + PAL_red
+	EQUB &30 + PAL_red
+	EQUB &40 + 15
+	EQUB &50 + 15
+	EQUB &60 + PAL_red
+	EQUB &70 + PAL_red
+	EQUB &80 + PAL_yellow
+	EQUB &90 + PAL_yellow
+	EQUB &A0 + 8
+	EQUB &B0 + 8
+	EQUB &C0 + PAL_yellow
+	EQUB &D0 + PAL_yellow
+	EQUB &E0 + 8
+	EQUB &F0 + 8
+}
+
 .osfile_filename
-EQUS "Width1", 13
+EQUS "Check1", 13
 
 .shadow_filename
-EQUS "Width2", 13
+EQUS "Check2", 13
 
 .osfile_params
 .osfile_nameaddr
@@ -1122,6 +1224,7 @@ EQUD 0
 
 ALIGN &100
 
+IF 0
 .screen_LO
 FOR n,0,255,1
 y=n
@@ -1143,19 +1246,181 @@ y = n
 line = y MOD 8
 EQUB line
 NEXT
-
-IF 0
-.unrolled_code_LO
-FOR n,0,255,1
-EQUB LO(naive_code_unrolled + n*7)
-NEXT
-
-.unrolled_code_HI
-FOR n,0,255,1
-EQUB HI(naive_code_unrolled + n*7)
-NEXT
 ENDIF
 
+ALIGN &100
+.start_addr_for_width_LO ; 14 to 80
+\\ Two widths per character row
+\\ Character row is 80+(w+3)DIV4 chars wide
+EQUB LO(width_14/8)
+EQUB LO(width_15/8)
+EQUB LO(width_16/8)
+EQUB LO(width_17/8)
+EQUB LO(width_18/8)
+EQUB LO(width_19/8)
+EQUB LO(width_20/8)
+EQUB LO(width_21/8)
+EQUB LO(width_22/8)
+EQUB LO(width_23/8)
+EQUB LO(width_24/8)
+EQUB LO(width_25/8)
+EQUB LO(width_26/8)
+EQUB LO(width_27/8)
+EQUB LO(width_28/8)
+EQUB LO(width_29/8)
+EQUB LO(width_30/8)
+EQUB LO(width_31/8)
+EQUB LO(width_32/8)
+EQUB LO(width_33/8)
+EQUB LO(width_34/8)
+EQUB LO(width_35/8)
+EQUB LO(width_36/8)
+EQUB LO(width_37/8)
+EQUB LO(width_38/8)
+EQUB LO(width_39/8)
+EQUB LO(width_40/8)
+EQUB LO(width_41/8)
+EQUB LO(width_42/8)
+EQUB LO(width_43/8)
+EQUB LO(width_44/8)
+EQUB LO(width_45/8)
+EQUB LO(width_46/8)
+EQUB LO(width_47/8)
+EQUB LO(width_48/8)
+EQUB LO(width_49/8)
+EQUB LO(width_50/8)
+EQUB LO(width_51/8)
+EQUB LO(width_52/8)
+EQUB LO(width_53/8)
+EQUB LO(width_54/8)
+EQUB LO(width_55/8)
+EQUB LO(width_56/8)
+EQUB LO(width_57/8)
+EQUB LO(width_58/8)
+EQUB LO(width_59/8)
+EQUB LO(width_60/8)
+EQUB LO(width_61/8)
+EQUB LO(width_62/8)
+EQUB LO(width_63/8)
+EQUB LO(width_64/8)
+EQUB LO(width_65/8)
+EQUB LO(width_66/8)
+EQUB LO(width_67/8)
+EQUB LO(width_68/8)
+EQUB LO(width_69/8)
+EQUB LO(width_70/8)
+EQUB LO(width_71/8)
+EQUB LO(width_72/8)
+EQUB LO(width_73/8)
+EQUB LO(width_74/8)
+EQUB LO(width_75/8)
+EQUB LO(width_76/8)
+EQUB LO(width_77/8)
+EQUB LO(width_78/8)
+EQUB LO(width_79/8)
+EQUB LO(width_80/8)
+
+ALIGN &100
+.start_addr_for_width_HI ; 14 to 80
+\\ Two widths per character row
+\\ Character row is 80+(w+3)DIV4 chars wide
+EQUB HI(width_14/8)
+EQUB HI(width_15/8)
+EQUB HI(width_16/8)
+EQUB HI(width_17/8)
+EQUB HI(width_18/8)
+EQUB HI(width_19/8)
+EQUB HI(width_20/8)
+EQUB HI(width_21/8)
+EQUB HI(width_22/8)
+EQUB HI(width_23/8)
+EQUB HI(width_24/8)
+EQUB HI(width_25/8)
+EQUB HI(width_26/8)
+EQUB HI(width_27/8)
+EQUB HI(width_28/8)
+EQUB HI(width_29/8)
+EQUB HI(width_30/8)
+EQUB HI(width_31/8)
+EQUB HI(width_32/8)
+EQUB HI(width_33/8)
+EQUB HI(width_34/8)
+EQUB HI(width_35/8)
+EQUB HI(width_36/8)
+EQUB HI(width_37/8)
+EQUB HI(width_38/8)
+EQUB HI(width_39/8)
+EQUB HI(width_40/8)
+EQUB HI(width_41/8)
+EQUB HI(width_42/8)
+EQUB HI(width_43/8)
+EQUB HI(width_44/8)
+EQUB HI(width_45/8)
+EQUB HI(width_46/8)
+EQUB HI(width_47/8)
+EQUB HI(width_48/8)
+EQUB HI(width_49/8)
+EQUB HI(width_50/8)
+EQUB HI(width_51/8)
+EQUB HI(width_52/8)
+EQUB HI(width_53/8)
+EQUB HI(width_54/8)
+EQUB HI(width_55/8)
+EQUB HI(width_56/8)
+EQUB HI(width_57/8)
+EQUB HI(width_58/8)
+EQUB HI(width_59/8)
+EQUB HI(width_60/8)
+EQUB HI(width_61/8)
+EQUB HI(width_62/8)
+EQUB HI(width_63/8)
+EQUB HI(width_64/8)
+EQUB HI(width_65/8)
+EQUB HI(width_66/8)
+EQUB HI(width_67/8)
+EQUB HI(width_68/8)
+EQUB HI(width_69/8)
+EQUB HI(width_70/8)
+EQUB HI(width_71/8)
+EQUB HI(width_72/8)
+EQUB HI(width_73/8)
+EQUB HI(width_74/8)
+EQUB HI(width_75/8)
+EQUB HI(width_76/8)
+EQUB HI(width_77/8)
+EQUB HI(width_78/8)
+EQUB HI(width_79/8)
+EQUB HI(width_80/8)
+
+ALIGN &100
+.scanline_for_width
+FOR w,14,80,2
+EQUB 0,4
+NEXT
+
+ALIGN &100
+.bank_for_width
+FOR w,14,69,1
+EQUB 0
+NEXT
+FOR w,70,80,1
+EQUB 1
+NEXT
+
+.checkzoom_table_sin
+FOR n,0,&13F,1
+EQUB 64 + 63 * SIN(2 * PI * n / 256)	; 255 or 256?
+NEXT
+
+checkzoom_table_cos = checkzoom_table_sin + 64
+
+ALIGN &100
+.ula_value_for_y
+FOR n,0,255,1
+EQUB ULA_Mode1 + ((n DIV 64) AND &1)
+NEXT
+
+IF 0
 MIN_W=52
 MAX_W=304
 ERR=1e-7
@@ -1265,12 +1530,10 @@ IF n4z<-ERR
 	PRINT "Edge 4 visible: (",r4y,r4z,") -> (",r1y,r1z,")"
 	PROJECT_EDGE v4x,r4y,r4z,v1x,r1y,r1z, 128
 ENDIF
-
 EQUB 0
-
 NEXT
-
 EQUB 128
+ENDIF
 
 .data_end
 
@@ -1301,6 +1564,117 @@ skip &100
 
 .bss_end
 
+MACRO CHECK_STRIDE width
+	skip (80+(width+3)DIV4)*8
+ENDMACRO
+
+CLEAR 0,&FFFF
+ORG screen_addr
+GUARD &8000
+.width_14
+.width_15
+CHECK_STRIDE 15
+.width_16
+.width_17
+CHECK_STRIDE 17
+.width_18
+.width_19
+CHECK_STRIDE 19
+.width_20
+.width_21
+CHECK_STRIDE 21
+.width_22
+.width_23
+CHECK_STRIDE 23
+.width_24
+.width_25
+CHECK_STRIDE 25
+.width_26
+.width_27
+CHECK_STRIDE 27
+.width_28
+.width_29
+CHECK_STRIDE 29
+.width_30
+.width_31
+CHECK_STRIDE 31
+.width_32
+.width_33
+CHECK_STRIDE 33
+.width_34
+.width_35
+CHECK_STRIDE 35
+.width_36
+.width_37
+CHECK_STRIDE 37
+.width_38
+.width_39
+CHECK_STRIDE 39
+.width_40
+.width_41
+CHECK_STRIDE 41
+.width_42
+.width_43
+CHECK_STRIDE 43
+.width_44
+.width_45
+CHECK_STRIDE 45
+.width_46
+.width_47
+CHECK_STRIDE 47
+.width_48
+.width_49
+CHECK_STRIDE 49
+.width_50
+.width_51
+CHECK_STRIDE 51
+.width_52
+.width_53
+CHECK_STRIDE 53
+.width_54
+.width_55
+CHECK_STRIDE 55
+.width_56
+.width_57
+CHECK_STRIDE 57
+.width_58
+.width_59
+CHECK_STRIDE 59
+.width_60
+.width_61
+CHECK_STRIDE 61
+.width_62
+.width_63
+CHECK_STRIDE 63
+.width_64
+.width_65
+CHECK_STRIDE 65
+.width_66
+.width_67
+CHECK_STRIDE 67
+.width_68
+.width_69
+CHECK_STRIDE 69
+CLEAR &3000,&8000
+ORG &3000
+.width_70
+.width_71
+CHECK_STRIDE 71
+.width_72
+.width_73
+CHECK_STRIDE 73
+.width_74
+.width_75
+CHECK_STRIDE 75
+.width_76
+.width_77
+CHECK_STRIDE 77
+.width_78
+.width_79
+CHECK_STRIDE 79
+.width_80
+CHECK_STRIDE 80
+
 
 \ ******************************************************************
 \ *	Memory Info
@@ -1324,11 +1698,12 @@ PRINT "------"
 
 PUTBASIC "circle.bas", "Circle"
 PUTFILE "rtw_test.bin", "RTW", &3000
-PUTFILE "width1.bin", "Width1", &3000
+PUTFILE "check1.bin", "Check1", &3000
 PUTBASIC "shift.bas", "Shift"
-PUTFILE "width2.bin", "Width2", &3000
+PUTFILE "check2.bin", "Check2", &3000
 PUTBASIC "scale.bas", "Scale"
 PUTBASIC "widths.bas", "Widths"
+PUTBASIC "checks.bas", "Checks"
 
 IF HI(fx_draw_loop) <> HI(fx_draw_loop)
 	PRINT "WARNING: fx_draw_loop crossed page boundary!!"
