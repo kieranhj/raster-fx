@@ -585,6 +585,7 @@ IF 0
     }
 ENDIF
 
+IF 0
 	lda check_width
 	clc
 	adc #14
@@ -650,7 +651,9 @@ ENDIF
 	sta check_x_offset_pix
 
 	ldx check_width
+ENDIF
 
+	ldx #67
 	lda #13:sta &fe00	; 8c
 	lda start_addr_for_width_LO, x
 	clc
@@ -669,6 +672,7 @@ ENDIF
 	lda bank_for_width, X
 	sta &fe34
 
+IF 0
 	lda check_XdivN
 	and #1
 	sta parity+1
@@ -677,8 +681,11 @@ ENDIF
 	.parity
 	eor #0
 	ora #ULA_Mode1
+ENDIF
+	lda #ULA_Mode1
 	sta &fe20
 
+IF 0
 	\\ Now need to loop over Y
 	ldy #0
 	ldx check_YmodN
@@ -692,6 +699,7 @@ ENDIF
 	.no_flip
 	iny
 	bne parity_loop
+ENDIF
 
 	RTS
 }
@@ -720,7 +728,7 @@ ENDIF
 	.fx_draw_here
 	clc					; 2c
 	ldx check_width		; 3c
-	ldy #1				; 2c
+	ldy #2				; 2c
 	stz &fe00			; 6c
 
 IF _REAL_HW
@@ -812,34 +820,40 @@ ENDIF
 	\\ Only 18 cycles available!
 
 	sty raster_y					; 3c
-	ldx check_width					; 3c
 
-	lda ula_value_for_y+1, Y		; 4c
-	sta load_ula_value+1			; 4c
-	;WAIT_CYCLES 2+2
+;	ldy index						; 3c
+;	dey								; 2c
+;	sty index						; 3c - GAH!
+
+	ldx table_check_width, Y		; 4c
+
+	WAIT_CYCLES 1
 
 	\\ Screen start address = screen[image_y]
 	lda #13:sta &fe00				; 8c
 	lda start_addr_for_width_LO, X				; 4c	Y=image y
-	adc check_x_offset_chars		; 3c
-	sta &fe01						; 6c-1
+;	adc check_x_offset_chars		; 3c
+	adc table_x_offset_chars, Y		; 4c
+	sta &fe01						; 6c
 
 	lda #12:sta &fe00				; 8c
 	lda start_addr_for_width_HI, X				; 4c    Y=image y
+	adc #0
 	sta &fe01						; 6c
 
-	\\ 54c total
+	\\ 52c total
 
 	\\ Set R9=image_y AND 7
 	lda #9:sta &fe00				; 8c
 
 	lda scanline_for_width, X		; 4c	Y=image Y
-	adc check_x_offset_pix			; 3c
+;	adc check_x_offset_pix			; 3c
+	adc table_x_offset_pix, Y		; 4c
 	tay								; 2c	Y=image scanline
 	eor #15							; 2c
 	.fx_draw_prev_line
 	adc #0							; 2c	SELF-MOD CODE
-	sta &fe01						; 6c-1
+	sta &fe01						; 6c
 
 	\\ Need to reset prev_line for next time
 	sty fx_draw_prev_line+1			; 4c
@@ -847,9 +861,8 @@ ENDIF
 	\\ Available 20+26+36 = 82c to set R9/12/13 note minimum overhead of 3x14c = 42c to select and set registers
 
 IF _REAL_HW=FALSE
-	.load_ula_value
-	ldy #ULA_Mode1
 ;	nop								; 2c		MUST BE 2c!
+	ERROR
 ENDIF
 
 	\\ Set horizontal total
@@ -860,21 +873,20 @@ ENDIF
 	\\ 14c
 
 IF _REAL_HW
-	.load_ula_value
-	ldy #ULA_Mode1
 ;	nop								; 2c		MUST BE 2c!
 ENDIF
 
 	\\ Remaining segments until we have 128 chars in total
-	\\ 22 cycles in total inc loop
-	sty &fe20						; 4c
+	\\ 22 cycles in total inc loop +2 inc NOP above
+	ldy raster_y					; 3c
+
+	lda ula_value_for_y, Y			; 4c
+	sta &fe20						; 4c
 
 	lda bank_for_width, X			; 4c
 	sta &fe34						; 4c
 
-	ldy raster_y					; 3c
 	iny								; 2c
-	cpy #255						; 2c
 	bne fx_draw_loop				; 3c
 	\\ 7c
 
@@ -1319,6 +1331,7 @@ EQUB LO(width_77/8)
 EQUB LO(width_78/8)
 EQUB LO(width_79/8)
 EQUB LO(width_80/8)
+EQUB LO(width_blank/8)
 
 ALIGN &100
 .start_addr_for_width_HI ; 14 to 80
@@ -1391,6 +1404,7 @@ EQUB HI(width_77/8)
 EQUB HI(width_78/8)
 EQUB HI(width_79/8)
 EQUB HI(width_80/8)
+EQUB HI(width_blank/8)
 
 ALIGN &100
 .scanline_for_width
@@ -1403,7 +1417,7 @@ ALIGN &100
 FOR w,14,69,1
 EQUB 0
 NEXT
-FOR w,70,80,1
+FOR w,70,81,1
 EQUB 1
 NEXT
 
@@ -1414,10 +1428,91 @@ NEXT
 
 checkzoom_table_cos = checkzoom_table_sin + 64
 
+MACRO ULA_VALUES v, n
+FOR i,1,n,1
+EQUB ULA_Mode1+v
+NEXT
+ENDMACRO
+
+S%=80
+py=-128
+cx=0:cy=0:cz=-160
+scale=160:vpx=160:vpy=128
+
 ALIGN &100
+ULA_BASE=0
 .ula_value_for_y
-FOR n,0,255,1
-EQUB ULA_Mode1 + ((n DIV 64) AND &1)
+ULA_VALUES 0, 149
+;ULA_VALUES ULA_BASE EOR 1, 2
+;ULA_VALUES ULA_BASE, 2
+;ULA_VALUES ULA_BASE EOR 1, 3
+;ULA_VALUES ULA_BASE, 3
+;ULA_VALUES ULA_BASE EOR 1, 5
+;ULA_VALUES ULA_BASE, 6
+;ULA_VALUES ULA_BASE EOR 1, 9
+;ULA_VALUES ULA_BASE, 12
+;ULA_VALUES ULA_BASE EOR 1, 22
+;ULA_VALUES ULA_BASE, 43
+
+FOR n,149,255,1
+y=255-n
+pz = cz + scale * (py - cy) / (y - vpy)
+px = cx - vpx * (pz-cz) / scale
+dx = -px DIV 80
+dz = pz DIV 80
+;PRINT dx, dx AND 1
+EQUB ULA_Mode1 + ((dx AND 1) EOR (dz AND 1))
+NEXT
+
+ALIGN &100
+.table_x_offset_chars
+FOR n,0,148,1
+EQUB 0
+NEXT
+FOR n,149,255,1
+y=255-n
+\\ For screen line y what's the Z value of our point on the plane?
+pz = cz + scale * (py - cy) / (y - vpy)
+\\ For this distance, what's the X value of our point on the plane at the left-hand edge of the screen?
+px = cx - vpx * (pz-cz) / scale
+\\ How far into the check does this start?
+dx = 80 + (px - 80*(px DIV 80))
+
+\\ Now project this fraction of a check into screen space
+sx = scale * (dx - cx) / (pz - cz)
+wx = INT(-80 * (y - 128) / 128)
+
+x_off = sx
+PRINT pz,px,dx,sx,wx,x_off
+EQUB x_off DIV 4
+NEXT
+
+.table_x_offset_pix
+FOR n,0,148,1
+EQUB 0
+NEXT
+FOR n,149,255,1
+y=255-n
+pz = cz + scale * (py - cy) / (y - vpy)
+px = cx - vpx * (pz-cz) / scale
+dx = 80 + (px - 80*(px DIV 80))
+
+sx = scale * (dx - cx) / (pz - cz)
+wx = INT(-80 * (y - 128) / 128)
+
+x_off = sx
+EQUB x_off MOD 4
+NEXT
+
+.table_check_width
+FOR n,0,148,1
+EQUB 67;blank
+NEXT
+FOR n,149,255,1
+y=255-n
+\\ Check size 80, plane at y=-128 camera at (0,0,-160)
+wx = INT(-80 * (y - 128) / 128)
+EQUB wx-14
 NEXT
 
 IF 0
@@ -1425,7 +1520,6 @@ MIN_W=52
 MAX_W=304
 ERR=1e-7
 
-cz=-160
 oz=100
 vp_scale=256		; was 160
 centre_x=160
@@ -1559,9 +1653,6 @@ ALIGN &100
 .table_image_y
 skip &100
 
-.table_image_bank
-skip &100
-
 .bss_end
 
 MACRO CHECK_STRIDE width
@@ -1673,6 +1764,7 @@ CHECK_STRIDE 77
 .width_79
 CHECK_STRIDE 79
 .width_80
+.width_blank
 CHECK_STRIDE 80
 
 
