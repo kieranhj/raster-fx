@@ -2,6 +2,8 @@
 \ *	RASTER FX FRAMEWORK
 \ ******************************************************************
 
+_STABLE_RASTER = TRUE
+
 \ ******************************************************************
 \ *	OS defines
 \ ******************************************************************
@@ -38,21 +40,45 @@ MODE1_COL3=&A0
 \ *	MACROS
 \ ******************************************************************
 
-MACRO WAIT_CYCLES n
+MACRO PAGE_ALIGN
+    PRINT "ALIGN LOST ", ~LO(((P% AND &FF) EOR &FF)+1), " BYTES"
+    ALIGN &100
+ENDMACRO
 
-PRINT "WAIT",n," CYCLES"
+MACRO WAIT_NOPS n
+PRINT "WAIT",n," CYCLES AS NOPS"
 
-IF (n AND 1) = 0
+IF n < 0
+	ERROR "Can't wait negative cycles!"
+ELIF n=0
+	; do nothing
+ELIF n=1
+	EQUB $33
+	PRINT "1 cycle NOP is Master only and not emulated by b-em."
+ELIF (n AND 1) = 0
 	FOR i,1,n/2,1
 	NOP
 	NEXT
 ELSE
 	BIT 0
-	FOR i,1,(n-3)/2,1
-	NOP
-	NEXT
+	IF n>3
+		FOR i,1,(n-3)/2,1
+		NOP
+		NEXT
+	ENDIF
 ENDIF
+ENDMACRO
 
+MACRO WAIT_CYCLES n
+PRINT "WAIT",n," CYCLES"
+IF n >= 12
+	FOR i,1,n/12,1
+	JSR return
+	NEXT
+	WAIT_NOPS n MOD 12
+ELSE
+	WAIT_NOPS n
+ENDIF
 ENDMACRO
 
 \ ******************************************************************
@@ -131,10 +157,8 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	\\ Set MODE 1
 
-	LDA #22
-	JSR oswrch
-	LDA #1
-	JSR oswrch
+	LDA #22: JSR oswrch
+	LDA #1 : JSR oswrch
 
 	\\ Turn off cursor
 
@@ -157,42 +181,38 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	SEI
 
-	\\ Exact cycle VSYNC by Hexwab
-
 	{
 		lda #2
 		.vsync1
 		bit &FE4D
 		beq vsync1 \ wait for vsync
-
-		\now we're within 10 cycles of vsync having hit
-
-		\delay just less than one frame
-		.syncloop
-		sta &FE4D \ 4(stretched), ack vsync
-
-		\{ this takes (5*ycount+2+4)*xcount cycles
-		\x=55,y=142 -> 39902 cycles. one frame=39936
-		ldx #142 \2
-		.deloop
-		ldy #55 \2
-		.innerloop
-		dey \2
-		bne innerloop \3
-		\ =152
-		dex \ 2
-		bne deloop \3
-		\}
-
-		nop:nop:nop:nop:nop:nop:nop:nop:nop \ +16
-		bit &FE4D \4(stretched)
-		bne syncloop \ +3
-		\ 4+39902+16+4+3+3 = 39932
-		\ ne means vsync has hit
-		\ loop until it hasn't hit
-
-		\now we're synced to vsync
 	}
+
+	IF _STABLE_RASTER
+	; Roughly synced to VSync
+	; Now fine tune by waiting just less than one frame
+	; and check if VSync has fired. Repeat until it hasn't.
+	; One frame = 312*128 = 39936 cycles
+	; RTW version
+	{
+		.syncloop
+		STA &FE4D       ; 6
+		LDX #209        ; 2
+		.outerloop
+		LDY #37         ; 2
+		.innerloop
+		DEY             ; 2
+		BNE innerloop   ; 3/2 (innerloop = 5*37+2-1 = 186)
+		DEX             ; 2
+		BNE outerloop   ; 3/2 (outerloop = (186+2+3)*209+2-1 = 39920)
+		BIT &FE4D       ; 6
+		BNE syncloop    ; 3 (total = 39920+6+6+3 = 39935, one cycle less than a frame!)
+		IF HI(syncloop) <> HI(P%)
+		ERROR "This loop must execute within the same page"
+		ENDIF
+	}
+	; We are synced precisely with VSync!
+	ENDIF
 
 	\\ Set up Timers
 
@@ -200,7 +220,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	; Write T1 low now (the timer will not be written until you write the high byte)
     LDA #LO(TimerValue):STA &FE44
     ; Get high byte ready so we can write it as quickly as possible at the right moment
-    LDX #HI(TimerValue):STX &FE45             		; start T1 counting		; 4c +1/2c 
+    LDA #HI(TimerValue):STA &FE45             		; start T1 counting		; 4c +1/2c 
 
   	; Latch T1 to interupt exactly every 50Hz frame
 	LDA #LO(FramePeriod):STA &FE46
@@ -216,21 +236,17 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	{
 		lda #&42
 		sta &FE4D	\ clear vsync & timer 1 flags
-
 		\\ Wait for Timer1 at rasterline 0
-
 		lda #&40
 		.waitTimer1
 		bit &FE4D
 		beq waitTimer1
 		sta &FE4D
-
 		\\ Now can enter main loop with enough time to do work
 	}
 
 	\\ Update typically happens during vblank so wait 255 lines
 	\\ But don't forget that the loop also takes time!!
-
 	{
 		LDX #255
 		JSR cycles_wait_scanlines
@@ -240,7 +256,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\ *	MAIN LOOP
 	\ ******************************************************************
 
-.main_loop
+	.main_loop
 
 	\\  Do useful work during vblank (vsync will occur at some point)
 	{
@@ -272,16 +288,14 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 		BIT &FE4D				; 4c + 1/2c
 		BEQ waitTimer1         	; poll timer1 flag
 
-
 		\\ Reading the T1 low order counter also resets the T1 interrupt flag in IFR
 
-		LDA &FE44					; 4c + 1c - will be even already?
+		LDA &FE44				; 4c + 1c - will be even already?
 
+		IF _STABLE_RASTER
 		\\ New stable raster NOP slide thanks to VectorEyes 8)
-
 		\\ Observed values $FA (early) - $F7 (late) so map these from 7 - 0
 		\\ then branch into NOPs to even this out.
-
 		AND #15
 		SEC
 		SBC #7
@@ -297,7 +311,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 		NOP
 		NOP
 		.stable
-		BIT 0
+		ENDIF
 	}
 
 	\\ Check if Escape pressed
@@ -326,9 +340,9 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
     CLI
 
 	\\ Exit gracefully (in theory)
-
-	RTS
 }
+.return
+	RTS
 
 \ ******************************************************************
 \ *	HELPER FUNCTIONS
@@ -336,28 +350,20 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .cycles_wait_128		; JSR to get here takes 6c
 {
-	FOR n,1,58,1		; 58x
-	NOP					; 2c
-	NEXT				; = 116c
+	WAIT_CYCLES 128-6-6
 	RTS					; 6c
 }						; = 128c
 
 .cycles_wait_scanlines	; 6c
 {
-	FOR n,1,54,1		; 54x
-	NOP					; 2c
-	NEXT				; = 108c
-	BIT 0				; 3c
+	WAIT_CYCLES 128-6-2-3-6
 
 	.loop
 	DEX					; 2c
 	BEQ done			; 2/3c
 
-	FOR n,1,59,1		; 59x
-	NOP					; 2c
-	NEXT				; = 118c
+	WAIT_CYCLES 121
 
-	BIT 0				; 3c
 	JMP loop			; 3c
 
 	.done
@@ -391,7 +397,6 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDY #HI(osfile_params)
 	LDA #&FF
     JSR osfile
-
 	RTS
 }
 
@@ -544,54 +549,6 @@ EQUD 0
 \ ******************************************************************
 \ *	FX DATA
 \ ******************************************************************
-
-ALIGN &100
-.fx_colour1_table
-{
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_red
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL1 + PAL_magenta
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_blue
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_cyan
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_green
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL1 + PAL_yellow
-	NEXT
-}
-
-.fx_colour2_table
-{
-	FOR n,1,21,1
-	EQUB MODE1_COL3 + PAL_red
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL3 + PAL_magenta
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL3 + PAL_blue
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL3 + PAL_cyan
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL3 + PAL_green
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL3 + PAL_yellow
-	NEXT
-	FOR n,1,22,1
-	EQUB MODE1_COL3 + PAL_red
-	NEXT
-}
 
 .data_end
 
