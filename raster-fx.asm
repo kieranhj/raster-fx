@@ -38,21 +38,48 @@ MODE1_COL3=&A0
 \ *	MACROS
 \ ******************************************************************
 
-MACRO WAIT_CYCLES n
+MACRO WAIT_NOPS n
+PRINT "WAIT",n," CYCLES AS NOPS"
 
-PRINT "WAIT",n," CYCLES"
-
-IF (n AND 1) = 0
+IF n < 0
+	ERROR "Can't wait negative cycles!"
+ELIF n=0
+	; do nothing
+ELIF n=1
+	EQUB $33
+	PRINT "1 cycle NOP is Master only and not emulated by b-em."
+ELIF (n AND 1) = 0
 	FOR i,1,n/2,1
 	NOP
 	NEXT
 ELSE
 	BIT 0
-	FOR i,1,(n-3)/2,1
-	NOP
+	IF n>3
+		FOR i,1,(n-3)/2,1
+		NOP
+		NEXT
+	ENDIF
+ENDIF
+ENDMACRO
+
+MACRO WAIT_CYCLES n
+
+PRINT "WAIT",n," CYCLES"
+
+IF n >= 12
+	FOR i,1,n/12,1
+	JSR return
 	NEXT
+	WAIT_NOPS n MOD 12
+ELSE
+	WAIT_NOPS n
 ENDIF
 
+ENDMACRO
+
+MACRO PAGE_ALIGN
+    PRINT "ALIGN LOST ", ~LO(((P% AND &FF) EOR &FF)+1), " BYTES"
+    ALIGN &100
 ENDMACRO
 
 \ ******************************************************************
@@ -62,6 +89,7 @@ ENDMACRO
 ; Default screen address
 screen_addr = &3000
 SCREEN_SIZE_BYTES = &8000 - screen_addr
+disksys_loadto_addr = &3000
 
 ; Exact time for a 50Hz frame less latch load time
 FramePeriod = 312*64-2
@@ -88,10 +116,26 @@ GUARD &9F
 .vsync_counter			SKIP 2		; counts up with each vsync
 .escape_pressed			SKIP 1		; set when Escape key pressed
 
+.writeptr	skip 2
+.row_count	skip 1
+.temp		skip 1
+
 \\ FX variables
 
-.fx_colour_index		SKIP 1		; index into our colour palette
-.fx_raster_count		SKIP 1
+.twister_spin_index		skip 2		; index into spin table for top line
+.twister_spin_step		skip 2		; rate at which spin index is updated each frame
+
+.twister_twist_index	skip 2		; index into twist table for top line
+.twister_twist_step		skip 2		; rate at which twist index is update each frame
+
+.twister_knot_index		skip 2		; index into knot table for top line
+.twister_knot_step		skip 2		; rate at which knot index is updated each frame
+
+.twister_spin_brot		skip 2		; rotation amount of top line
+.twister_twist_brot		skip 2		; rotation amount per row
+
+.twister_knot_i			skip 2		; per row index into knot table
+.twister_knot_y			skip 2		; rate at which knot index is updated vertical
 
 \ ******************************************************************
 \ *	CODE START
@@ -133,21 +177,13 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	LDA #22
 	JSR oswrch
-	LDA #1
+	LDA #0
 	JSR oswrch
 
 	\\ Turn off cursor
 
 	LDA #10: STA &FE00
 	LDA #32: STA &FE01
-
-	\\ Set Colour 2 to White - MODE 1 requires 4x writes to ULA Palette Register
-
-	LDA #MODE1_COL2 + PAL_white
-	STA &FE21
-	EOR #&10: STA &FE21
-	EOR #&40: STA &FE21
-	EOR #&10: STA &FE21
 
 	\\ Initialise system modules here!
 
@@ -326,9 +362,9 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
     CLI
 
 	\\ Exit gracefully (in theory)
-
-	RTS
 }
+.return
+	RTS
 
 \ ******************************************************************
 \ *	HELPER FUNCTIONS
@@ -336,28 +372,20 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .cycles_wait_128		; JSR to get here takes 6c
 {
-	FOR n,1,58,1		; 58x
-	NOP					; 2c
-	NEXT				; = 116c
+	WAIT_CYCLES 128-6-6
 	RTS					; 6c
 }						; = 128c
 
 .cycles_wait_scanlines	; 6c
 {
-	FOR n,1,54,1		; 54x
-	NOP					; 2c
-	NEXT				; = 108c
-	BIT 0				; 3c
+	WAIT_CYCLES 128-6-2-3-6
 
 	.loop
 	DEX					; 2c
 	BEQ done			; 2/3c
 
-	FOR n,1,59,1		; 59x
-	NOP					; 2c
-	NEXT				; = 118c
+	WAIT_CYCLES 121
 
-	BIT 0				; 3c
 	JMP loop			; 3c
 
 	.done
@@ -386,11 +414,18 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_init_function
 {
-    \ Ask OSFILE to load our screen
-	LDX #LO(osfile_params)
-	LDY #HI(osfile_params)
-	LDA #&FF
-    JSR osfile
+	\\ Init vars.
+	lda #1:sta twister_spin_step
+	lda #0:sta twister_spin_step+1
+
+	\ Ensure MAIN RAM is writeable
+    LDA &FE34:AND #&FB:STA &FE34
+	ldx #LO(file1):ldy #HI(file1):lda #HI(&3000):jsr disksys_load_file
+	\ Ensure SHADOW RAM is writeable
+    LDA &FE34:ORA #&4:STA &FE34
+	ldx #LO(file2):ldy #HI(file2):lda #HI(&3000):jsr disksys_load_file
+	\ Ensure MAIN RAM is writeable
+    LDA &FE34:AND #&FB:STA &FE34
 
 	RTS
 }
@@ -412,11 +447,89 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_update_function
 {
-	\\ Increment our index into the palette table
-	INC fx_colour_index
+	\\ Update rotation of the top line by indexing into the spin table
+	CLC
+	LDA twister_spin_brot
+	LDX twister_spin_index+1
+	ADC twister_spin_table_LO,X
+	STA twister_spin_brot
 
-	LDA #0
-	STA fx_raster_count
+	LDA twister_spin_brot+1
+	ADC twister_spin_table_HI,X
+	STA twister_spin_brot+1
+
+	\\ Set the first scanline
+	AND #&7F:lsr a:tax			; 0-63
+	lsr a:TAY					; 0-31
+
+	LDA #12: STA &FE00			; 2c + 4c++
+	LDA twister_vram_table_HI, Y		; 4c
+	STA &FE01					; 4c++
+
+	LDA #13: STA &FE00			; 2c + 4c++
+	LDA twister_vram_table_LO, Y		; 4c
+	STA &FE01					; 4c++
+
+	txa:lsr a:lsr a:lsr a:lsr a:lsr a:sta temp	; main/shadow
+	lda &fe34:and #&fe:ora temp:sta &fe34
+
+	\\ Update the index into the spin table
+	CLC
+	LDA twister_spin_index
+	ADC twister_spin_step
+	STA twister_spin_index
+
+	LDA twister_spin_index+1
+	ADC twister_spin_step+1
+	STA twister_spin_index+1
+
+	\\ Update the index into the twist table
+	CLC
+	LDA twister_twist_index
+	ADC twister_twist_step
+	STA twister_twist_index
+
+	LDA twister_twist_index+1
+	ADC twister_twist_step+1
+	STA twister_twist_index+1
+
+	\\ Update the index into the knot table
+	CLC
+	LDA twister_knot_index
+	ADC twister_knot_step
+	STA twister_knot_index
+
+	LDA twister_knot_index+1
+	ADC twister_knot_step+1
+	STA twister_knot_index+1
+
+	\\ Calculate rotation of 2nd scanline by indexing twist table
+	CLC
+	LDA twister_spin_brot
+	LDY twister_twist_index+1
+	ADC twister_twist_table_LO, Y
+	STA twister_twist_brot
+
+	LDA twister_spin_brot+1
+	ADC twister_twist_table_HI, Y
+	STA twister_twist_brot+1
+
+	\\ Copy the twist index into a local variable for drawing
+	LDA twister_knot_index
+	STA twister_knot_i
+	LDA twister_knot_index+1
+	STA twister_knot_i+1
+
+	\\ Add knot for second line
+	CLC
+	LDA twister_twist_brot
+	LDY twister_knot_i+1
+	ADC twister_knot_table_LO, Y
+	STA twister_twist_brot
+
+	LDA twister_twist_brot+1
+	ADC twister_knot_table_HI, Y
+	STA twister_twist_brot+1
 
 	RTS
 }
@@ -439,24 +552,113 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_draw_function
 {
-	LDA #&F0 + PAL_red
-	LDX #&F0 + PAL_yellow
-	LDY #&F0 + PAL_green
-	NOP
-	\\ 8c
+	\\ R4=0, R7=&ff, R6=1
+	lda #4:sta &fe00
+	lda #0:sta &fe01
 
-	.loop
+	lda #7:sta &fe00
+	lda #3:sta &fe01
 
-	FOR n,1,10,1
-	STA &FE21		; 4c
-	STX &FE21		; 4c
-	STY &FE21		; 4c
-	NEXT
-	\\ 10*12=120c
+	lda #6:sta &fe00
+	lda #1:sta &fe01
 
-	DEC fx_raster_count		; 5c
-	BNE loop				; 3c
-	\\ Total =128c
+	lda #31:sta row_count
+	\\ 52c
+
+	jsr cycles_wait_128
+	jsr cycles_wait_128
+	jsr cycles_wait_128
+	jsr cycles_wait_128
+	jsr cycles_wait_128
+	jsr cycles_wait_128
+
+	\\ Start of scanline 7
+
+	\\ Do first row manually
+	LDA twister_twist_brot+1
+	AND #&7F:lsr a:tax			; 0-63
+	lsr a:TAY					; 0-31
+
+	\\ R12,13 - frame buffer address
+	LDA #12: STA &FE00			; 2c + 4c++
+	LDA twister_vram_table_HI, Y		; 4c
+	STA &FE01					; 4c++
+
+	LDA #13: STA &FE00			; 2c + 4c++
+	LDA twister_vram_table_LO, Y		; 4c
+	STA &FE01					; 4c++
+
+	txa:lsr a:lsr a:lsr a:lsr a:lsr a:sta temp	; main/shadow
+	lda &fe34:and #&fe:ora temp:sta &fe34
+
+	WAIT_CYCLES 50
+
+	\\ Effect here!
+	.char_row_loop
+	{
+		jsr cycles_wait_128
+		jsr cycles_wait_128
+		jsr cycles_wait_128
+		jsr cycles_wait_128
+		jsr cycles_wait_128
+		jsr cycles_wait_128
+		WAIT_CYCLES 106
+
+		\\ Apply the (global) twist value to the row first
+		CLC
+		LDA twister_twist_brot
+		LDY twister_twist_index+1
+		ADC twister_twist_table_LO, Y
+		STA twister_twist_brot
+
+		LDA twister_twist_brot+1
+		ADC twister_twist_table_HI, Y
+		STA twister_twist_brot+1
+
+		\\ Update local twist index value by incrementing by step
+		CLC
+		LDA twister_knot_i
+		ADC twister_knot_y
+		STA twister_knot_i
+		LDA twister_knot_i+1
+		ADC twister_knot_y+1
+		STA twister_knot_i+1
+		TAY
+
+		\\ Use the local twist index to calculate additional rotation value 'knot'
+		CLC
+		LDA twister_twist_brot
+		ADC twister_knot_table_LO, Y
+		STA twister_twist_brot
+
+		LDA twister_twist_brot+1
+		ADC twister_knot_table_HI, Y
+		STA twister_twist_brot+1
+		
+		AND #&7F:lsr a:tax			; 0-63
+		lsr a:TAY					; 0-31
+
+		LDA #12: STA &FE00			; 2c + 4c++
+		LDA twister_vram_table_HI, Y		; 4c
+		STA &FE01					; 4c++
+
+		LDA #13: STA &FE00			; 2c + 4c++
+		LDA twister_vram_table_LO, Y		; 4c
+		STA &FE01					; 4c++
+		
+		txa:lsr a:lsr a:lsr a:lsr a:lsr a:sta temp	; main/shadow
+		lda &fe34:and #&fe:ora temp:sta &fe34
+
+		DEC row_count						; 5c
+		BEQ done							; 2c
+		JMP char_row_loop					; 3c
+		.done
+		\\ 8c
+	}
+
+	\\ R4=6 - CRTC cycle is 32 + 7 more rows = 312 scanlines
+	LDA #4: STA &FE00
+	LDA #6: STA &FE01			; 312 - 256 = 56 scanlines
 
     RTS
 }
@@ -522,76 +724,115 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	EQUB LO(screen_addr/8)	; R13 screen start address, low
 }
 
-.osfile_filename
-EQUS "Screen", 13
-
-.osfile_params
-.osfile_nameaddr
-EQUW osfile_filename
-; file load address
-.osfile_loadaddr
-EQUD screen_addr
-; file exec address
-.osfile_execaddr
-EQUD 0
-; start address or length
-.osfile_length
-EQUD 0
-; end address of attributes
-.osfile_endaddr
-EQUD 0
+INCLUDE "lib/disksys.asm"
+.file1 EQUS "1",13
+.file2 EQUS "2",13
 
 \ ******************************************************************
 \ *	FX DATA
 \ ******************************************************************
 
-ALIGN &100
-.fx_colour1_table
-{
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_red
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL1 + PAL_magenta
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_blue
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_cyan
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL1 + PAL_green
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL1 + PAL_yellow
-	NEXT
-}
+PAGE_ALIGN
+.twister_vram_table_LO
+FOR n,0,31,1
+EQUB LO((&3000 + n*640)/8)
+NEXT
 
-.fx_colour2_table
+.twister_vram_table_HI
+FOR n,0,31,1
+EQUB HI((&3000 + n*640)/8)
+NEXT
+
+MACRO TWISTER_TWIST_LO deg_per_frame
+	brads = 256 * 128 * (deg_per_frame / 256) / 360
+	EQUB LO(brads)
+ENDMACRO
+;	PRINT "TWIST: deg/frame=", deg_per_frame, " brads=", ~brads
+
+MACRO TWISTER_TWIST_HI deg_per_frame
+	brads = 256 * 128 * (deg_per_frame / 256) / 360
+	EQUB HI(brads)
+ENDMACRO
+
+MACRO TWISTER_SPIN_LO deg_per_sec
+	brads = 256 * 128 * (deg_per_sec / 50) / 360
+	EQUB LO(brads)
+ENDMACRO
+;	PRINT "SPIN: deg/sec=", deg_per_sec, " brads=", ~brads
+
+MACRO TWISTER_SPIN_HI deg_per_sec
+	brads = 256 * 128 * (deg_per_sec / 50) / 360
+	EQUB HI(brads)
+ENDMACRO
+
+\\ Vary twist over time and/or vertical
+
+PAGE_ALIGN
+.twister_twist_table_LO			; global rotation increment per row of the twister
+FOR n,0,255,1
 {
-	FOR n,1,21,1
-	EQUB MODE1_COL3 + PAL_red
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL3 + PAL_magenta
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL3 + PAL_blue
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL3 + PAL_cyan
-	NEXT
-	FOR n,1,43,1
-	EQUB MODE1_COL3 + PAL_green
-	NEXT
-	FOR n,1,42,1
-	EQUB MODE1_COL3 + PAL_yellow
-	NEXT
-	FOR n,1,22,1
-	EQUB MODE1_COL3 + PAL_red
-	NEXT
+	IF n < 128
+	m = (64 - ABS(n-64))/64
+	ELSE
+	m = -(64 - ABS(n-192))/64
+	ENDIF
+;	t = 480 * m
+	t = 480 * SIN(2 * PI * n / 256)	; thanks IP!
+	TWISTER_TWIST_LO t
 }
+NEXT
+
+.twister_twist_table_HI			; global rotation increment per row of the twister
+FOR n,0,255,1
+{
+	IF n < 128
+	m = (64 - ABS(n-64))/64
+	ELSE
+	m = -(64 - ABS(n-192))/64
+	ENDIF
+;	t = 480 * m
+	t = 480 * SIN(2 * PI * n / 256)	; thanks IP!
+	TWISTER_TWIST_HI t
+}
+NEXT
+
+.twister_knot_table_LO			; local rotation increment per row of the twister
+FOR n,0,255,1
+{
+	m = (128 - ABS(n-128))/128
+	t = 720 * m * m
+	TWISTER_TWIST_LO t
+}
+NEXT
+
+.twister_knot_table_HI			; local rotation increment per row of the twister
+FOR n,0,255,1
+{
+	m = (128 - ABS(n-128))/128
+	t = 720 * m * m
+	TWISTER_TWIST_HI t
+}
+NEXT
+
+\\ Vary spin over time
+
+.twister_spin_table_LO			; rotation increment of top angle per frame
+FOR n,0,255,1
+{
+;	v = 210						; spin at 210 deg/sec
+	v = 360 * SIN(2 * PI * n/ 256)
+	TWISTER_SPIN_LO v
+}
+NEXT
+
+.twister_spin_table_HI			; rotation increment of top angle per frame
+FOR n,0,255,1
+{
+;	v = 210						; spin at 210 deg/sec
+	v = 360 * SIN(2 * PI * n/ 256)
+	TWISTER_SPIN_HI v
+}
+NEXT
 
 .data_end
 
@@ -636,3 +877,5 @@ PRINT "------"
 
 PUTBASIC "circle.bas", "Circle"
 PUTFILE "screen.bin", "Screen", &3000
+PUTFILE "SCREEN1.BIN", "1", &3000
+PUTFILE "SCREEN2.BIN", "2", &3000
