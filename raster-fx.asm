@@ -120,22 +120,7 @@ GUARD &9F
 .row_count	skip 1
 .temp		skip 1
 
-\\ FX variables
-
-.twister_spin_index		skip 2		; index into spin table for top line
-.twister_spin_step		skip 2		; rate at which spin index is updated each frame
-
-.twister_twist_index	skip 2		; index into twist table for top line
-.twister_twist_step		skip 2		; rate at which twist index is update each frame
-
-.twister_knot_index		skip 2		; index into knot table for top line
-.twister_knot_step		skip 2		; rate at which knot index is updated each frame
-
-.twister_spin_brot		skip 2		; rotation amount of top line
-.twister_twist_brot		skip 2		; rotation amount per row
-
-.twister_knot_i			skip 2		; per row index into knot table
-.twister_knot_y			skip 2		; rate at which knot index is updated vertical
+.index		skip 1
 
 \ ******************************************************************
 \ *	CODE START
@@ -415,8 +400,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 .fx_init_function
 {
 	\\ Init vars.
-	lda #1:sta twister_spin_step
-	lda #0:sta twister_spin_step+1
+	lda #0:sta index
 
 	\ Ensure MAIN RAM is writeable
     LDA &FE34:AND #&FB:STA &FE34
@@ -447,90 +431,23 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_update_function
 {
-	\\ Update rotation of the top line by indexing into the spin table
-	CLC
-	LDA twister_spin_brot
-	LDX twister_spin_index+1
-	ADC twister_spin_table_LO,X
-	STA twister_spin_brot
-
-	LDA twister_spin_brot+1
-	ADC twister_spin_table_HI,X
-	STA twister_spin_brot+1
+	inc index
+	lda index
 
 	\\ Set the first scanline
-	AND #&7F:lsr a:tax			; 0-63
-	lsr a:TAY					; 0-31
+	AND #&3F:tax				; 0-63
+	and #&1f:tay				; 0-31
 
-	LDA #12: STA &FE00			; 2c + 4c++
-	LDA twister_vram_table_HI, Y		; 4c
-	STA &FE01					; 4c++
+	LDA #12: STA &FE00				; 8c
+	LDA twister_vram_table_HI, Y	; 4c
+	STA &FE01						; 6c
 
-	LDA #13: STA &FE00			; 2c + 4c++
-	LDA twister_vram_table_LO, Y		; 4c
-	STA &FE01					; 4c++
+	LDA #13: STA &FE00				; 8c
+	LDA twister_vram_table_LO, Y	; 4c
+	STA &FE01						; 6c
 
 	txa:lsr a:lsr a:lsr a:lsr a:lsr a:sta temp	; main/shadow
 	lda &fe34:and #&fe:ora temp:sta &fe34
-
-	\\ Update the index into the spin table
-	CLC
-	LDA twister_spin_index
-	ADC twister_spin_step
-	STA twister_spin_index
-
-	LDA twister_spin_index+1
-	ADC twister_spin_step+1
-	STA twister_spin_index+1
-
-	\\ Update the index into the twist table
-	CLC
-	LDA twister_twist_index
-	ADC twister_twist_step
-	STA twister_twist_index
-
-	LDA twister_twist_index+1
-	ADC twister_twist_step+1
-	STA twister_twist_index+1
-
-	\\ Update the index into the knot table
-	CLC
-	LDA twister_knot_index
-	ADC twister_knot_step
-	STA twister_knot_index
-
-	LDA twister_knot_index+1
-	ADC twister_knot_step+1
-	STA twister_knot_index+1
-
-	\\ Calculate rotation of 2nd scanline by indexing twist table
-	CLC
-	LDA twister_spin_brot
-	LDY twister_twist_index+1
-	ADC twister_twist_table_LO, Y
-	STA twister_twist_brot
-
-	LDA twister_spin_brot+1
-	ADC twister_twist_table_HI, Y
-	STA twister_twist_brot+1
-
-	\\ Copy the twist index into a local variable for drawing
-	LDA twister_knot_index
-	STA twister_knot_i
-	LDA twister_knot_index+1
-	STA twister_knot_i+1
-
-	\\ Add knot for second line
-	CLC
-	LDA twister_twist_brot
-	LDY twister_knot_i+1
-	ADC twister_knot_table_LO, Y
-	STA twister_twist_brot
-
-	LDA twister_twist_brot+1
-	ADC twister_knot_table_HI, Y
-	STA twister_twist_brot+1
-
 	RTS
 }
 
@@ -557,97 +474,30 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	lda #0:sta &fe01
 
 	lda #7:sta &fe00
-	lda #3:sta &fe01
+	lda #4:sta &fe01
 
 	lda #6:sta &fe00
 	lda #1:sta &fe01
 
-	lda #31:sta row_count
+	lda #30:sta row_count
 	\\ 52c
 
-	jsr cycles_wait_128
-	jsr cycles_wait_128
-	jsr cycles_wait_128
-	jsr cycles_wait_128
-	jsr cycles_wait_128
-	jsr cycles_wait_128
+	\\ Row 0
+	ldx #6:jsr cycles_wait_scanlines
 
-	\\ Start of scanline 7
+	LDA index
+	jsr set_rot
 
-	\\ Do first row manually
-	LDA twister_twist_brot+1
-	AND #&7F:lsr a:tax			; 0-63
-	lsr a:TAY					; 0-31
+	WAIT_CYCLES 115
 
-	\\ R12,13 - frame buffer address
-	LDA #12: STA &FE00			; 2c + 4c++
-	LDA twister_vram_table_HI, Y		; 4c
-	STA &FE01					; 4c++
-
-	LDA #13: STA &FE00			; 2c + 4c++
-	LDA twister_vram_table_LO, Y		; 4c
-	STA &FE01					; 4c++
-
-	txa:lsr a:lsr a:lsr a:lsr a:lsr a:sta temp	; main/shadow
-	lda &fe34:and #&fe:ora temp:sta &fe34
-
-	WAIT_CYCLES 50
-
-	\\ Effect here!
+	\\ Rows 1-30
 	.char_row_loop
 	{
-		jsr cycles_wait_128
-		jsr cycles_wait_128
-		jsr cycles_wait_128
-		jsr cycles_wait_128
-		jsr cycles_wait_128
-		jsr cycles_wait_128
-		WAIT_CYCLES 106
+		ldx #7:jsr cycles_wait_scanlines
+		WAIT_CYCLES 29
 
-		\\ Apply the (global) twist value to the row first
-		CLC
-		LDA twister_twist_brot
-		LDY twister_twist_index+1
-		ADC twister_twist_table_LO, Y
-		STA twister_twist_brot
-
-		LDA twister_twist_brot+1
-		ADC twister_twist_table_HI, Y
-		STA twister_twist_brot+1
-
-		\\ Update local twist index value by incrementing by step
-		CLC
-		LDA twister_knot_i
-		ADC twister_knot_y
-		STA twister_knot_i
-		LDA twister_knot_i+1
-		ADC twister_knot_y+1
-		STA twister_knot_i+1
-		TAY
-
-		\\ Use the local twist index to calculate additional rotation value 'knot'
-		CLC
-		LDA twister_twist_brot
-		ADC twister_knot_table_LO, Y
-		STA twister_twist_brot
-
-		LDA twister_twist_brot+1
-		ADC twister_knot_table_HI, Y
-		STA twister_twist_brot+1
-		
-		AND #&7F:lsr a:tax			; 0-63
-		lsr a:TAY					; 0-31
-
-		LDA #12: STA &FE00			; 2c + 4c++
-		LDA twister_vram_table_HI, Y		; 4c
-		STA &FE01					; 4c++
-
-		LDA #13: STA &FE00			; 2c + 4c++
-		LDA twister_vram_table_LO, Y		; 4c
-		STA &FE01					; 4c++
-		
-		txa:lsr a:lsr a:lsr a:lsr a:lsr a:sta temp	; main/shadow
-		lda &fe34:and #&fe:ora temp:sta &fe34
+		lda index		
+		jsr set_rot
 
 		DEC row_count						; 5c
 		BEQ done							; 2c
@@ -658,10 +508,37 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	\\ R4=6 - CRTC cycle is 32 + 7 more rows = 312 scanlines
 	LDA #4: STA &FE00
-	LDA #6: STA &FE01			; 312 - 256 = 56 scanlines
+	LDA #7: STA &FE01			; 312 - 256 = 56 scanlines
+
+	\\ Row 31
+	ldx #7:jsr cycles_wait_scanlines
+	WAIT_CYCLES 29
+
+	lda index
+	jsr set_rot					; 84c		
 
     RTS
 }
+
+.set_rot
+{
+	AND #&3F:tax		; 0-63		; 4c
+	and #&1f:TAY		; 0-31		; 4c
+
+	LDA #12: STA &FE00				; 8c
+	LDA twister_vram_table_HI, Y	; 4c
+	STA &FE01						; 6c
+
+	LDA #13: STA &FE00				; 8c
+	LDA twister_vram_table_LO, Y	; 4c
+	STA &FE01						; 6c
+	
+	txa:lsr a:lsr a:lsr a:lsr a:lsr a:sta temp	; main/shadow ; 15c
+	lda &fe34:and #&fe:ora temp:sta &fe34	; 13c
+	
+	rts								; 6c
+}
+\\ 84c
 
 \ ******************************************************************
 \ Kill FX
@@ -741,97 +618,6 @@ NEXT
 .twister_vram_table_HI
 FOR n,0,31,1
 EQUB HI((&3000 + n*640)/8)
-NEXT
-
-MACRO TWISTER_TWIST_LO deg_per_frame
-	brads = 256 * 128 * (deg_per_frame / 256) / 360
-	EQUB LO(brads)
-ENDMACRO
-;	PRINT "TWIST: deg/frame=", deg_per_frame, " brads=", ~brads
-
-MACRO TWISTER_TWIST_HI deg_per_frame
-	brads = 256 * 128 * (deg_per_frame / 256) / 360
-	EQUB HI(brads)
-ENDMACRO
-
-MACRO TWISTER_SPIN_LO deg_per_sec
-	brads = 256 * 128 * (deg_per_sec / 50) / 360
-	EQUB LO(brads)
-ENDMACRO
-;	PRINT "SPIN: deg/sec=", deg_per_sec, " brads=", ~brads
-
-MACRO TWISTER_SPIN_HI deg_per_sec
-	brads = 256 * 128 * (deg_per_sec / 50) / 360
-	EQUB HI(brads)
-ENDMACRO
-
-\\ Vary twist over time and/or vertical
-
-PAGE_ALIGN
-.twister_twist_table_LO			; global rotation increment per row of the twister
-FOR n,0,255,1
-{
-	IF n < 128
-	m = (64 - ABS(n-64))/64
-	ELSE
-	m = -(64 - ABS(n-192))/64
-	ENDIF
-;	t = 480 * m
-	t = 480 * SIN(2 * PI * n / 256)	; thanks IP!
-	TWISTER_TWIST_LO t
-}
-NEXT
-
-.twister_twist_table_HI			; global rotation increment per row of the twister
-FOR n,0,255,1
-{
-	IF n < 128
-	m = (64 - ABS(n-64))/64
-	ELSE
-	m = -(64 - ABS(n-192))/64
-	ENDIF
-;	t = 480 * m
-	t = 480 * SIN(2 * PI * n / 256)	; thanks IP!
-	TWISTER_TWIST_HI t
-}
-NEXT
-
-.twister_knot_table_LO			; local rotation increment per row of the twister
-FOR n,0,255,1
-{
-	m = (128 - ABS(n-128))/128
-	t = 720 * m * m
-	TWISTER_TWIST_LO t
-}
-NEXT
-
-.twister_knot_table_HI			; local rotation increment per row of the twister
-FOR n,0,255,1
-{
-	m = (128 - ABS(n-128))/128
-	t = 720 * m * m
-	TWISTER_TWIST_HI t
-}
-NEXT
-
-\\ Vary spin over time
-
-.twister_spin_table_LO			; rotation increment of top angle per frame
-FOR n,0,255,1
-{
-;	v = 210						; spin at 210 deg/sec
-	v = 360 * SIN(2 * PI * n/ 256)
-	TWISTER_SPIN_LO v
-}
-NEXT
-
-.twister_spin_table_HI			; rotation increment of top angle per frame
-FOR n,0,255,1
-{
-;	v = 210						; spin at 210 deg/sec
-	v = 360 * SIN(2 * PI * n/ 256)
-	TWISTER_SPIN_HI v
-}
 NEXT
 
 .data_end
