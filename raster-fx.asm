@@ -120,7 +120,12 @@ GUARD &9F
 .row_count	skip 1
 .temp		skip 1
 
-.index		skip 1
+.num1		skip 1
+.num2		skip 1
+.result		skip 2
+
+.ta			skip 2
+.yb			skip 2
 
 \ ******************************************************************
 \ *	CODE START
@@ -400,7 +405,8 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 .fx_init_function
 {
 	\\ Init vars.
-	lda #0:sta index
+	lda #0
+	sta ta:sta ta+1
 
 	\ Ensure MAIN RAM is writeable
     LDA &FE34:AND #&FB:STA &FE34
@@ -431,23 +437,12 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_update_function
 {
-	inc index
-	lda index
-
-	\\ Set the first scanline
-	AND #&3F:tax				; 0-63
-	and #&1f:tay				; 0-31
-
-	LDA #12: STA &FE00				; 8c
-	LDA twister_vram_table_HI, Y	; 4c
-	STA &FE01						; 6c
-
-	LDA #13: STA &FE00				; 8c
-	LDA twister_vram_table_LO, Y	; 4c
-	STA &FE01						; 6c
-
-	txa:lsr a:lsr a:lsr a:lsr a:lsr a:sta temp	; main/shadow
-	lda &fe34:and #&fe:ora temp:sta &fe34
+	clc
+	lda ta:adc #6:sta ta					\ a=4096/600~=6
+	lda ta+1:adc #0:and #15:sta ta+1		\ 4096 byte table
+	lda ta:sta yb:lda ta+1:sta yb+1
+	jsr update_rot
+	jsr set_rot
 	RTS
 }
 
@@ -482,21 +477,25 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	lda #30:sta row_count
 	\\ 52c
 
+	WAIT_CYCLES 71
+
 	\\ Row 0
 	ldx #6:jsr cycles_wait_scanlines
 
-	LDA index
+	jsr update_rot
 	jsr set_rot
 
-	WAIT_CYCLES 115
+	\\ Want to get to:
+	\\ a = SIN(t * a + y * b)
+	\\ PICO-8 example: a = COS(t/300 + y/2000)
 
 	\\ Rows 1-30
 	.char_row_loop
 	{
-		ldx #7:jsr cycles_wait_scanlines
-		WAIT_CYCLES 29
+		ldx #6:jsr cycles_wait_scanlines
+		WAIT_CYCLES 113
 
-		lda index		
+		jsr update_rot
 		jsr set_rot
 
 		DEC row_count						; 5c
@@ -512,13 +511,26 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	\\ Row 31
 	ldx #7:jsr cycles_wait_scanlines
-	WAIT_CYCLES 29
+	WAIT_CYCLES 14
 
-	lda index
+	jsr update_rot				; 30c
 	jsr set_rot					; 84c		
 
     RTS
 }
+
+.update_rot							; 6c
+{
+	\ 4096/4000~=1
+	clc:lda yb:adc #1:sta yb		; 10c
+	lda yb+1:adc #0:and #15:sta yb+1	; 10c
+	clc:adc #HI(cos):sta load+2		; 8c
+	ldy yb							; 3c
+	.load
+	lda cos,Y						; 4c
+	rts								; 6c
+}
+\\ 47c
 
 .set_rot
 {
@@ -575,6 +587,43 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	RTS
 }
 
+\\ RTW's fast 8x8 multiply routine (made slower by kieranhj :)
+IF 0
+.mult											; 6c
+{
+	SEC:LDA num1:SBC num2						; 8c
+	BCS positive
+
+	; 2c
+	EOR #255:ADC #1								; 4c
+	jmp continue								; 3c
+
+	.positive
+	; 3c
+	WAIT_CYCLES 6
+
+	.continue
+	TAY:CLC:LDA num1:ADC num2:TAX				; 12c
+	BCS morethan256
+
+	; 2c
+	SEC											; 2c
+	LDA sqrlo256,X:SBC sqrlo256,Y:STA result	; 11c
+	LDA sqrhi256,X:SBC sqrhi256,Y:STA result+1	; 11c
+	jmp exit									; 3c
+
+	.morethan256
+	; 3c
+	LDA sqrlo512,X:SBC sqrlo256,Y:STA result	; 11c
+	LDA sqrhi512,X:SBC sqrhi256,Y:STA result+1	; 11c
+	WAIT_CYCLES 4
+
+	.exit
+	RTS											; 6c
+	\\ 70c fixed
+}
+ENDIF
+
 .fx_end
 
 \ ******************************************************************
@@ -620,6 +669,46 @@ FOR n,0,31,1
 EQUB HI((&3000 + n*640)/8)
 NEXT
 
+PAGE_ALIGN
+IF 0
+.sqrlo256
+FOR n,0,255,1
+s256 = (n * n) DIV 4
+s512 = ((n + 256) * (n + 256)) DIV 4
+EQUB LO(s256)
+NEXT
+
+.sqrhi256
+FOR n,0,255,1
+s256 = (n * n) DIV 4
+s512 = ((n + 256) * (n + 256)) DIV 4
+EQUB HI(s256)
+NEXT
+
+.sqrlo512
+FOR n,0,255,1
+s256 = (n * n) DIV 4
+s512 = ((n + 256) * (n + 256)) DIV 4
+EQUB LO(s512)
+NEXT
+
+.sqrhi512
+FOR n,0,255,1
+s256 = (n * n) DIV 4
+s512 = ((n + 256) * (n + 256)) DIV 4
+EQUB HI(s512)
+NEXT
+ENDIF
+
+\ Notes
+\ Having a 12-bit COSINE table means that the smallest increment in
+\ the input (1) results in <= 1 angle output.
+PAGE_ALIGN
+.cos
+FOR n,0,4095,1
+EQUB 255*COS(2*PI*n/4096)
+NEXT
+
 .data_end
 
 \ ******************************************************************
@@ -663,5 +752,5 @@ PRINT "------"
 
 PUTBASIC "circle.bas", "Circle"
 PUTFILE "screen.bin", "Screen", &3000
-PUTFILE "SCREEN1.BIN", "1", &3000
-PUTFILE "SCREEN2.BIN", "2", &3000
+PUTFILE "SCREEN1_narrow.BIN", "1", &3000
+PUTFILE "SCREEN2_narrow.BIN", "2", &3000
