@@ -464,23 +464,26 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_draw_function
 {
-	\\ R4=0, R7=&ff, R6=1
+	\\ R4=0, R7=&ff, R6=1, R9=3
 	lda #4:sta &fe00
 	lda #0:sta &fe01
 
 	lda #7:sta &fe00
-	lda #4:sta &fe01
+	lda #7:sta &fe01
 
 	lda #6:sta &fe00
 	lda #1:sta &fe01
 
-	lda #30:sta row_count
+	lda #9:sta &fe00
+	lda #3:sta &fe01
+
+	lda #62:sta row_count
 	\\ 52c
 
-	WAIT_CYCLES 71
+	WAIT_CYCLES 51
 
 	\\ Row 0
-	ldx #6:jsr cycles_wait_scanlines
+	ldx #2:jsr cycles_wait_scanlines
 
 	jsr update_rot
 	jsr set_rot
@@ -492,7 +495,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ Rows 1-30
 	.char_row_loop
 	{
-		ldx #6:jsr cycles_wait_scanlines
+		ldx #2:jsr cycles_wait_scanlines
 		WAIT_CYCLES 113
 
 		jsr update_rot
@@ -507,7 +510,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	\\ R4=6 - CRTC cycle is 32 + 7 more rows = 312 scanlines
 	LDA #4: STA &FE00
-	LDA #7: STA &FE01			; 312 - 256 = 56 scanlines
+	LDA #14: STA &FE01			; 312 - 256 = 56 scanlines
 
 	\\ Row 31
 	ldx #7:jsr cycles_wait_scanlines
