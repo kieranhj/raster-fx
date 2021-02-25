@@ -173,6 +173,34 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #10: STA &FE00
 	LDA #32: STA &FE01
 
+	\\ Turn off interlace
+
+	lda #8:sta &fe00
+	lda #0:sta &fe01
+
+	lda #2:sta &fe00
+	lda #87:sta &fe01
+
+	ldx #255:jsr cycles_wait_scanlines
+	ldx #255:jsr cycles_wait_scanlines
+	ldx #255:jsr cycles_wait_scanlines
+
+	\\ Ensure the CRTC column counter is incrementing starting from a
+	\\ known state with respect to the cycle stretching. Because the vsync
+	\\ signal is reported via the VIA, which is a 1MHz device, the timing
+	\\ could be out by 0.5 usec in 2MHz modes.
+	\\
+	\\ To fix: set R0=0, wait 256 cycles to ensure the horizontal counter
+	\\ is stuck at 0, then set the horizontal counter to its correct
+	\\ value. The 6845 is always accessed at 1MHz so the cycle counter
+	\\ starts running on a 1MHz boundary.
+	\\
+	\\ Note: when R0=0, DRAM refresh is off. Don't delay too long.
+	lda #0
+	sta $fe00:sta $fe01
+	ldx #2:jsr cycles_wait_scanlines
+	sta $fe00:lda #127:sta $fe01
+
 	\\ Initialise system modules here!
 
 	\ ******************************************************************
@@ -469,6 +497,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 \\ If going from 4 => 0 set R9=15 then burn 8 scanlines after last scanline.
 \\ R9 = 11 + current offset - next offset.
 \\ <--- 104c total w/ 80c visible and hsync at 98c ---> <3c> <3c> ... <3c> = 128c
+\\ <--- 88c total w/ 80c visible and hsync at 87c ---> <5c> <5c> ... <5c> = 128c
 
 .fx_draw_function
 {
@@ -529,26 +558,25 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 		jsr set_rot							; 80c
 		tay									; 2c
 
-		\\ Set R0=104.
-		lda #0:sta &fe00					; 8c
-		lda #103:sta &fe01					; 8c
+		\\ Set R0=87.
+		lda #0:sta &fe00					; 8c <= 7c
+		lda #87:sta &fe01					; 8c
 
-		WAIT_CYCLES 25
+		WAIT_CYCLES 8
 
-		\\ At HCC=104 set R0=2.
+		\\ At HCC=88 set R0=4.
 		.here
-		lda #2:sta &fe01					; 8c
+		lda #4:sta &fe01					; 8c
 
-		\\ Burn 8 scanlines = 3x8c = 24c
+		\\ Burn 8 scanlines = 5x8c = 40c
 		lda #127							; 2c
 		sty &fe34							; 4c
-		WAIT_CYCLES 12
+		WAIT_CYCLES 28
 		\\ At HCC=0 set R0=127
 		sta &fe01							; 6c
 		\\ <== start of new scanline here
 
-		NOP
-
+		NOP									; 2c
 		DEC row_count						; 5c
 		BEQ done							; 2c
 		JMP char_row_loop					; 3c
