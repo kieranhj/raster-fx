@@ -95,7 +95,7 @@ disksys_loadto_addr = &3000
 FramePeriod = 312*64-2
 
 ; Calculate here the timer value to interrupt at the desired line
-TimerValue = 32*64 - 2*64 - 2 - 22 - 9
+TimerValue = 32*64 - 2*64 - 2 - 22 - 9 + 8
 
 \\ 40 lines for vblank
 \\ 32 lines for vsync (vertical position = 35 / 39)
@@ -116,16 +116,14 @@ GUARD &9F
 .vsync_counter			SKIP 2		; counts up with each vsync
 .escape_pressed			SKIP 1		; set when Escape key pressed
 
-.writeptr	skip 2
-.row_count	skip 1
-.temp		skip 1
+.writeptr		skip 2
+.row_count		skip 1
+.temp			skip 1
 
-.num1		skip 1
-.num2		skip 1
-.result		skip 2
+.prev_offset	skip 1
 
-.ta			skip 2
-.yb			skip 2
+.ta				skip 2
+.yb				skip 2
 
 \ ******************************************************************
 \ *	CODE START
@@ -438,11 +436,13 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 .fx_update_function
 {
 	clc
-	lda ta:adc #6:sta ta					\ a=4096/600~=6
+	lda ta:adc #12:sta ta					\ a=4096/600~=6
 	lda ta+1:adc #0:and #15:sta ta+1		\ 4096 byte table
 	lda ta:sta yb:lda ta+1:sta yb+1
 	jsr update_rot
-	jsr set_rot
+	lsr a
+	jsr set_rot:sta &fe34
+	lda #0:sta prev_offset
 	RTS
 }
 
@@ -462,6 +462,14 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 \ A FULL AND VALID 312 line PAL signal before exiting!
 \ ******************************************************************
 
+\\ Limited RVI display top or bottom 4 scanlines per row.
+\\ If going from 0 => 0 set R9=11 then burn 8 scanlines after last scanline.
+\\ If going from 0 => 4 set R9=7  then burn 8 scanlines after last scanline.
+\\ If going from 4 => 4 set R9=11 then burn 8 scanlines after last scanline.
+\\ If going from 4 => 0 set R9=15 then burn 8 scanlines after last scanline.
+\\ R9 = 11 + current offset - next offset.
+\\ <--- 104c total w/ 80c visible and hsync at 98c ---> <3c> <3c> ... <3c> = 128c
+
 .fx_draw_function
 {
 	\\ R4=0, R7=&ff, R6=1, R9=3
@@ -480,13 +488,14 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	lda #62:sta row_count
 	\\ 52c
 
-	WAIT_CYCLES 51
+	WAIT_CYCLES 49
 
 	\\ Row 0
 	ldx #2:jsr cycles_wait_scanlines
 
 	jsr update_rot
-	jsr set_rot
+	lsr a
+	jsr set_rot:sta &fe34
 
 	\\ Want to get to:
 	\\ a = SIN(t * a + y * b)
@@ -495,29 +504,77 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ Rows 1-30
 	.char_row_loop
 	{
-		ldx #2:jsr cycles_wait_scanlines
-		WAIT_CYCLES 113
+		ldx #2								; 2c
+		jsr cycles_wait_scanlines			; 256c
 
-		jsr update_rot
-		jsr set_rot
+		lda #9:sta &fe00					; 8c
+
+		jsr update_rot						; 47c
+		sta temp							; 3c
+
+		\\ Bottom bit * 4
+		and #1:asl a: asl a					; 6c
+		tax									; 2c
+		eor #&ff							; 2c
+		clc									; 2c
+		adc #11								; 2c
+		adc prev_offset						; 3c
+		sta &fe01							; 6c
+		stx prev_offset						; 3c
+		\\ 26c
+
+		\\ Sets R12,R13 + SHADOW
+		lda temp							; 3c
+		lsr a								; 2c
+		jsr set_rot							; 80c
+		tay									; 2c
+
+		\\ Set R0=104.
+		lda #0:sta &fe00					; 8c
+		lda #103:sta &fe01					; 8c
+
+		WAIT_CYCLES 25
+
+		\\ At HCC=104 set R0=2.
+		.here
+		lda #2:sta &fe01					; 8c
+
+		\\ Burn 8 scanlines = 3x8c = 24c
+		lda #127							; 2c
+		sty &fe34							; 4c
+		WAIT_CYCLES 12
+		\\ At HCC=0 set R0=127
+		sta &fe01							; 6c
+		\\ <== start of new scanline here
+
+		NOP
 
 		DEC row_count						; 5c
 		BEQ done							; 2c
 		JMP char_row_loop					; 3c
 		.done
-		\\ 8c
 	}
 
 	\\ R4=6 - CRTC cycle is 32 + 7 more rows = 312 scanlines
 	LDA #4: STA &FE00
 	LDA #14: STA &FE01			; 312 - 256 = 56 scanlines
 
-	\\ Row 31
-	ldx #7:jsr cycles_wait_scanlines
-	WAIT_CYCLES 14
+	\\ If prev_offset=4 then R9=7
+	\\ If prev_offset=0 then R9=3
+	{
+		lda #9:sta &fe00
+		clc
+		lda #3
+		adc prev_offset
+		sta &fe01
+	}
 
-	jsr update_rot				; 30c
-	jsr set_rot					; 84c		
+	\\ Row 31
+	ldx #4:jsr cycles_wait_scanlines
+
+	\\ R9=3
+	lda #9:sta &fe00
+	lda #3:sta &fe01
 
     RTS
 }
@@ -525,7 +582,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 .update_rot							; 6c
 {
 	\ 4096/4000~=1
-	clc:lda yb:adc #1:sta yb		; 10c
+	clc:lda yb:adc #2:sta yb		; 10c
 	lda yb+1:adc #0:and #15:sta yb+1	; 10c
 	clc:adc #HI(cos):sta load+2		; 8c
 	ldy yb							; 3c
@@ -549,11 +606,10 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	STA &FE01						; 6c
 	
 	txa:lsr a:lsr a:lsr a:lsr a:lsr a:sta temp	; main/shadow ; 15c
-	lda &fe34:and #&fe:ora temp:sta &fe34	; 13c
-	
+	lda &fe34:and #&fe:ora temp		; 9c
 	rts								; 6c
 }
-\\ 84c
+\\ 80c
 
 \ ******************************************************************
 \ Kill FX
@@ -755,5 +811,9 @@ PRINT "------"
 
 PUTBASIC "circle.bas", "Circle"
 PUTFILE "screen.bin", "Screen", &3000
-PUTFILE "SCREEN1_narrow.BIN", "1", &3000
-PUTFILE "SCREEN2_narrow.BIN", "2", &3000
+PUTFILE "SCREEN1_64.BIN", "1", &3000
+PUTFILE "SCREEN2_64.BIN", "2", &3000
+PUTFILE "SCREEN1_old.BIN", "N1", &3000
+PUTFILE "SCREEN2_old.BIN", "N2", &3000
+PUTFILE "SCREEN1_wide.BIN", "W1", &3000
+PUTFILE "SCREEN2_wide.BIN", "W2", &3000
