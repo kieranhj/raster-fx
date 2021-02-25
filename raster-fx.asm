@@ -488,7 +488,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	lda #62:sta row_count
 	\\ 52c
 
-	WAIT_CYCLES 49
+	WAIT_CYCLES 48
 
 	\\ Row 0
 	ldx #2:jsr cycles_wait_scanlines
@@ -533,7 +533,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 		lda #0:sta &fe00					; 8c
 		lda #103:sta &fe01					; 8c
 
-		WAIT_CYCLES 25
+		WAIT_CYCLES 24
 
 		\\ At HCC=104 set R0=2.
 		.here
@@ -547,8 +547,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 		sta &fe01							; 6c
 		\\ <== start of new scanline here
 
-		NOP
-
+		NOP									; 2c
 		DEC row_count						; 5c
 		BEQ done							; 2c
 		JMP char_row_loop					; 3c
