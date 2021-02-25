@@ -488,7 +488,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	lda #62:sta row_count
 	\\ 52c
 
-	WAIT_CYCLES 49
+	WAIT_CYCLES 49-2
 
 	\\ Row 0
 	ldx #2:jsr cycles_wait_scanlines
@@ -517,7 +517,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 		tax									; 2c
 		eor #&ff							; 2c
 		clc									; 2c
-		adc #11								; 2c
+		adc #12								; 2c
 		adc prev_offset						; 3c
 		sta &fe01							; 6c
 		stx prev_offset						; 3c
@@ -529,26 +529,25 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 		jsr set_rot							; 80c
 		tay									; 2c
 
-		\\ Set R0=104.
-		lda #0:sta &fe00					; 8c
-		lda #103:sta &fe01					; 8c
+		\\ Set R0=102.
+		lda #0:sta &fe00					; 8c <= 7c
+		lda #101:sta &fe01					; 8c
 
-		WAIT_CYCLES 25
+		WAIT_CYCLES 22
 
-		\\ At HCC=104 set R0=2.
+		\\ At HCC=102 set R0=2.
 		.here
 		lda #2:sta &fe01					; 8c
 
 		\\ Burn 8 scanlines = 3x8c = 24c
 		lda #127							; 2c
 		sty &fe34							; 4c
-		WAIT_CYCLES 12
+		WAIT_CYCLES 15
 		\\ At HCC=0 set R0=127
-		sta &fe01							; 6c
+		sta &fe01							; 6c <= 5c
 		\\ <== start of new scanline here
 
-		NOP
-
+		NOP									; 2c
 		DEC row_count						; 5c
 		BEQ done							; 2c
 		JMP char_row_loop					; 3c
@@ -815,5 +814,3 @@ PUTFILE "SCREEN1_64.BIN", "1", &3000
 PUTFILE "SCREEN2_64.BIN", "2", &3000
 PUTFILE "SCREEN1_old.BIN", "N1", &3000
 PUTFILE "SCREEN2_old.BIN", "N2", &3000
-PUTFILE "SCREEN1_wide.BIN", "W1", &3000
-PUTFILE "SCREEN2_wide.BIN", "W2", &3000
