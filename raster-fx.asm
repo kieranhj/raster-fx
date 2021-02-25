@@ -173,6 +173,9 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #10: STA &FE00
 	LDA #32: STA &FE01
 
+	lda #2:sta &fe00
+	lda #95:sta &fe01
+
 	\\ Initialise system modules here!
 
 	\ ******************************************************************
@@ -469,6 +472,8 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 \\ If going from 4 => 0 set R9=15 then burn 8 scanlines after last scanline.
 \\ R9 = 11 + current offset - next offset.
 \\ <--- 104c total w/ 80c visible and hsync at 98c ---> <3c> <3c> ... <3c> = 128c
+\\ <--- 96c total w/ 80c visible and hsync at 95c ---> <4c> <4c> ... <4c> = 128c
+
 
 .fx_draw_function
 {
@@ -488,7 +493,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	lda #62:sta row_count
 	\\ 52c
 
-	WAIT_CYCLES 49-2
+	WAIT_CYCLES 50
 
 	\\ Row 0
 	ldx #2:jsr cycles_wait_scanlines
@@ -517,7 +522,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 		tax									; 2c
 		eor #&ff							; 2c
 		clc									; 2c
-		adc #12								; 2c
+		adc #11								; 2c
 		adc prev_offset						; 3c
 		sta &fe01							; 6c
 		stx prev_offset						; 3c
@@ -529,22 +534,22 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 		jsr set_rot							; 80c
 		tay									; 2c
 
-		\\ Set R0=102.
+		\\ Set R0=95. (96c)
 		lda #0:sta &fe00					; 8c <= 7c
-		lda #101:sta &fe01					; 8c
+		lda #95:sta &fe01					; 8c
 
-		WAIT_CYCLES 22
+		WAIT_CYCLES 16
 
-		\\ At HCC=102 set R0=2.
+		\\ At HCC=96 set R0=3.
 		.here
-		lda #2:sta &fe01					; 8c
+		lda #3:sta &fe01					; 8c
 
-		\\ Burn 8 scanlines = 3x8c = 24c
+		\\ Burn 8 scanlines = 4x8c = 32c
 		lda #127							; 2c
 		sty &fe34							; 4c
-		WAIT_CYCLES 15
+		WAIT_CYCLES 20
 		\\ At HCC=0 set R0=127
-		sta &fe01							; 6c <= 5c
+		sta &fe01							; 6c
 		\\ <== start of new scanline here
 
 		NOP									; 2c
