@@ -125,6 +125,9 @@ GUARD &9F
 .ta				skip 2
 .yb				skip 2
 
+.xi				skip 1
+.xy				skip 1
+
 \ ******************************************************************
 \ *	CODE START
 \ ******************************************************************
@@ -405,6 +408,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ Init vars.
 	lda #0
 	sta ta:sta ta+1
+	sta xi
 
 	\ Ensure MAIN RAM is writeable
     LDA &FE34:AND #&FB:STA &FE34
@@ -435,10 +439,14 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_update_function
 {
+	dec xi:dec xi
+	lda xi:sta xy
+
 	clc
 	lda ta:adc #6:sta ta					\ a=4096/600~=6
 	lda ta+1:adc #0:and #15:sta ta+1		\ 4096 byte table
 	lda ta:sta yb:lda ta+1:sta yb+1
+
 	jsr update_rot
 	jsr set_rot
 	lda #0:sta prev_offset
@@ -506,13 +514,13 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	\\ Sets R12,R13 + SHADOW
 	lda temp							; 3c
-	jsr set_rot							; 56c
+	jsr set_rot							; 66c
 
 		\\ Set R0=101 (102c)
 		lda #0:sta &fe00					; 8c <= 7c
 		lda #101:sta &fe01					; 8c
 
-		WAIT_CYCLES 38
+		WAIT_CYCLES 28
 
 		\\ At HCC=102 set R0=1.
 		.blah
@@ -536,29 +544,29 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	{
 		lda #9:sta &fe00					; 8c
 
-		jsr update_rot						; 47c
+		jsr update_rot						; 52c
 		sta temp							; 3c
 
 		\\ 2-bits * 2
 		and #3:asl a						; 4c
-		tax									; 2c
+		tay									; 2c
 		eor #&ff							; 2c
 		clc									; 2c
 		adc #13								; 2c
 		adc prev_offset						; 3c
 		sta &fe01							; 6c
-		stx prev_offset						; 3c
+		sty prev_offset						; 3c
 		\\ 24c
 
 		\\ Sets R12,R13 + SHADOW
 		lda temp							; 3c
-		jsr set_rot							; 56c
+		jsr set_rot							; 66c
 
 		\\ Set R0=101 (102c)
-		lda #0:sta &fe00					; 8c <= 7c
+		lda #0:sta &fe00					; 8c
 		lda #101:sta &fe01					; 8c
 
-		WAIT_CYCLES 56
+		WAIT_CYCLES 40
 
 		\\ At HCC=102 set R0=1.
 		.here
@@ -605,6 +613,8 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .update_rot							; 6c
 {
+	inc xy							; 5c
+
 	\ 4096/4000~=1
 	clc:lda yb:adc #1:sta yb		; 10c
 	lda yb+1:adc #0:and #15:sta yb+1	; 10c
@@ -614,7 +624,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	lda cos,Y						; 4c
 	rts								; 6c
 }
-\\ 47c
+\\ 52c
 
 .set_rot							; 6c
 {
@@ -622,17 +632,21 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	AND #&7F						; 2c
 	lsr a:lsr a:tay					; 6c
 
-	LDA #12: STA &FE00				; 8c
-	LDA twister_vram_table_HI, Y	; 4c
-	STA &FE01						; 6c
-
 	LDA #13: STA &FE00				; 8c
 	LDA twister_vram_table_LO, Y	; 4c
+	clc								; 2c
+	ldx xy							; 3c
+	adc x_wibble, X					; 4c
+	STA &FE01						; 6c
+
+	LDA #12: STA &FE00				; 8c
+	LDA twister_vram_table_HI, Y	; 4c
+	adc #0							; 2c
 	STA &FE01						; 6c
 
 	rts								; 6c
 }
-\\ 56c
+\\ 66c
 
 \ ******************************************************************
 \ Kill FX
@@ -668,43 +682,6 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	RTS
 }
-
-\\ RTW's fast 8x8 multiply routine (made slower by kieranhj :)
-IF 0
-.mult											; 6c
-{
-	SEC:LDA num1:SBC num2						; 8c
-	BCS positive
-
-	; 2c
-	EOR #255:ADC #1								; 4c
-	jmp continue								; 3c
-
-	.positive
-	; 3c
-	WAIT_CYCLES 6
-
-	.continue
-	TAY:CLC:LDA num1:ADC num2:TAX				; 12c
-	BCS morethan256
-
-	; 2c
-	SEC											; 2c
-	LDA sqrlo256,X:SBC sqrlo256,Y:STA result	; 11c
-	LDA sqrhi256,X:SBC sqrhi256,Y:STA result+1	; 11c
-	jmp exit									; 3c
-
-	.morethan256
-	; 3c
-	LDA sqrlo512,X:SBC sqrlo256,Y:STA result	; 11c
-	LDA sqrhi512,X:SBC sqrhi256,Y:STA result+1	; 11c
-	WAIT_CYCLES 4
-
-	.exit
-	RTS											; 6c
-	\\ 70c fixed
-}
-ENDIF
 
 .fx_end
 
@@ -752,35 +729,10 @@ EQUB HI((&3000 + n*640)/8)
 NEXT
 
 PAGE_ALIGN
-IF 0
-.sqrlo256
+.x_wibble
 FOR n,0,255,1
-s256 = (n * n) DIV 4
-s512 = ((n + 256) * (n + 256)) DIV 4
-EQUB LO(s256)
+EQUB 30.5+24*SIN(2 * PI *n / 256) 
 NEXT
-
-.sqrhi256
-FOR n,0,255,1
-s256 = (n * n) DIV 4
-s512 = ((n + 256) * (n + 256)) DIV 4
-EQUB HI(s256)
-NEXT
-
-.sqrlo512
-FOR n,0,255,1
-s256 = (n * n) DIV 4
-s512 = ((n + 256) * (n + 256)) DIV 4
-EQUB LO(s512)
-NEXT
-
-.sqrhi512
-FOR n,0,255,1
-s256 = (n * n) DIV 4
-s512 = ((n + 256) * (n + 256)) DIV 4
-EQUB HI(s512)
-NEXT
-ENDIF
 
 \ Notes
 \ Having a 12-bit COSINE table means that the smallest increment in
