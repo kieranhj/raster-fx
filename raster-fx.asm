@@ -176,6 +176,33 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #10: STA &FE00
 	LDA #32: STA &FE01
 
+	\\ Turn off interlace
+
+	lda #8:sta &fe00
+	lda #0:sta &fe01
+
+	\\ Wait at least two frames to let vsync, hsync and interlace changes shake out:
+
+	ldx #255:jsr cycles_wait_scanlines
+	ldx #255:jsr cycles_wait_scanlines
+	ldx #255:jsr cycles_wait_scanlines
+
+	\\ Ensure the CRTC column counter is incrementing starting from a
+	\\ known state with respect to the cycle stretching. Because the vsync
+	\\ signal is reported via the VIA, which is a 1MHz device, the timing
+	\\ could be out by 0.5 usec in 2MHz modes.
+	\\
+	\\ To fix: set R0=0, wait 256 cycles to ensure the horizontal counter
+	\\ is stuck at 0, then set the horizontal counter to its correct
+	\\ value. The 6845 is always accessed at 1MHz so the cycle counter
+	\\ starts running on a 1MHz boundary.
+	\\
+	\\ Note: when R0=0, DRAM refresh is off. Don't delay too long.
+	lda #0
+	sta $fe00:sta $fe01
+	ldx #2:jsr cycles_wait_scanlines
+	sta $fe00:lda #127:sta $fe01
+
 	\\ Initialise system modules here!
 
 	\ ******************************************************************
@@ -324,7 +351,6 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 		NOP
 		NOP
 		.stable
-		BIT 0
 	}
 
 	\\ Check if Escape pressed
