@@ -449,8 +449,9 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	jsr update_rot
 	jsr set_rot
-	lda #0:sta prev_offset
+	sty &fe34
 
+	lda #0:sta prev_offset
 	jsr update_rot
 	sta temp
 	RTS
@@ -514,13 +515,14 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	\\ Sets R12,R13 + SHADOW
 	lda temp							; 3c
-	jsr set_rot							; 66c
+	jsr set_rot							; 79c
+	; sets Y to shadow bit.
 
 		\\ Set R0=101 (102c)
 		lda #0:sta &fe00					; 8c <= 7c
 		lda #101:sta &fe01					; 8c
 
-		WAIT_CYCLES 28
+		WAIT_CYCLES 16
 
 		\\ At HCC=102 set R0=1.
 		.blah
@@ -528,12 +530,16 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 		\\ Burn 13 scanlines = 13x2c = 26c
 		lda #127							; 2c
-		WAIT_CYCLES 18
+		sty &fe34							; 3c
+		ldx #&40 + PAL_black				; 2c
+		stx &fe21							; 4c
+		ldx #&40 + PAL_blue					; 2c
+		WAIT_CYCLES 6
 		\\ At HCC=0 set R0=127
 		sta &fe01							; 6c
 		\\ <== start of new scanline here
-
-	WAIT_CYCLES 10
+		stx &fe21							; 4c
+		WAIT_CYCLES 10
 
 	\\ Want to get to:
 	\\ a = SIN(t * a + y * b)
@@ -560,13 +566,14 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 		\\ Sets R12,R13 + SHADOW
 		lda temp							; 3c
-		jsr set_rot							; 66c
+		jsr set_rot							; 79c
+		; sets Y to shadow bit.
 
 		\\ Set R0=101 (102c)
-		lda #0:sta &fe00					; 8c
+		lda #0:sta &fe00					; 8c <= 7c
 		lda #101:sta &fe01					; 8c
 
-		WAIT_CYCLES 40
+		WAIT_CYCLES 24
 
 		\\ At HCC=102 set R0=1.
 		.here
@@ -574,10 +581,15 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 		\\ Burn 13 scanlines = 13x2c = 26c
 		lda #127							; 2c
-		WAIT_CYCLES 18
+		sty &fe34							; 4c
+		ldx #&40 + PAL_black				; 2c
+		stx &fe21							; 4c
+		ldx #&40 + PAL_blue					; 2c
+		WAIT_CYCLES 6
 		\\ At HCC=0 set R0=127
 		sta &fe01							; 6c
 		\\ <== start of new scanline here
+		stx &fe21							; 4c
 
 		DEC row_count						; 5c
 		BEQ done							; 2c
@@ -633,20 +645,25 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	lsr a:lsr a:tay					; 6c
 
 	LDA #13: STA &FE00				; 8c
-	LDA twister_vram_table_LO, Y	; 4c
-	clc								; 2c
 	ldx xy							; 3c
-	adc x_wibble, X					; 4c
-	STA &FE01						; 6c
+	lda x_wibble, X					; 4c
+	sta temp						; 3c
+	lsr a							; 2c
+	clc								; 2c
+	adc twister_vram_table_LO, Y	; 4c
+	STA &FE01						; 6c <= 5c
 
 	LDA #12: STA &FE00				; 8c
 	LDA twister_vram_table_HI, Y	; 4c
 	adc #0							; 2c
 	STA &FE01						; 6c
 
+	lda temp						; 3c
+	and #1							; 2c
+	tay								; 2c
 	rts								; 6c
 }
-\\ 66c
+\\ 79c
 
 \ ******************************************************************
 \ Kill FX
@@ -731,7 +748,7 @@ NEXT
 PAGE_ALIGN
 .x_wibble
 FOR n,0,255,1
-EQUB 30.5+24*SIN(2 * PI *n / 256) 
+EQUB 54+40*SIN(2 * PI *n / 256) 
 NEXT
 
 \ Notes
