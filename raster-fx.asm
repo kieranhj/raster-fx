@@ -82,6 +82,18 @@ MACRO PAGE_ALIGN
     ALIGN &100
 ENDMACRO
 
+MACRO PAGE_ALIGN_FOR_SIZE size
+IF HI(P%+size) <> HI(P%)
+	PAGE_ALIGN
+ENDIF
+ENDMACRO
+
+MACRO CHECK_SAME_PAGE_AS base
+IF HI(P%-1) <> HI(base)
+PRINT "WARNING! Table or branch base address",~base, "may cross page boundary at",~P%
+ENDIF
+ENDMACRO
+
 \ ******************************************************************
 \ *	GLOBAL constants
 \ ******************************************************************
@@ -120,19 +132,18 @@ GUARD &9F
 .row_count		skip 1
 .temp			skip 1
 
-.prev_offset	skip 1
+.x_zoom			skip 1
+.x_dir			skip 1
+.y_zoom			skip 1
 
-.ta				skip 2
-.yb				skip 2
-
-.xi				skip 1
-.xy				skip 1
+.u				skip 2
+.v				skip 2
 
 \ ******************************************************************
 \ *	CODE START
 \ ******************************************************************
 
-ORG &1900	      			; code origin (like P%=&2000)
+ORG &E00	      			; code origin (like P%=&2000)
 GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .start
@@ -433,18 +444,21 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 {
 	\\ Init vars.
 	lda #0
-	sta ta:sta ta+1
-	sta xi
+	sta x_zoom:sta y_zoom
+	sta u:sta u+1
+	sta v:sta v+1
+	lda #1:sta x_dir
 
 	\ Ensure MAIN RAM is writeable
     LDA &FE34:AND #&FB:STA &FE34
 	ldx #LO(file1):ldy #HI(file1):lda #HI(&3000):jsr disksys_load_file
+	IF 0
 	\ Ensure SHADOW RAM is writeable
     LDA &FE34:ORA #&4:STA &FE34
 	ldx #LO(file2):ldy #HI(file2):lda #HI(&3000):jsr disksys_load_file
 	\ Ensure MAIN RAM is writeable
     LDA &FE34:AND #&FB:STA &FE34
-
+	ENDIF
 	RTS
 }
 
@@ -465,21 +479,43 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_update_function
 {
-	dec xi:dec xi
-	lda xi:sta xy
-
 	clc
-	lda ta:adc #6:sta ta					\ a=4096/600~=6
-	lda ta+1:adc #0:and #15:sta ta+1		\ 4096 byte table
-	lda ta:sta yb:lda ta+1:sta yb+1
+	lda x_zoom
+	adc x_dir
+	bpl not_min
+	lda #1
+	sta x_dir
+	lda #0
+	.not_min
+	cmp #32
+	bcc not_max
+	lda #&ff
+	sta x_dir
+	lda #31
+	.not_max
+	sta x_zoom
 
-	jsr update_rot
-	jsr set_rot
-	sty &fe34
+	tax
 
-	lda #0:sta prev_offset
-	jsr update_rot
-	sta temp
+	lda #13:sta &fe00
+	lda twister_vram_table_LO, X
+	sta &fe01
+	lda #12:sta &fe00
+	lda twister_vram_table_HI, X
+	sta &fe01
+
+	lda dv_table, X
+	sta add_dv+1
+
+	lda #0:sta v:sta v+1
+
+	ldx #15
+	.loop
+	lda frak_data, X
+	sta &fe21
+	dex
+	bpl loop
+
 	RTS
 }
 
@@ -499,197 +535,74 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 \ A FULL AND VALID 312 line PAL signal before exiting!
 \ ******************************************************************
 
-\\ Limited RVI
-\\ Display 0,2,4,6 scanline offset for 2 scanlines.
-\\ <--- 102c total w/ 80c visible and hsync at 98c ---> <2c> ..13x <2c> = 128c
-\\ Plus one extra for luck!
-\\ R9 = 13 + current - next
-
-\\ xm = cos((t/80)-y+20*sin(t/20000+a/(120+20*sin(t/100+y/500))))*16
-
+PAGE_ALIGN
 .fx_draw_function
 {
-	\\ R4=0, R7=&ff, R6=1, R9=3
+	\\ R4=0, R7=&ff, R6=1
 	lda #4:sta &fe00
 	lda #0:sta &fe01
 
 	\\ vsync at row 35 = scanline 280.
 	lda #7:sta &fe00
-	lda #13:sta &fe01
+	lda #4:sta &fe01
 
 	lda #6:sta &fe00
 	lda #1:sta &fe01
 
-	lda #9:sta &fe00
-	lda #1:sta &fe01
+	lda #253:sta row_count
 
-	lda #126:sta row_count
-	\\ 52c
+	WAIT_CYCLES 69
 
-	\\ Row 0
-	lda temp							; 3c
-	\\ 2-bits * 2
-	and #3:asl a						; 4c
-	tax									; 2c
-	eor #&ff							; 2c
-	clc									; 2c
-	adc #13								; 2c
-	adc prev_offset						; 3c
-	sta &fe01							; 6c
-	stx prev_offset						; 3c
-	\\ 24c
-
-	\\ Sets R12,R13 + SHADOW
-	lda temp							; 3c
-	jsr set_rot							; 79c
-	; sets Y to shadow bit.
-
-		\\ Set R0=101 (102c)
-		lda #0:sta &fe00					; 8c <= 7c
-		lda #101:sta &fe01					; 8c
-
-		WAIT_CYCLES 16
-
-		\\ At HCC=102 set R0=1.
-		.blah
-		lda #1:sta &fe01					; 8c
-
-		\\ Burn 13 scanlines = 13x2c = 26c
-		lda #127							; 2c
-		sty &fe34							; 3c
-		ldx #&40 + PAL_black				; 2c
-		stx &fe21							; 4c
-		ldx #&40 + PAL_blue					; 2c
-		WAIT_CYCLES 6
-		\\ At HCC=0 set R0=127
-		sta &fe01							; 6c
-		\\ <== start of new scanline here
-		stx &fe21							; 4c
-		WAIT_CYCLES 10
-
-	\\ Want to get to:
-	\\ a = SIN(t * a + y * b)
-	\\ PICO-8 example: a = COS(t/300 + y/2000)
-
-	\\ Rows 1-30
-	.char_row_loop
+	.scanline_loop
 	{
-		lda #9:sta &fe00					; 8c
+		clc						; 2c
+		lda v					; 3c
+		.*add_dv
+		adc #128				; 2c
+		sta v					; 3c
+		lda v+1					; 3c
+		adc #0					; 2c
 
-		jsr update_rot						; 52c
-		sta temp							; 3c
+		cmp #44					; 2c
+		bcc ok
+		; 2c
+		sbc #44					; 2c
+		jmp store				; 3c
+		.ok
+		; 3c
+		WAIT_CYCLES 4
+		.store
+		sta v+1					; 3c
+		\\ 27c
 
-		\\ 2-bits * 2
-		and #3:asl a						; 4c
-		tay									; 2c
-		eor #&ff							; 2c
-		clc									; 2c
-		adc #13								; 2c
-		adc prev_offset						; 3c
-		sta &fe01							; 6c
-		sty prev_offset						; 3c
-		\\ 24c
+		tax						; 2c
+		lda frak_lines_LO, X	; 4c
+		sta set_palette+1		; 4c
+		lda frak_lines_HI, X	; 4c
+		sta set_palette+2		; 4c
+		\\ 18c
 
-		\\ Sets R12,R13 + SHADOW
-		lda temp							; 3c
-		jsr set_rot							; 79c
-		; sets Y to shadow bit.
+		WAIT_CYCLES 15
 
-		\\ Set R0=101 (102c)
-		lda #0:sta &fe00					; 8c <= 7c
-		lda #101:sta &fe01					; 8c
+		\\ Ideally call at HCC=68
+		.set_palette
+		jsr &ffff				; 54c
 
-		WAIT_CYCLES 24
-
-		\\ At HCC=102 set R0=1.
-		.here
-		lda #1:sta &fe01					; 8c
-
-		\\ Burn 13 scanlines = 13x2c = 26c
-		lda #127							; 2c
-		sty &fe34							; 4c
-		ldx #&40 + PAL_black				; 2c
-		stx &fe21							; 4c
-		ldx #&40 + PAL_blue					; 2c
 		WAIT_CYCLES 6
-		\\ At HCC=0 set R0=127
-		sta &fe01							; 6c
-		\\ <== start of new scanline here
-		stx &fe21							; 4c
+		\\ <=== HCC=0
 
-		DEC row_count						; 5c
-		BEQ done							; 2c
-		JMP char_row_loop					; 3c
-		.done
+		dec row_count			; 5c
+		bne scanline_loop		; 3c
 	}
+	CHECK_SAME_PAGE_AS scanline_loop
+	.scanline_last
 
 	\\ Total 312 line - 256 = 56 scanlines
 	LDA #4: STA &FE00
-	LDA #28: STA &FE01
-
-	\\ If prev_offset=6 then R9=7
-	\\ If prev_offset=4 then R9=5
-	\\ If prev_offset=2 then R9=3
-	\\ If prev_offset=0 then R9=1
-	{
-		lda #9:sta &fe00
-		clc
-		lda #1
-		adc prev_offset
-		sta &fe01
-	}
-
-	\\ Row 31
-	ldx #2:jsr cycles_wait_scanlines
-
-	\\ R9=3
-	lda #9:sta &fe00
-	lda #1:sta &fe01
+	LDA #7: STA &FE01
 
     RTS
 }
-
-.update_rot							; 6c
-{
-	inc xy							; 5c
-
-	\ 4096/4000~=1
-	clc:lda yb:adc #1:sta yb		; 10c
-	lda yb+1:adc #0:and #15:sta yb+1	; 10c
-	clc:adc #HI(cos):sta load+2		; 8c
-	ldy yb							; 3c
-	.load
-	lda cos,Y						; 4c
-	rts								; 6c
-}
-\\ 52c
-
-.set_rot							; 6c
-{
-	; 0-127
-	AND #&7F						; 2c
-	lsr a:lsr a:tay					; 6c
-
-	LDA #13: STA &FE00				; 8c
-	ldx xy							; 3c
-	lda x_wibble, X					; 4c
-	sta temp						; 3c
-	lsr a							; 2c
-	clc								; 2c
-	adc twister_vram_table_LO, Y	; 4c
-	STA &FE01						; 6c <= 5c
-
-	LDA #12: STA &FE00				; 8c
-	LDA twister_vram_table_HI, Y	; 4c
-	adc #0							; 2c
-	STA &FE01						; 6c
-
-	lda temp						; 3c
-	and #1							; 2c
-	tay								; 2c
-	rts								; 6c
-}
-\\ 79c
 
 \ ******************************************************************
 \ Kill FX
@@ -726,6 +639,9 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	RTS
 }
 
+INCLUDE "lib/disksys.asm"
+INCLUDE "frak.asm"
+
 .fx_end
 
 \ ******************************************************************
@@ -752,7 +668,6 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	EQUB LO(screen_addr/8)	; R13 screen start address, low
 }
 
-INCLUDE "lib/disksys.asm"
 .file1 EQUS "1",13
 .file2 EQUS "2",13
 
@@ -760,31 +675,28 @@ INCLUDE "lib/disksys.asm"
 \ *	FX DATA
 \ ******************************************************************
 
-PAGE_ALIGN
+PAGE_ALIGN_FOR_SIZE 32
 .twister_vram_table_LO
-FOR n,0,31,1
+FOR n,31,0,-1
 EQUB LO((&3000 + n*640)/8)
 NEXT
 
+PAGE_ALIGN_FOR_SIZE 32
 .twister_vram_table_HI
-FOR n,0,31,1
+FOR n,31,0,-1
 EQUB HI((&3000 + n*640)/8)
 NEXT
 
-PAGE_ALIGN
-.x_wibble
-FOR n,0,255,1
-EQUB 54+40*SIN(2 * PI *n / 256) 
+PAGE_ALIGN_FOR_SIZE 32
+.dv_table
+FOR n,31,0,-1
+; u=128*d/80
+; d=1+n*(79/31))
+EQUB 128 * (1 + n*79/31) / 80
 NEXT
 
-\ Notes
-\ Having a 12-bit COSINE table means that the smallest increment in
-\ the input (1) results in <= 1 angle output.
-PAGE_ALIGN
-.cos
-FOR n,0,4095,1
-EQUB 255*COS(2*PI*n/4096)
-NEXT
+.frak_data
+INCBIN "frak.bin"
 
 .data_end
 
@@ -827,6 +739,4 @@ PRINT "------"
 \ *	Any other files for the disc
 \ ******************************************************************
 
-PUTBASIC "circle.bas", "Circle"
-PUTFILE "SCREEN1_mode2.BIN", "1", &3000
-PUTFILE "SCREEN2_mode2.BIN", "2", &3000
+PUTFILE "SCREEN1_zoom.BIN", "1", &3000
