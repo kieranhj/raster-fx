@@ -2,6 +2,8 @@
 \ *	RASTER FX FRAMEWORK
 \ ******************************************************************
 
+SPRITE_HEIGHT=44
+
 \ ******************************************************************
 \ *	OS defines
 \ ******************************************************************
@@ -138,6 +140,8 @@ GUARD &9F
 
 .u				skip 2
 .v				skip 2
+
+.tv				skip 1
 
 \ ******************************************************************
 \ *	CODE START
@@ -479,6 +483,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_update_function
 {
+	\\ Update zoom factor.
 	clc
 	lda x_zoom
 	adc x_dir
@@ -495,8 +500,8 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	.not_max
 	sta x_zoom
 
+	\\ Set screen address for zoom.
 	tax
-
 	lda #13:sta &fe00
 	lda twister_vram_table_LO, X
 	sta &fe01
@@ -504,17 +509,57 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	lda twister_vram_table_HI, X
 	sta &fe01
 
+	\\ Want centre of screen to be centre of sprite.
+	lda #0:sta v
+	lda #SPRITE_HEIGHT/2:sta v+1
+
+	\\ Set dv.
 	lda dv_table, X
 	sta add_dv+1
 
-	lda #0:sta v:sta v+1
+	\\ Subtract dv 128 times to set starting v.
+	ldy #128
+	.sub_loop
+	sec
+	lda v
+	sbc dv_table, X
+	sta v
+	lda v+1
+	sbc #0
+	sta v+1
 
+	\\ Wrap sprite height.
+	bpl sub_ok
+	clc
+	adc #SPRITE_HEIGHT
+	sta v+1
+
+	.sub_ok
+	dey
+	bne sub_loop
+
+	\\ Hi byte of V * 16
+	clc
+	lda #0:sta temp
+	lda v+1
+	asl a:rol temp
+	asl a:rol temp
+	asl a:rol temp
+	asl a:rol temp
+	clc
+	adc #LO(frak_data)
+	sta pal_loop+1
+	lda temp
+	adc #HI(frak_data)
+	sta pal_loop+2
+
+	\\ Set palette for first line.
 	ldx #15
-	.loop
+	.pal_loop
 	lda frak_data, X
 	sta &fe21
 	dex
-	bpl loop
+	bpl pal_loop
 
 	RTS
 }
@@ -563,10 +608,10 @@ PAGE_ALIGN
 		lda v+1					; 3c
 		adc #0					; 2c
 
-		cmp #44					; 2c
+		cmp #SPRITE_HEIGHT		; 2c
 		bcc ok
 		; 2c
-		sbc #44					; 2c
+		sbc #SPRITE_HEIGHT		; 2c
 		jmp store				; 3c
 		.ok
 		; 3c
@@ -588,7 +633,7 @@ PAGE_ALIGN
 		.set_palette
 		jsr &ffff				; 54c
 
-		WAIT_CYCLES 6
+		.hcc_0
 		\\ <=== HCC=0
 
 		dec row_count			; 5c

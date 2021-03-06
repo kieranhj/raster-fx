@@ -1,302 +1,302 @@
 .frak_line0
-WAIT_CYCLES 42
+WAIT_CYCLES 48
 rts
 .frak_line2
-lda #&d7:sta &fe21 ;6c
-lda #&e7:sta &fe21 ;6c
-lda #&f7:sta &fe21 ;6c
-WAIT_CYCLES 24
-rts
-.frak_line4
-lda #&97:sta &fe21 ;6c
-lda #&a7:sta &fe21 ;6c
-lda #&b7:sta &fe21 ;6c
-lda #&c7:sta &fe21 ;6c
-lda #&f2:sta &fe21 ;6c
-WAIT_CYCLES 12
-rts
-.frak_line6
-lda #&87:sta &fe21 ;6c
-lda #&a2:sta &fe21 ;6c
-lda #&b2:sta &fe21 ;6c
-lda #&c2:sta &fe21 ;6c
-lda #&d2:sta &fe21 ;6c
-lda #&f7:sta &fe21 ;6c
-WAIT_CYCLES 6
-rts
-.frak_line8
-lda #&77:sta &fe21 ;6c
-lda #&92:sta &fe21 ;6c
-lda #&b7:sta &fe21 ;6c
-lda #&c7:sta &fe21 ;6c
-lda #&e2:sta &fe21 ;6c
-lda #&f2:sta &fe21 ;6c
-WAIT_CYCLES 6
-rts
-.frak_line10
-lda #&82:sta &fe21 ;6c
-lda #&97:sta &fe21 ;6c
-lda #&a7:sta &fe21 ;6c
-lda #&b5:sta &fe21 ;6c
-lda #&d7:sta &fe21 ;6c
-lda #&e7:sta &fe21 ;6c
-WAIT_CYCLES 6
-rts
-.frak_line12
-lda #&87:sta &fe21 ;6c
-lda #&95:sta &fe21 ;6c
-lda #&a5:sta &fe21 ;6c
-lda #&c5:sta &fe21 ;6c
-WAIT_CYCLES 18
-rts
-.frak_line14
-lda #&75:sta &fe21 ;6c
-lda #&85:sta &fe21 ;6c
-lda #&c7:sta &fe21 ;6c
-WAIT_CYCLES 24
-rts
-.frak_line16
-lda #&a7:sta &fe21 ;6c
-lda #&b7:sta &fe21 ;6c
-lda #&d2:sta &fe21 ;6c
-lda #&e2:sta &fe21 ;6c
-WAIT_CYCLES 18
-rts
-.frak_line18
-lda #&87:sta &fe21 ;6c
-lda #&97:sta &fe21 ;6c
-lda #&b2:sta &fe21 ;6c
-lda #&c2:sta &fe21 ;6c
-WAIT_CYCLES 18
-rts
-.frak_line20
-lda #&67:sta &fe21 ;6c
-lda #&77:sta &fe21 ;6c
-lda #&a2:sta &fe21 ;6c
-WAIT_CYCLES 24
-rts
-.frak_line22
-lda #&57:sta &fe21 ;6c
-lda #&82:sta &fe21 ;6c
-lda #&92:sta &fe21 ;6c
-WAIT_CYCLES 24
-rts
-.frak_line24
-lda #&47:sta &fe21 ;6c
-lda #&72:sta &fe21 ;6c
+lda #&27:sta &fe21 ;6c
+lda #&17:sta &fe21 ;6c
+lda #&07:sta &fe21 ;6c
 WAIT_CYCLES 30
 rts
-.frak_line26
-lda #&37:sta &fe21 ;6c
-lda #&77:sta &fe21 ;6c
-lda #&87:sta &fe21 ;6c
-WAIT_CYCLES 24
-rts
-.frak_line28
-lda #&27:sta &fe21 ;6c
-lda #&45:sta &fe21 ;6c
-lda #&55:sta &fe21 ;6c
-lda #&82:sta &fe21 ;6c
-WAIT_CYCLES 18
-rts
-.frak_line30
-lda #&25:sta &fe21 ;6c
-lda #&35:sta &fe21 ;6c
+.frak_line4
+lda #&67:sta &fe21 ;6c
 lda #&57:sta &fe21 ;6c
-lda #&72:sta &fe21 ;6c
-WAIT_CYCLES 18
-rts
-.frak_line32
 lda #&47:sta &fe21 ;6c
-lda #&62:sta &fe21 ;6c
-lda #&a7:sta &fe21 ;6c
-lda #&b7:sta &fe21 ;6c
-lda #&c7:sta &fe21 ;6c
-lda #&d7:sta &fe21 ;6c
-lda #&e7:sta &fe21 ;6c
-rts
-.frak_line34
 lda #&37:sta &fe21 ;6c
-lda #&52:sta &fe21 ;6c
-lda #&97:sta &fe21 ;6c
-lda #&b4:sta &fe21 ;6c
-lda #&c4:sta &fe21 ;6c
-lda #&d4:sta &fe21 ;6c
-lda #&f7:sta &fe21 ;6c
-rts
-.frak_line36
-lda #&27:sta &fe21 ;6c
-lda #&87:sta &fe21 ;6c
-lda #&a4:sta &fe21 ;6c
-lda #&e4:sta &fe21 ;6c
+lda #&02:sta &fe21 ;6c
 WAIT_CYCLES 18
 rts
-.frak_line38
-lda #&17:sta &fe21 ;6c
+.frak_line6
+lda #&77:sta &fe21 ;6c
+lda #&52:sta &fe21 ;6c
 lda #&42:sta &fe21 ;6c
-lda #&94:sta &fe21 ;6c
-lda #&c7:sta &fe21 ;6c
-lda #&d7:sta &fe21 ;6c
+lda #&32:sta &fe21 ;6c
+lda #&22:sta &fe21 ;6c
+lda #&07:sta &fe21 ;6c
 WAIT_CYCLES 12
 rts
-.frak_line40
+.frak_line8
+lda #&87:sta &fe21 ;6c
+lda #&62:sta &fe21 ;6c
+lda #&47:sta &fe21 ;6c
+lda #&37:sta &fe21 ;6c
+lda #&12:sta &fe21 ;6c
+lda #&02:sta &fe21 ;6c
+WAIT_CYCLES 12
+rts
+.frak_line10
+lda #&72:sta &fe21 ;6c
+lda #&67:sta &fe21 ;6c
+lda #&57:sta &fe21 ;6c
+lda #&45:sta &fe21 ;6c
+lda #&27:sta &fe21 ;6c
+lda #&17:sta &fe21 ;6c
+WAIT_CYCLES 12
+rts
+.frak_line12
+lda #&77:sta &fe21 ;6c
+lda #&65:sta &fe21 ;6c
+lda #&55:sta &fe21 ;6c
+lda #&35:sta &fe21 ;6c
+WAIT_CYCLES 24
+rts
+.frak_line14
+lda #&85:sta &fe21 ;6c
+lda #&75:sta &fe21 ;6c
+lda #&37:sta &fe21 ;6c
+WAIT_CYCLES 30
+rts
+.frak_line16
+lda #&57:sta &fe21 ;6c
+lda #&47:sta &fe21 ;6c
+lda #&22:sta &fe21 ;6c
+lda #&12:sta &fe21 ;6c
+WAIT_CYCLES 24
+rts
+.frak_line18
+lda #&77:sta &fe21 ;6c
+lda #&67:sta &fe21 ;6c
+lda #&42:sta &fe21 ;6c
 lda #&32:sta &fe21 ;6c
+WAIT_CYCLES 24
+rts
+.frak_line20
+lda #&97:sta &fe21 ;6c
+lda #&87:sta &fe21 ;6c
+lda #&52:sta &fe21 ;6c
+WAIT_CYCLES 30
+rts
+.frak_line22
+lda #&a7:sta &fe21 ;6c
+lda #&72:sta &fe21 ;6c
+lda #&62:sta &fe21 ;6c
+WAIT_CYCLES 30
+rts
+.frak_line24
 lda #&b7:sta &fe21 ;6c
+lda #&82:sta &fe21 ;6c
+WAIT_CYCLES 36
+rts
+.frak_line26
+lda #&c7:sta &fe21 ;6c
+lda #&87:sta &fe21 ;6c
+lda #&77:sta &fe21 ;6c
+WAIT_CYCLES 30
+rts
+.frak_line28
+lda #&d7:sta &fe21 ;6c
+lda #&b5:sta &fe21 ;6c
+lda #&a5:sta &fe21 ;6c
+lda #&72:sta &fe21 ;6c
+WAIT_CYCLES 24
+rts
+.frak_line30
+lda #&d5:sta &fe21 ;6c
+lda #&c5:sta &fe21 ;6c
+lda #&a7:sta &fe21 ;6c
+lda #&82:sta &fe21 ;6c
+WAIT_CYCLES 24
+rts
+.frak_line32
+lda #&b7:sta &fe21 ;6c
+lda #&92:sta &fe21 ;6c
+lda #&57:sta &fe21 ;6c
+lda #&47:sta &fe21 ;6c
+lda #&37:sta &fe21 ;6c
+lda #&27:sta &fe21 ;6c
+lda #&17:sta &fe21 ;6c
+WAIT_CYCLES 6
+rts
+.frak_line34
+lda #&c7:sta &fe21 ;6c
+lda #&a2:sta &fe21 ;6c
+lda #&67:sta &fe21 ;6c
+lda #&44:sta &fe21 ;6c
+lda #&34:sta &fe21 ;6c
+lda #&24:sta &fe21 ;6c
+lda #&07:sta &fe21 ;6c
+WAIT_CYCLES 6
+rts
+.frak_line36
+lda #&d7:sta &fe21 ;6c
+lda #&77:sta &fe21 ;6c
+lda #&54:sta &fe21 ;6c
+lda #&14:sta &fe21 ;6c
+WAIT_CYCLES 24
+rts
+.frak_line38
+lda #&b2:sta &fe21 ;6c
+lda #&64:sta &fe21 ;6c
+lda #&37:sta &fe21 ;6c
+lda #&27:sta &fe21 ;6c
+WAIT_CYCLES 24
+rts
+.frak_line40
 lda #&e7:sta &fe21 ;6c
+lda #&c2:sta &fe21 ;6c
+lda #&47:sta &fe21 ;6c
+lda #&17:sta &fe21 ;6c
 WAIT_CYCLES 24
 rts
 .frak_line42
-lda #&22:sta &fe21 ;6c
-WAIT_CYCLES 36
+lda #&d2:sta &fe21 ;6c
+WAIT_CYCLES 42
 rts
 .frak_line44
-lda #&37:sta &fe21 ;6c
-lda #&97:sta &fe21 ;6c
-lda #&f2:sta &fe21 ;6c
-WAIT_CYCLES 24
-rts
-.frak_line46
-lda #&12:sta &fe21 ;6c
-lda #&27:sta &fe21 ;6c
-lda #&82:sta &fe21 ;6c
-lda #&a7:sta &fe21 ;6c
-lda #&e2:sta &fe21 ;6c
-WAIT_CYCLES 12
-rts
-.frak_line48
-lda #&17:sta &fe21 ;6c
-lda #&92:sta &fe21 ;6c
-lda #&a2:sta &fe21 ;6c
-lda #&b2:sta &fe21 ;6c
-lda #&c2:sta &fe21 ;6c
-lda #&d2:sta &fe21 ;6c
-WAIT_CYCLES 6
-rts
-.frak_line50
-lda #&15:sta &fe21 ;6c
-lda #&25:sta &fe21 ;6c
+lda #&c7:sta &fe21 ;6c
+lda #&67:sta &fe21 ;6c
+lda #&02:sta &fe21 ;6c
 WAIT_CYCLES 30
 rts
-.frak_line52
-lda #&77:sta &fe21 ;6c
-lda #&97:sta &fe21 ;6c
-lda #&a7:sta &fe21 ;6c
-lda #&b7:sta &fe21 ;6c
+.frak_line46
 lda #&d7:sta &fe21 ;6c
-lda #&f7:sta &fe21 ;6c
-WAIT_CYCLES 6
+lda #&72:sta &fe21 ;6c
+lda #&57:sta &fe21 ;6c
+lda #&12:sta &fe21 ;6c
+WAIT_CYCLES 24
+rts
+.frak_line48
+lda #&d5:sta &fe21 ;6c
+lda #&62:sta &fe21 ;6c
+lda #&52:sta &fe21 ;6c
+lda #&42:sta &fe21 ;6c
+lda #&32:sta &fe21 ;6c
+lda #&22:sta &fe21 ;6c
+WAIT_CYCLES 12
+rts
+.frak_line50
+lda #&e5:sta &fe21 ;6c
+WAIT_CYCLES 42
+rts
+.frak_line52
+lda #&87:sta &fe21 ;6c
+lda #&67:sta &fe21 ;6c
+lda #&57:sta &fe21 ;6c
+lda #&47:sta &fe21 ;6c
+lda #&27:sta &fe21 ;6c
+lda #&07:sta &fe21 ;6c
+WAIT_CYCLES 12
 rts
 .frak_line54
-lda #&87:sta &fe21 ;6c
-lda #&94:sta &fe21 ;6c
-lda #&a4:sta &fe21 ;6c
-lda #&b4:sta &fe21 ;6c
-lda #&c7:sta &fe21 ;6c
-lda #&e7:sta &fe21 ;6c
-lda #&f2:sta &fe21 ;6c
+lda #&77:sta &fe21 ;6c
+lda #&64:sta &fe21 ;6c
+lda #&54:sta &fe21 ;6c
+lda #&44:sta &fe21 ;6c
+lda #&37:sta &fe21 ;6c
+lda #&17:sta &fe21 ;6c
+lda #&02:sta &fe21 ;6c
+WAIT_CYCLES 6
 rts
 .frak_line56
-lda #&27:sta &fe21 ;6c
-lda #&72:sta &fe21 ;6c
-lda #&d2:sta &fe21 ;6c
-lda #&e2:sta &fe21 ;6c
-WAIT_CYCLES 18
+lda #&d7:sta &fe21 ;6c
+lda #&82:sta &fe21 ;6c
+lda #&22:sta &fe21 ;6c
+lda #&12:sta &fe21 ;6c
+WAIT_CYCLES 24
 rts
 .frak_line58
-lda #&17:sta &fe21 ;6c
+lda #&e7:sta &fe21 ;6c
+lda #&c2:sta &fe21 ;6c
+WAIT_CYCLES 36
+rts
+.frak_line60
+lda #&67:sta &fe21 ;6c
+lda #&47:sta &fe21 ;6c
+WAIT_CYCLES 36
+rts
+.frak_line62
+lda #&d2:sta &fe21 ;6c
+lda #&72:sta &fe21 ;6c
 lda #&32:sta &fe21 ;6c
 WAIT_CYCLES 30
 rts
-.frak_line60
-lda #&97:sta &fe21 ;6c
-lda #&b7:sta &fe21 ;6c
-WAIT_CYCLES 30
-rts
-.frak_line62
-lda #&22:sta &fe21 ;6c
-lda #&82:sta &fe21 ;6c
-lda #&c2:sta &fe21 ;6c
-WAIT_CYCLES 24
-rts
 .frak_line64
-lda #&37:sta &fe21 ;6c
-WAIT_CYCLES 36
+lda #&c7:sta &fe21 ;6c
+WAIT_CYCLES 42
 rts
 .frak_line66
-lda #&27:sta &fe21 ;6c
-lda #&a7:sta &fe21 ;6c
-WAIT_CYCLES 30
-rts
-.frak_line68
-lda #&25:sta &fe21 ;6c
-lda #&47:sta &fe21 ;6c
-lda #&92:sta &fe21 ;6c
-lda #&b2:sta &fe21 ;6c
-WAIT_CYCLES 18
-rts
-.frak_line70
-lda #&15:sta &fe21 ;6c
+lda #&d7:sta &fe21 ;6c
+lda #&57:sta &fe21 ;6c
 WAIT_CYCLES 36
 rts
+.frak_line68
+lda #&d5:sta &fe21 ;6c
+lda #&b7:sta &fe21 ;6c
+lda #&62:sta &fe21 ;6c
+lda #&42:sta &fe21 ;6c
+WAIT_CYCLES 24
+rts
+.frak_line70
+lda #&e5:sta &fe21 ;6c
+WAIT_CYCLES 42
+rts
 .frak_line72
-lda #&35:sta &fe21 ;6c
-lda #&a2:sta &fe21 ;6c
-WAIT_CYCLES 30
+lda #&c5:sta &fe21 ;6c
+lda #&52:sta &fe21 ;6c
+WAIT_CYCLES 36
 rts
 .frak_line74
-lda #&17:sta &fe21 ;6c
-lda #&57:sta &fe21 ;6c
-WAIT_CYCLES 30
+lda #&a7:sta &fe21 ;6c
+WAIT_CYCLES 42
 rts
 .frak_line76
-lda #&15:sta &fe21 ;6c
-lda #&45:sta &fe21 ;6c
-lda #&67:sta &fe21 ;6c
-lda #&77:sta &fe21 ;6c
-WAIT_CYCLES 18
+lda #&b5:sta &fe21 ;6c
+lda #&97:sta &fe21 ;6c
+lda #&87:sta &fe21 ;6c
+WAIT_CYCLES 30
 rts
 .frak_line78
-lda #&55:sta &fe21 ;6c
-lda #&87:sta &fe21 ;6c
-lda #&97:sta &fe21 ;6c
-lda #&a7:sta &fe21 ;6c
-lda #&b7:sta &fe21 ;6c
-WAIT_CYCLES 12
+lda #&a5:sta &fe21 ;6c
+lda #&77:sta &fe21 ;6c
+lda #&67:sta &fe21 ;6c
+lda #&57:sta &fe21 ;6c
+lda #&47:sta &fe21 ;6c
+WAIT_CYCLES 18
 rts
 .frak_line80
-lda #&74:sta &fe21 ;6c
 lda #&84:sta &fe21 ;6c
-lda #&94:sta &fe21 ;6c
-lda #&c7:sta &fe21 ;6c
-lda #&d7:sta &fe21 ;6c
-lda #&e7:sta &fe21 ;6c
-lda #&f7:sta &fe21 ;6c
+lda #&74:sta &fe21 ;6c
+lda #&64:sta &fe21 ;6c
+lda #&37:sta &fe21 ;6c
+lda #&27:sta &fe21 ;6c
+lda #&17:sta &fe21 ;6c
+lda #&07:sta &fe21 ;6c
+WAIT_CYCLES 6
 rts
 .frak_line82
-lda #&77:sta &fe21 ;6c
-lda #&a4:sta &fe21 ;6c
-lda #&b4:sta &fe21 ;6c
-lda #&e5:sta &fe21 ;6c
-lda #&f5:sta &fe21 ;6c
-WAIT_CYCLES 12
+lda #&87:sta &fe21 ;6c
+lda #&54:sta &fe21 ;6c
+lda #&44:sta &fe21 ;6c
+lda #&15:sta &fe21 ;6c
+lda #&05:sta &fe21 ;6c
+WAIT_CYCLES 18
 rts
 .frak_line84
-lda #&65:sta &fe21 ;6c
-lda #&87:sta &fe21 ;6c
-lda #&97:sta &fe21 ;6c
-lda #&a7:sta &fe21 ;6c
-lda #&b7:sta &fe21 ;6c
-lda #&d5:sta &fe21 ;6c
-WAIT_CYCLES 6
+lda #&95:sta &fe21 ;6c
+lda #&77:sta &fe21 ;6c
+lda #&67:sta &fe21 ;6c
+lda #&57:sta &fe21 ;6c
+lda #&47:sta &fe21 ;6c
+lda #&25:sta &fe21 ;6c
+WAIT_CYCLES 12
 rts
 .frak_line86
-lda #&75:sta &fe21 ;6c
 lda #&85:sta &fe21 ;6c
-lda #&95:sta &fe21 ;6c
-lda #&a5:sta &fe21 ;6c
-lda #&b5:sta &fe21 ;6c
-lda #&c5:sta &fe21 ;6c
-WAIT_CYCLES 6
+lda #&75:sta &fe21 ;6c
+lda #&65:sta &fe21 ;6c
+lda #&55:sta &fe21 ;6c
+lda #&45:sta &fe21 ;6c
+lda #&35:sta &fe21 ;6c
+WAIT_CYCLES 12
 rts
 PAGE_ALIGN_FOR_SIZE 44
 .frak_lines_LO

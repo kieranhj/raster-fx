@@ -68,7 +68,7 @@ def main(options):
     #    print('FATAL: image height must be a multiple of 8',file=sys.stderr)
     #    sys.exit(1)
 
-    # print '%d x %d'%(len(image[0]),len(image))
+    print('{0} x {1}'.format(len(image[0]),len(image)))
 
     # Convert into BBC physical indexes: 0-7, and -1 for transparent
     # (going by the alpha channel value).
@@ -108,10 +108,11 @@ def main(options):
     # Assume all registers are free.
     pixel_data=[]
     mask_data=[]
-    prev_line=[0x05,0x15,0x25,0x35,0x45,0x55,0x65,0x75,0x85,0x95,0xa5,0xb5,0xc5,0xd5,0xe5,0xf5]
+    # prev_line=[0x05,0x15,0x25,0x35,0x45,0x55,0x65,0x75,0x85,0x95,0xa5,0xb5,0xc5,0xd5,0xe5,0xf5]
+    prev_line=[0xf5,0xe5,0xd5,0xc5,0xb5,0xa5,0x95,0x85,0x75,0x65,0x55,0x45,0x35,0x25,0x15,0x05]
     assert len(bbc_lidxs)==len(bbc_mask)
     for y in range(0,len(bbc_lidxs),2):  # should be 8 to do a character row at a time!
-        pal_base=0
+        pal_base=0xf0
         pal_data=[]
         for x in range(1,len(bbc_lidxs[y]),2): # pixels_per_byte):
             assert len(bbc_lidxs[y])==len(bbc_mask[y])
@@ -123,11 +124,11 @@ def main(options):
                 pal_data.append(pal_byte)
                 pixel_data.append(pal_byte)
                 # print('{:02x}'.format(pal_byte),end=' ')
-                pal_base+=0x10
+                pal_base-=0x10
         # print()
         if prev_line != None:
             diff_data=[]
-            for i in range(1,len(pal_data)):
+            for i in range(0,len(pal_data)):
                 if prev_line[i] != pal_data[i]:
                     diff_data.append(pal_data[i])
 
@@ -136,8 +137,8 @@ def main(options):
                 for e in diff_data:
                     print('lda #&{:02x}:sta &fe21 ;6c'.format(e), file=code)
 
-                if len(diff_data)<7:
-                    print(f'WAIT_CYCLES {6*(7-len(diff_data))}', file=code)
+                if len(diff_data)<8:
+                    print(f'WAIT_CYCLES {6*(8-len(diff_data))}', file=code)
 
                 print('rts',file=code)
 
