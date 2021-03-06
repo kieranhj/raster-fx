@@ -580,6 +580,12 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 \ A FULL AND VALID 312 line PAL signal before exiting!
 \ ******************************************************************
 
+\\ To repeat just one scanline, need to burn 7 scanlines.
+\\ 7x4c = 28c hsync at 98,
+\\ <-- 100 cycles w/ 80 visible hsync at 98 --> <4c> <4c> ... <4c>
+\\ Need R0=4 at HCC=100
+\\ Need R0=100 at HCC=0
+
 PAGE_ALIGN
 .fx_draw_function
 {
@@ -631,9 +637,9 @@ PAGE_ALIGN
 
 		\\ Ideally call at HCC=68
 		.set_palette
-		jsr &ffff				; 54c
+		jsr &ffff				; 60c
 
-		.hcc_0
+		.*hcc_0
 		\\ <=== HCC=0
 
 		dec row_count			; 5c
@@ -737,6 +743,7 @@ PAGE_ALIGN_FOR_SIZE 32
 FOR n,31,0,-1
 ; u=128*d/80
 ; d=1+n*(79/31))
+PRINT 2 / ((1 + n*79/31) / 80)
 EQUB 128 * (1 + n*79/31) / 80
 NEXT
 
