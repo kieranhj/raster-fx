@@ -137,6 +137,7 @@ GUARD &9F
 .x_zoom			skip 1
 .x_dir			skip 1
 .y_zoom			skip 1
+.scanline		skip 1
 
 .u				skip 2
 .v				skip 2
@@ -486,21 +487,24 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ Update zoom factor.
 	clc
 	lda x_zoom
+	IF 0
 	adc x_dir
 	bpl not_min
 	lda #1
 	sta x_dir
 	lda #0
 	.not_min
-	cmp #32
+	cmp #64
 	bcc not_max
 	lda #&ff
 	sta x_dir
-	lda #31
+	lda #63
 	.not_max
+	ENDIF
 	sta x_zoom
 
 	\\ Set screen address for zoom.
+	lsr a:lsr a		; 64 zooms, 2 scanlines each = 4 per row
 	tax
 	lda #13:sta &fe00
 	lda twister_vram_table_LO, X
@@ -508,6 +512,12 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	lda #12:sta &fe00
 	lda twister_vram_table_HI, X
 	sta &fe01
+
+	\\ Scanline 0,2,4,6
+	lda x_zoom
+	and #3
+	asl a
+	sta scanline
 
 	\\ Want centre of screen to be centre of sprite.
 	lda #0:sta v
@@ -557,7 +567,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	ldx #15
 	.pal_loop
 	lda frak_data, X
-	sta &fe21
+	;sta &fe21
 	dex
 	bpl pal_loop
 
@@ -580,32 +590,63 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 \ A FULL AND VALID 312 line PAL signal before exiting!
 \ ******************************************************************
 
-\\ To repeat just one scanline, need to burn 7 scanlines.
-\\ 7x4c = 28c hsync at 98,
-\\ <-- 100 cycles w/ 80 visible hsync at 98 --> <4c> <4c> ... <4c>
-\\ Need R0=4 at HCC=100
+\\ To repeat just one scanline, need to burn 6 scanlines.
+\\ 6x4c = 24c hsync at 98,
+\\ <-- 104 cycles w/ 80 visible hsync at 98 --> <4c> <4c> ... <4c>
+\\ Need R0=4 at HCC=104
 \\ Need R0=100 at HCC=0
 
 PAGE_ALIGN
 .fx_draw_function
 {
 	\\ R4=0, R7=&ff, R6=1
-	lda #4:sta &fe00
-	lda #0:sta &fe01
+	lda #4:sta &fe00			; 8c
+	lda #0:sta &fe01			; 8c
 
 	\\ vsync at row 35 = scanline 280.
-	lda #7:sta &fe00
-	lda #4:sta &fe01
+	lda #7:sta &fe00			; 8c
+	lda #4:sta &fe01			; 8c
 
-	lda #6:sta &fe00
-	lda #1:sta &fe01
+	lda #6:sta &fe00			; 8c
+	lda #1:sta &fe01			; 8c
 
-	lda #253:sta row_count
+	lda #126:sta row_count		; 5c
 
-	WAIT_CYCLES 69
+	WAIT_CYCLES 61
 
+		\\ <=== HCC=0
+		.scanline_1_hcc0
+		lda #0:sta &fe00		; 8c
+		lda #101:sta &fe01		; 8c
+
+		\\ Need to set correct scanline here.
+		\\ 0=>0 R9=13 burn 12
+		\\ 0=>2 R9=11 burn 12
+		\\ 0=>4 R9=9 burn 12
+		\\ 0=>6 R9=7 burn 12
+
+		lda #9:sta &fe00		; 8c
+		sec						; 2c
+		lda #13					; 2c
+		sbc scanline			; 3c
+		sta &fe01				; 5c
+		lda #0:sta &fe00		; 8c
+
+		WAIT_CYCLES 50
+		
+		\\ R0=1 <2c> x13
+		lda #1:sta &fe01		; 8c
+		\\ <=== HCC=102
+
+		WAIT_CYCLES 18
+
+	\\ Now 2x scanlines per loop.
 	.scanline_loop
 	{
+		lda #127:sta &fe01		; 8c
+		.scanline_even_hcc0
+		\\ <=== HCC=0
+
 		clc						; 2c
 		lda v					; 3c
 		.*add_dv
@@ -627,26 +668,55 @@ PAGE_ALIGN
 		\\ 27c
 
 		tax						; 2c
-		lda frak_lines_LO, X	; 4c
-		sta set_palette+1		; 4c
-		lda frak_lines_HI, X	; 4c
-		sta set_palette+2		; 4c
+		WAIT_CYCLES 16
+		;lda frak_lines_LO, X	; 4c
+		;sta set_palette+1		; 4c
+		;lda frak_lines_HI, X	; 4c
+		;sta set_palette+2		; 4c
 		\\ 18c
 
-		WAIT_CYCLES 15
+		WAIT_CYCLES 23
 
 		\\ Ideally call at HCC=68
 		.set_palette
-		jsr &ffff				; 60c
+		jsr frak_line0			; 60c
 
-		.*hcc_0
+		.*scanline_odd_hcc_0
 		\\ <=== HCC=0
+		lda #0:sta &fe00		; 8c
+		lda #103:sta &fe01		; 8c
 
+		lda #9:sta &fe00		; 8c
+		lda #7:sta &fe01		; 8c
+		lda #0:sta &fe00		; 8c	
+
+		WAIT_CYCLES 56
+
+		lda #3:sta &fe01		; 8c
+		\\ <=== HCC=104
+
+		WAIT_CYCLES 8
 		dec row_count			; 5c
 		bne scanline_loop		; 3c
 	}
 	CHECK_SAME_PAGE_AS scanline_loop
 	.scanline_last
+	NOP
+	lda #127:sta &fe01		; 8c
+	\\ <=== HCC=0
+
+	\\ Need to recover back to correct scanline count.
+	lda #9:sta &fe00
+	clc
+	lda scanline
+	adc #1
+	sta &fe01
+
+	ldx #2:jsr cycles_wait_scanlines
+
+	\\ R9=7
+	.scanline_end_of_screen
+	lda #7:sta &fe01
 
 	\\ Total 312 line - 256 = 56 scanlines
 	LDA #4: STA &FE00
@@ -729,22 +799,22 @@ INCLUDE "frak.asm"
 PAGE_ALIGN_FOR_SIZE 32
 .twister_vram_table_LO
 FOR n,31,0,-1
-EQUB LO((&3000 + n*640)/8)
+EQUB LO((&3000 + (n DIV 2)*1280)/8)
 NEXT
 
-PAGE_ALIGN_FOR_SIZE 32
+PAGE_ALIGN_FOR_SIZE 64
 .twister_vram_table_HI
 FOR n,31,0,-1
-EQUB HI((&3000 + n*640)/8)
+EQUB HI((&3000 + (n DIV 2)*1280)/8)
 NEXT
 
-PAGE_ALIGN_FOR_SIZE 32
+PAGE_ALIGN_FOR_SIZE 64
 .dv_table
-FOR n,31,0,-1
+FOR n,63,0,-1
 ; u=128*d/80
 ; d=1+n*(79/31))
-PRINT 2 / ((1 + n*79/31) / 80)
-EQUB 128 * (1 + n*79/31) / 80
+PRINT 2 / ((1 + n*79/63) / 80)
+EQUB 255 * (1 + n*79/63) / 80		; 128
 NEXT
 
 .frak_data
@@ -791,4 +861,4 @@ PRINT "------"
 \ *	Any other files for the disc
 \ ******************************************************************
 
-PUTFILE "SCREEN1_zoom.BIN", "1", &3000
+PUTFILE "SCREEN1_2by160.BIN", "1", &3000
