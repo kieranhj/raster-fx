@@ -136,13 +136,8 @@ GUARD &9F
 
 .x_zoom			skip 1
 .x_dir			skip 1
-.y_zoom			skip 1
 .scanline		skip 1
-
-.u				skip 2
 .v				skip 2
-
-.tv				skip 1
 
 \ ******************************************************************
 \ *	CODE START
@@ -449,8 +444,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 {
 	\\ Init vars.
 	lda #0
-	sta x_zoom:sta y_zoom
-	sta u:sta u+1
+	sta x_zoom
 	sta v:sta v+1
 	lda #1:sta x_dir
 
@@ -484,24 +478,24 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_update_function
 {
-	\\ Update zoom factor.
-	clc
-	lda x_zoom
-	IF 0
-	adc x_dir
-	bpl not_min
-	lda #1
-	sta x_dir
-	lda #0
-	.not_min
-	cmp #64
-	bcc not_max
-	lda #&ff
-	sta x_dir
-	lda #63
-	.not_max
-	ENDIF
-	sta x_zoom
+	{
+		\\ Update zoom factor.
+		clc
+		lda x_zoom
+		adc x_dir
+		bpl not_min
+		lda #1
+		sta x_dir
+		lda #0
+		.not_min
+		cmp #64
+		bcc not_max
+		lda #&ff
+		sta x_dir
+		lda #63
+		.not_max
+		sta x_zoom
+	}
 
 	\\ Set screen address for zoom.
 	lsr a:lsr a		; 64 zooms, 2 scanlines each = 4 per row
@@ -516,6 +510,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ Scanline 0,2,4,6
 	lda x_zoom
 	and #3
+	eor #3
 	asl a
 	sta scanline
 
@@ -524,11 +519,12 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	lda #SPRITE_HEIGHT/2:sta v+1
 
 	\\ Set dv.
+	ldx x_zoom
 	lda dv_table, X
 	sta add_dv+1
 
 	\\ Subtract dv 128 times to set starting v.
-	ldy #128
+	ldy #64
 	.sub_loop
 	sec
 	lda v
@@ -567,7 +563,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	ldx #15
 	.pal_loop
 	lda frak_data, X
-	;sta &fe21
+	sta &fe21
 	dex
 	bpl pal_loop
 
@@ -605,7 +601,7 @@ PAGE_ALIGN
 
 	\\ vsync at row 35 = scanline 280.
 	lda #7:sta &fe00			; 8c
-	lda #4:sta &fe01			; 8c
+	lda #3:sta &fe01			; 8c
 
 	lda #6:sta &fe00			; 8c
 	lda #1:sta &fe01			; 8c
@@ -629,7 +625,7 @@ PAGE_ALIGN
 		sec						; 2c
 		lda #13					; 2c
 		sbc scanline			; 3c
-		sta &fe01				; 5c
+		sta &fe01				; 6c <== 5c
 		lda #0:sta &fe00		; 8c
 
 		WAIT_CYCLES 50
@@ -639,14 +635,18 @@ PAGE_ALIGN
 		\\ <=== HCC=102
 
 		WAIT_CYCLES 18
+		lda #127:sta &fe01		; 8c <== 7c
+		\\ <=== HCC=0
+
+		WAIT_CYCLES 16
+		jmp scanline_even_hcc0	; 3c
 
 	\\ Now 2x scanlines per loop.
 	.scanline_loop
 	{
-		lda #127:sta &fe01		; 8c
-		.scanline_even_hcc0
-		\\ <=== HCC=0
+		WAIT_CYCLES 11
 
+		.^scanline_even_hcc0
 		clc						; 2c
 		lda v					; 3c
 		.*add_dv
@@ -668,14 +668,13 @@ PAGE_ALIGN
 		\\ 27c
 
 		tax						; 2c
-		WAIT_CYCLES 16
-		;lda frak_lines_LO, X	; 4c
-		;sta set_palette+1		; 4c
-		;lda frak_lines_HI, X	; 4c
-		;sta set_palette+2		; 4c
+		lda frak_lines_LO, X	; 4c
+		sta set_palette+1		; 4c
+		lda frak_lines_HI, X	; 4c
+		sta set_palette+2		; 4c
 		\\ 18c
 
-		WAIT_CYCLES 23
+		WAIT_CYCLES 4
 
 		\\ Ideally call at HCC=68
 		.set_palette
@@ -695,15 +694,15 @@ PAGE_ALIGN
 		lda #3:sta &fe01		; 8c
 		\\ <=== HCC=104
 
-		WAIT_CYCLES 8
+		WAIT_CYCLES 16
+		lda #127:sta &fe01		; 8c
+		\\ <=== HCC=0
+
 		dec row_count			; 5c
 		bne scanline_loop		; 3c
 	}
 	CHECK_SAME_PAGE_AS scanline_loop
 	.scanline_last
-	NOP
-	lda #127:sta &fe01		; 8c
-	\\ <=== HCC=0
 
 	\\ Need to recover back to correct scanline count.
 	lda #9:sta &fe00
@@ -712,15 +711,19 @@ PAGE_ALIGN
 	adc #1
 	sta &fe01
 
+	lda #6:sta &fe00			; 8c
+	lda #0:sta &fe01			; 8c
+
 	ldx #2:jsr cycles_wait_scanlines
 
 	\\ R9=7
 	.scanline_end_of_screen
+	lda #9:sta &fe00
 	lda #7:sta &fe01
 
 	\\ Total 312 line - 256 = 56 scanlines
 	LDA #4: STA &FE00
-	LDA #7: STA &FE01
+	LDA #6: STA &FE01
 
     RTS
 }
@@ -796,16 +799,16 @@ INCLUDE "frak.asm"
 \ *	FX DATA
 \ ******************************************************************
 
-PAGE_ALIGN_FOR_SIZE 32
+PAGE_ALIGN_FOR_SIZE 16
 .twister_vram_table_LO
-FOR n,31,0,-1
-EQUB LO((&3000 + (n DIV 2)*1280)/8)
+FOR n,15,0,-1
+EQUB LO((&3140 + (n)*1280)/8)
 NEXT
 
-PAGE_ALIGN_FOR_SIZE 64
+PAGE_ALIGN_FOR_SIZE 16
 .twister_vram_table_HI
-FOR n,31,0,-1
-EQUB HI((&3000 + (n DIV 2)*1280)/8)
+FOR n,15,0,-1
+EQUB HI((&3140 + (n)*1280)/8)
 NEXT
 
 PAGE_ALIGN_FOR_SIZE 64
