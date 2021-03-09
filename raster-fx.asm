@@ -135,9 +135,11 @@ GUARD &9F
 .temp			skip 1
 
 .x_zoom			skip 1
-.x_dir			skip 1
+.zoom_dir		skip 1
 .scanline		skip 1
 .v				skip 2
+.x_pos			skip 1
+.x_dir			skip 1
 
 \ ******************************************************************
 \ *	CODE START
@@ -444,9 +446,9 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 {
 	\\ Init vars.
 	lda #0
-	sta x_zoom
+	sta x_zoom:sta x_pos
 	sta v:sta v+1
-	lda #1:sta x_dir
+	lda #1:sta zoom_dir:sta x_dir
 
 	\ Ensure MAIN RAM is writeable
     LDA &FE34:AND #&FB:STA &FE34
@@ -482,29 +484,47 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 		\\ Update zoom factor.
 		clc
 		lda x_zoom
-		adc x_dir
+		adc zoom_dir
 		bpl not_min
-		lda #1
-		sta x_dir
+		lda #1:sta zoom_dir
 		lda #0
 		.not_min
 		cmp #64
 		bcc not_max
-		lda #&ff
-		sta x_dir
+		lda #&ff:sta zoom_dir
 		lda #63
 		.not_max
 		sta x_zoom
 	}
 
+	{
+		clc
+		lda x_pos
+		adc x_dir
+		bpl not_min
+		lda #1:sta x_dir
+		lda #0
+		.not_min
+		cmp #80
+		bcc not_max
+		lda #&ff:sta x_dir
+		lda #79
+		.not_max
+		sta x_pos
+	}
+
 	\\ Set screen address for zoom.
+	lda x_zoom
 	lsr a:lsr a		; 64 zooms, 2 scanlines each = 4 per row
 	tax
 	lda #13:sta &fe00
 	lda twister_vram_table_LO, X
+	clc
+	adc x_pos
 	sta &fe01
 	lda #12:sta &fe00
 	lda twister_vram_table_HI, X
+	adc #0
 	sta &fe01
 
 	\\ Scanline 0,2,4,6
@@ -802,13 +822,13 @@ INCLUDE "frak.asm"
 PAGE_ALIGN_FOR_SIZE 16
 .twister_vram_table_LO
 FOR n,15,0,-1
-EQUB LO((&3140 + (n)*1280)/8)
+EQUB LO((&3000 + (n)*1280)/8)
 NEXT
 
 PAGE_ALIGN_FOR_SIZE 16
 .twister_vram_table_HI
 FOR n,15,0,-1
-EQUB HI((&3140 + (n)*1280)/8)
+EQUB HI((&3000 + (n)*1280)/8)
 NEXT
 
 PAGE_ALIGN_FOR_SIZE 64
