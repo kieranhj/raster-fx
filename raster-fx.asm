@@ -2,7 +2,7 @@
 \ *	RASTER FX FRAMEWORK
 \ ******************************************************************
 
-SPRITE_HEIGHT=44
+CPU 1
 
 \ ******************************************************************
 \ *	OS defines
@@ -109,7 +109,7 @@ disksys_loadto_addr = &3000
 FramePeriod = 312*64-2
 
 ; Calculate here the timer value to interrupt at the desired line
-TimerValue = 32*64 - 2*64 - 2 - 22 - 9 + 8
+TimerValue = 32*64 - 2*64 - 2 - 22 - 16 + 8
 
 \\ 40 lines for vblank
 \\ 32 lines for vsync (vertical position = 35 / 39)
@@ -181,7 +181,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	LDA #22
 	JSR oswrch
-	LDA #2
+	LDA #1
 	JSR oswrch
 
 	\\ Turn off cursor
@@ -480,113 +480,6 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_update_function
 {
-	{
-		\\ Update zoom factor.
-		clc
-		lda x_zoom
-		adc zoom_dir
-		bpl not_min
-		lda #1:sta zoom_dir
-		lda #0
-		.not_min
-		cmp #64
-		bcc not_max
-		lda #&ff:sta zoom_dir
-		lda #63
-		.not_max
-		sta x_zoom
-	}
-
-	{
-		clc
-		lda x_pos
-		adc x_dir
-		bpl not_min
-		lda #1:sta x_dir
-		lda #0
-		.not_min
-		cmp #80
-		bcc not_max
-		lda #&ff:sta x_dir
-		lda #79
-		.not_max
-		sta x_pos
-	}
-
-	\\ Set screen address for zoom.
-	lda x_zoom
-	lsr a:lsr a		; 64 zooms, 2 scanlines each = 4 per row
-	tax
-	lda #13:sta &fe00
-	lda twister_vram_table_LO, X
-	clc
-	adc x_pos
-	sta &fe01
-	lda #12:sta &fe00
-	lda twister_vram_table_HI, X
-	adc #0
-	sta &fe01
-
-	\\ Scanline 0,2,4,6
-	lda x_zoom
-	and #3
-	eor #3
-	asl a
-	sta scanline
-
-	\\ Want centre of screen to be centre of sprite.
-	lda #0:sta v
-	lda #SPRITE_HEIGHT/2:sta v+1
-
-	\\ Set dv.
-	ldx x_zoom
-	lda dv_table, X
-	sta add_dv+1
-
-	\\ Subtract dv 128 times to set starting v.
-	ldy #64
-	.sub_loop
-	sec
-	lda v
-	sbc dv_table, X
-	sta v
-	lda v+1
-	sbc #0
-	sta v+1
-
-	\\ Wrap sprite height.
-	bpl sub_ok
-	clc
-	adc #SPRITE_HEIGHT
-	sta v+1
-
-	.sub_ok
-	dey
-	bne sub_loop
-
-	\\ Hi byte of V * 16
-	clc
-	lda #0:sta temp
-	lda v+1
-	asl a:rol temp
-	asl a:rol temp
-	asl a:rol temp
-	asl a:rol temp
-	clc
-	adc #LO(frak_data)
-	sta pal_loop+1
-	lda temp
-	adc #HI(frak_data)
-	sta pal_loop+2
-
-	\\ Set palette for first line.
-	ldx #15
-	.pal_loop
-	lda frak_data, X
-	sta &fe21
-	dex
-	bpl pal_loop
-
 	RTS
 }
 
@@ -615,137 +508,91 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 PAGE_ALIGN
 .fx_draw_function
 {
-	\\ R4=0, R7=&ff, R6=1
+	\\ <=== HCC=0 (0)
+	\\ Scanlines per row=1
+	lda #9:sta &fe00			; 8c
+	stz &fe01					; 6c
+
+	\\ Vertical total=1
 	lda #4:sta &fe00			; 8c
-	lda #0:sta &fe01			; 8c
+	stz &fe01					; 6c
 
-	\\ vsync at row 35 = scanline 280.
-	lda #7:sta &fe00			; 8c
-	lda #3:sta &fe01			; 8c
+	\\ Horizontal displayed=40
+	lda #1:sta &fe00			; 8c
+	lda #40:sta &fe01			; 8c
 
+	\\ Vertical displayed=1
 	lda #6:sta &fe00			; 8c
 	lda #1:sta &fe01			; 8c
 
-	lda #126:sta row_count		; 5c
+	\\ <=== HCC=60 (0)
+	WAIT_CYCLES 34
+	ldx #12:ldy #13				; 4c
 
-	WAIT_CYCLES 61
+	\\ <=== HCC=98 (0) (hsync)
+	\\ Horizontal sync=98-40=58
+	lda #2:sta &fe00			; 8c
+	lda #58:sta &fe01			; 8c
 
-		\\ <=== HCC=0
-		.scanline_1_hcc0
-		lda #0:sta &fe00		; 8c
-		lda #101:sta &fe01		; 8c
+	lda #254:sta row_count		; 5c
+	stz &fe00					; 6c <= 5c
 
-		\\ Need to set correct scanline here.
-		\\ 0=>0 R9=13 burn 12
-		\\ 0=>2 R9=11 burn 12
-		\\ 0=>4 R9=9 burn 12
-		\\ 0=>6 R9=7 burn 12
+	WAIT_CYCLES 4
 
-		lda #9:sta &fe00		; 8c
-		sec						; 2c
-		lda #13					; 2c
-		sbc scanline			; 3c
-		sta &fe01				; 6c <== 5c
-		lda #0:sta &fe00		; 8c
-
-		WAIT_CYCLES 50
-		
-		\\ R0=1 <2c> x13
-		lda #1:sta &fe01		; 8c
-		\\ <=== HCC=102
-
-		WAIT_CYCLES 18
-		lda #127:sta &fe01		; 8c <== 7c
-		\\ <=== HCC=0
-
-		WAIT_CYCLES 16
-		jmp scanline_even_hcc0	; 3c
-
-	\\ Now 2x scanlines per loop.
 	.scanline_loop
 	{
-		WAIT_CYCLES 11
-
-		.^scanline_even_hcc0
-		clc						; 2c
-		lda v					; 3c
-		.*add_dv
-		adc #128				; 2c
-		sta v					; 3c
-		lda v+1					; 3c
-		adc #0					; 2c
-
-		cmp #SPRITE_HEIGHT		; 2c
-		bcc ok
-		; 2c
-		sbc #SPRITE_HEIGHT		; 2c
-		jmp store				; 3c
-		.ok
-		; 3c
-		WAIT_CYCLES 4
-		.store
-		sta v+1					; 3c
-		\\ 27c
-
-		tax						; 2c
-		lda frak_lines_LO, X	; 4c
-		sta set_palette+1		; 4c
-		lda frak_lines_HI, X	; 4c
-		sta set_palette+2		; 4c
-		\\ 18c
+		\\ <=== HCC=0 (l)
+		.scanline_hcc0_l
+		\\ Horizontal total=40
+		lda #39:sta &fe01		; 8c
 
 		WAIT_CYCLES 4
 
-		\\ Ideally call at HCC=68
-		.set_palette
-		jsr frak_line0			; 60c
+		stx &fe00				; 6c R12
+		lda #HI(&3000/8):sta &fe01	; 8c
+		sty &fe00				; 6c R13
+		lda #LO(&3000/8):sta &fe01	; 8c
 
-		.*scanline_odd_hcc_0
-		\\ <=== HCC=0
-		lda #0:sta &fe00		; 8c
-		lda #103:sta &fe01		; 8c
+		\\ <=== HCC=0 (r)
+		\\ Horizontal total=88
+		stz &fe00				; 6c
+		lda #87:sta &fe01		; 8c
 
-		lda #9:sta &fe00		; 8c
-		lda #7:sta &fe01		; 8c
-		lda #0:sta &fe00		; 8c	
+		WAIT_CYCLES 32
 
-		WAIT_CYCLES 56
-
-		lda #3:sta &fe01		; 8c
-		\\ <=== HCC=104
-
-		WAIT_CYCLES 16
-		lda #127:sta &fe01		; 8c
-		\\ <=== HCC=0
-
+		stx &fe00				; 6c R12
+		lda #HI(&3000/8):sta &fe01	; 8c
+		sty &fe00				; 6c R13
+		lda #LO(&3000/8):sta &fe01	; 8c
+		
+		stz &fe00				; 6c
 		dec row_count			; 5c
 		bne scanline_loop		; 3c
 	}
 	CHECK_SAME_PAGE_AS scanline_loop
 	.scanline_last
 
-	\\ Need to recover back to correct scanline count.
-	lda #9:sta &fe00
-	clc
-	lda scanline
-	adc #1
-	sta &fe01
+	\\ <=== HCC=0 (255)
+	\\ Horizontal total=128
+	lda #127:sta &fe01			; 8c
 
-	lda #6:sta &fe00			; 8c
-	lda #0:sta &fe01			; 8c
+	\\ Horizontal sync=98
+	lda #2:sta &fe00			; 8c
+	lda #98:sta &fe01			; 8c
 
-	ldx #2:jsr cycles_wait_scanlines
+	\\ Vertical total=312-255=57 scanlines
+	lda #4:sta &FE00			; 8c
+	lda #56:sta &FE01			; 8c
 
-	\\ R9=7
+	\\ Vertical sync at row 35 = scanline 280
+	lda #7:sta &fe00			; 8c
+	lda #25:sta &fe01			; 8c
+
+	WAIT_CYCLES 72
+
+	\\ <=== HCC=0 (256)
 	.scanline_end_of_screen
-	lda #9:sta &fe00
-	lda #7:sta &fe01
-
-	\\ Total 312 line - 256 = 56 scanlines
-	LDA #4: STA &FE00
-	LDA #6: STA &FE01
-
-    RTS
+    rts
 }
 
 \ ******************************************************************
@@ -784,7 +631,6 @@ PAGE_ALIGN
 }
 
 INCLUDE "lib/disksys.asm"
-INCLUDE "frak.asm"
 
 .fx_end
 
@@ -819,29 +665,17 @@ INCLUDE "frak.asm"
 \ *	FX DATA
 \ ******************************************************************
 
-PAGE_ALIGN_FOR_SIZE 16
-.twister_vram_table_LO
-FOR n,15,0,-1
-EQUB LO((&3000 + (n)*1280)/8)
+PAGE_ALIGN_FOR_SIZE 32
+.vram_table_LO
+FOR n,0,31,1
+EQUB LO((&3000 + n*640)/8)
 NEXT
 
-PAGE_ALIGN_FOR_SIZE 16
-.twister_vram_table_HI
-FOR n,15,0,-1
-EQUB HI((&3000 + (n)*1280)/8)
+PAGE_ALIGN_FOR_SIZE 32
+.vram_table_HI
+FOR n,0,31,1
+EQUB HI((&3000 + n*640)/8)
 NEXT
-
-PAGE_ALIGN_FOR_SIZE 64
-.dv_table
-FOR n,63,0,-1
-; u=128*d/80
-; d=1+n*(79/31))
-PRINT 2 / ((1 + n*79/63) / 80)
-EQUB 255 * (1 + n*79/63) / 80		; 128
-NEXT
-
-.frak_data
-INCBIN "frak.bin"
 
 .data_end
 
@@ -884,4 +718,4 @@ PRINT "------"
 \ *	Any other files for the disc
 \ ******************************************************************
 
-PUTFILE "SCREEN1_2by160.BIN", "1", &3000
+PUTFILE "SCREEN1_bits.BIN", "1", &3000
