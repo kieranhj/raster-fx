@@ -134,12 +134,8 @@ GUARD &9F
 .row_count		skip 1
 .temp			skip 1
 
-.x_zoom			skip 1
-.zoom_dir		skip 1
-.scanline		skip 1
-.v				skip 2
-.x_pos			skip 1
-.x_dir			skip 1
+.left_top		skip 1
+.left_index		skip 1
 
 \ ******************************************************************
 \ *	CODE START
@@ -445,10 +441,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 .fx_init_function
 {
 	\\ Init vars.
-	lda #0
-	sta x_zoom:sta x_pos
-	sta v:sta v+1
-	lda #1:sta zoom_dir:sta x_dir
+	lda #0:sta left_index:sta left_top
 
 	\ Ensure MAIN RAM is writeable
     LDA &FE34:AND #&FB:STA &FE34
@@ -480,6 +473,9 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_update_function
 {
+	inc left_top
+	lda left_top
+	sta left_index
 	RTS
 }
 
@@ -526,8 +522,8 @@ PAGE_ALIGN
 	lda #1:sta &fe01			; 8c
 
 	\\ <=== HCC=60 (0)
-	WAIT_CYCLES 34
-	ldx #12:ldy #13				; 4c
+	WAIT_CYCLES 34 -2 ; <=== shift everything back by 2c
+	ldx #12:ldy #0				; 4c
 
 	\\ <=== HCC=98 (0) (hsync)
 	\\ Horizontal sync=98-40=58
@@ -537,35 +533,54 @@ PAGE_ALIGN
 	lda #254:sta row_count		; 5c
 	stz &fe00					; 6c <= 5c
 
-	WAIT_CYCLES 4
+	tay							; 2c
+	lda #39						; 2c
+	;WAIT_CYCLES 0
 
 	.scanline_loop
 	{
 		\\ <=== HCC=0 (l)
 		.scanline_hcc0_l
 		\\ Horizontal total=40
-		lda #39:sta &fe01		; 8c
+		sta &fe01		; 8c
 
-		WAIT_CYCLES 4
+		\\ Set line address for RHS.
+		lda #13					; 2c
+		sta &fe00				; 6c R13
+		lda vram_table_right_LO, Y	; 4c
+		sta &fe01				; 6c
 
 		stx &fe00				; 6c R12
-		lda #HI(&3000/8):sta &fe01	; 8c
-		sty &fe00				; 6c R13
-		lda #LO(&3000/8):sta &fe01	; 8c
+		lda vram_table_right_HI, Y 	; 4c
+		sta &fe01				; 6c
 
 		\\ <=== HCC=0 (r)
+		.scanline_hcc0_r
 		\\ Horizontal total=88
 		stz &fe00				; 6c
 		lda #87:sta &fe01		; 8c
 
-		WAIT_CYCLES 32
-
+		\\ Set line address for LHS.
 		stx &fe00				; 6c R12
-		lda #HI(&3000/8):sta &fe01	; 8c
-		sty &fe00				; 6c R13
-		lda #LO(&3000/8):sta &fe01	; 8c
+
+		lda left_index			; 3c
+		and #7					; 2c
+		tay						; 2c
+		lda vram_table_HI, Y	; 4c
+		sta &fe01				; 6c <= 5c
+
+		inc left_index			; 5c
+
+		lda #13:sta &fe00		; 8c <= 7c
+		lda vram_table_LO, Y	; 4c
+		sta &fe01				; 6c
+
+		lda #39					; 2c
 		
-		stz &fe00				; 6c
+		WAIT_CYCLES 12
+
+		ldy row_count			; 3c
+		stz &fe00				; 6c <= 5c
 		dec row_count			; 5c
 		bne scanline_loop		; 3c
 	}
@@ -676,6 +691,19 @@ PAGE_ALIGN_FOR_SIZE 32
 FOR n,0,31,1
 EQUB HI((&3000 + n*640)/8)
 NEXT
+
+PAGE_ALIGN
+.vram_table_right_LO
+FOR n,0,255,1
+EQUB LO((&3000 + ((255-n) MOD 8)*640)/8)
+NEXT
+
+PAGE_ALIGN
+.vram_table_right_HI
+FOR n,0,255,1
+EQUB HI((&3000 + ((255-n) MOD 8)*640)/8)
+NEXT
+
 
 .data_end
 
