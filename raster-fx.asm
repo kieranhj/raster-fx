@@ -495,12 +495,6 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 \ A FULL AND VALID 312 line PAL signal before exiting!
 \ ******************************************************************
 
-\\ To repeat just one scanline, need to burn 6 scanlines.
-\\ 6x4c = 24c hsync at 98,
-\\ <-- 104 cycles w/ 80 visible hsync at 98 --> <4c> <4c> ... <4c>
-\\ Need R0=4 at HCC=104
-\\ Need R0=100 at HCC=0
-
 PAGE_ALIGN
 .fx_draw_function
 {
@@ -537,6 +531,15 @@ PAGE_ALIGN
 	lda #39						; 2c
 	;WAIT_CYCLES 0
 
+	\\ Timing is _very_ tight. Only 128c to play with and need to set 6x CRTC registers each line.
+	\\ 6x 14c minimum = 84c at least!
+	\\ Options:
+	\\ Increase size of LHS portion (just moves the cycles around!)
+	\\ RHS can be static.
+	\\ Might be possible to do a simple Kefrens in RHS? (single write?)
+	\\ Would probably need to share index with the other side.
+	\\ No chance of switching to SHADOW! at 4c.
+	
 	.scanline_loop
 	{
 		\\ <=== HCC=0 (l)
