@@ -4,6 +4,10 @@
 
 CPU 1
 
+BLOCK_WIDTH=10
+BLOCK_HEIGHT=8
+WIPE_SPEED=2
+
 \ ******************************************************************
 \ *	OS defines
 \ ******************************************************************
@@ -109,7 +113,7 @@ disksys_loadto_addr = &3000
 FramePeriod = 312*64-2
 
 ; Calculate here the timer value to interrupt at the desired line
-TimerValue = 32*64 - 2*64 - 2 - 22 - 16 + 8
+TimerValue = 32*64 - 2*64 - 2 - 22 - 16 + 8 - 6
 
 \\ 40 lines for vblank
 \\ 32 lines for vsync (vertical position = 35 / 39)
@@ -130,12 +134,11 @@ GUARD &9F
 .vsync_counter			SKIP 2		; counts up with each vsync
 .escape_pressed			SKIP 1		; set when Escape key pressed
 
-.writeptr		skip 2
-.row_count		skip 1
-.temp			skip 1
+.writeptr				skip 2
 
-.left_top		skip 1
-.left_index		skip 1
+.wipe_x					skip 1
+.wipe_dir				skip 1
+.wipe_colour			skip 1
 
 \ ******************************************************************
 \ *	CODE START
@@ -177,7 +180,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	LDA #22
 	JSR oswrch
-	LDA #1
+	LDA #2
 	JSR oswrch
 
 	\\ Turn off cursor
@@ -441,18 +444,32 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 .fx_init_function
 {
 	\\ Init vars.
-	lda #0:sta left_index:sta left_top
+	lda #0:sta wipe_x
+	lda #1:sta wipe_dir
+	lda #&f0:sta wipe_colour
 
 	\ Ensure MAIN RAM is writeable
     LDA &FE34:AND #&FB:STA &FE34
 	ldx #LO(file1):ldy #HI(file1):lda #HI(&3000):jsr disksys_load_file
-	IF 0
 	\ Ensure SHADOW RAM is writeable
     LDA &FE34:ORA #&4:STA &FE34
+	IF 0
 	ldx #LO(file2):ldy #HI(file2):lda #HI(&3000):jsr disksys_load_file
+	ELSE
+	{
+		\\ Set SHADOW screen to colour 15.
+		ldx #0
+		lda #&ff
+		.loop
+		sta &3000,X
+		dex
+		bne loop
+		inc loop+2
+		bpl loop
+	}
+	ENDIF
 	\ Ensure MAIN RAM is writeable
     LDA &FE34:AND #&FB:STA &FE34
-	ENDIF
 	RTS
 }
 
@@ -473,10 +490,12 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_update_function
 {
-	inc left_top
-	lda left_top
-	sta left_index
-	RTS
+	lda vsync_counter
+	and #WIPE_SPEED-1
+	bne return
+	jsr wipe_update_diagonal
+	.return
+	rts
 }
 
 \ ******************************************************************
@@ -498,118 +517,38 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 PAGE_ALIGN
 .fx_draw_function
 {
-	\\ <=== HCC=0 (0)
-	\\ Scanlines per row=1
-	lda #9:sta &fe00			; 8c
-	stz &fe01					; 6c
-
-	\\ Vertical total=1
-	lda #4:sta &fe00			; 8c
-	stz &fe01					; 6c
-
-	\\ Horizontal displayed=40
-	lda #1:sta &fe00			; 8c
-	lda #40:sta &fe01			; 8c
-
-	\\ Vertical displayed=1
-	lda #6:sta &fe00			; 8c
-	lda #1:sta &fe01			; 8c
-
-	\\ <=== HCC=60 (0)
-	WAIT_CYCLES 34 -2 ; <=== shift everything back by 2c
-	ldx #12:ldy #0				; 4c
-
-	\\ <=== HCC=98 (0) (hsync)
-	\\ Horizontal sync=98-40=58
-	lda #2:sta &fe00			; 8c
-	lda #58:sta &fe01			; 8c
-
-	lda #254:sta row_count		; 5c
-	stz &fe00					; 6c <= 5c
-
-	tay							; 2c
-	lda #39						; 2c
-	;WAIT_CYCLES 0
-
-	\\ Timing is _very_ tight. Only 128c to play with and need to set 6x CRTC registers each line.
-	\\ 6x 14c minimum = 84c at least!
-	\\ Options:
-	\\ Increase size of LHS portion (just moves the cycles around!)
-	\\ RHS can be static.
-	\\ Might be possible to do a simple Kefrens in RHS? (single write?)
-	\\ Would probably need to share index with the other side.
-	\\ No chance of switching to SHADOW! at 4c.
-	
-	.scanline_loop
+	ldx #0								; 2c
+	.row_loop
 	{
-		\\ <=== HCC=0 (l)
-		.scanline_hcc0_l
-		\\ Horizontal total=40
-		sta &fe01		; 8c
+		ldy #256/BLOCK_HEIGHT			; 2c
+		.scanline_loop
+		{
+			FOR n,0,BLOCK_WIDTH-1,1
+			lda wipe_blocks + n, X		; 4c
+			sta &fe34					; 4c
+			\\ <=== HCC=0 (0)
+			NEXT
+			\\ 80c
 
-		\\ Set line address for RHS.
-		lda #13					; 2c
-		sta &fe00				; 6c R13
-		lda vram_table_right_LO, Y	; 4c
-		sta &fe01				; 6c
+			dey							; 2c
+			beq scanline_done
+			; 2c
+			WAIT_CYCLES 41
+			bra scanline_loop			; 3c
+		}
+		; 3c
+		.scanline_done
+		\\ 
+		WAIT_CYCLES 28
 
-		stx &fe00				; 6c R12
-		lda vram_table_right_HI, Y 	; 4c
-		sta &fe01				; 6c
-
-		\\ <=== HCC=0 (r)
-		.scanline_hcc0_r
-		\\ Horizontal total=88
-		stz &fe00				; 6c
-		lda #87:sta &fe01		; 8c
-
-		\\ Set line address for LHS.
-		stx &fe00				; 6c R12
-
-		lda left_index			; 3c
-		and #7					; 2c
-		tay						; 2c
-		lda vram_table_HI, Y	; 4c
-		sta &fe01				; 6c <= 5c
-
-		inc left_index			; 5c
-
-		lda #13:sta &fe00		; 8c <= 7c
-		lda vram_table_LO, Y	; 4c
-		sta &fe01				; 6c
-
-		lda #39					; 2c
-		
-		WAIT_CYCLES 12
-
-		ldy row_count			; 3c
-		stz &fe00				; 6c <= 5c
-		dec row_count			; 5c
-		bne scanline_loop		; 3c
+		clc								; 2c
+		txa								; 2c
+		adc #BLOCK_WIDTH				; 2c
+		tax								; 2c
+		cpx #(BLOCK_WIDTH*BLOCK_HEIGHT)	; 2c
+		bcc row_loop					; 3c
 	}
-	CHECK_SAME_PAGE_AS scanline_loop
-	.scanline_last
 
-	\\ <=== HCC=0 (255)
-	\\ Horizontal total=128
-	lda #127:sta &fe01			; 8c
-
-	\\ Horizontal sync=98
-	lda #2:sta &fe00			; 8c
-	lda #98:sta &fe01			; 8c
-
-	\\ Vertical total=312-255=57 scanlines
-	lda #4:sta &FE00			; 8c
-	lda #56:sta &FE01			; 8c
-
-	\\ Vertical sync at row 35 = scanline 280
-	lda #7:sta &fe00			; 8c
-	lda #25:sta &fe01			; 8c
-
-	WAIT_CYCLES 72
-
-	\\ <=== HCC=0 (256)
-	.scanline_end_of_screen
     rts
 }
 
@@ -648,6 +587,62 @@ PAGE_ALIGN
 	RTS
 }
 
+\\ Diagonal
+.wipe_update_diagonal
+{
+	ldx wipe_x
+	cpx #BLOCK_WIDTH*2
+	bcc do_wipe
+
+	ldx #0
+	stx wipe_x
+
+	lda wipe_dir
+	eor #1
+	sta wipe_dir
+	beq do_wipe
+
+	clc
+	lda wipe_colour
+	adc #1
+	bne ok
+	lda #&f0
+	.ok
+	sta wipe_colour
+	sta &fe21
+
+	.do_wipe
+	ldy #0
+	.loop
+	lda wipe_dir
+	jsr wipe_set_block
+	iny
+	dex
+	bpl loop
+	inc wipe_x
+
+	.return
+	rts
+}
+
+.wipe_set_block
+{
+	cpx #BLOCK_WIDTH
+	bcs return
+	cpy #BLOCK_HEIGHT
+	bcs return
+	phx:pha
+	clc
+	txa
+	adc block_stride, Y
+	tax
+	pla
+	sta wipe_blocks, X
+	plx
+	.return
+	rts
+}
+
 INCLUDE "lib/disksys.asm"
 
 .fx_end
@@ -683,30 +678,10 @@ INCLUDE "lib/disksys.asm"
 \ *	FX DATA
 \ ******************************************************************
 
-PAGE_ALIGN_FOR_SIZE 32
-.vram_table_LO
-FOR n,0,31,1
-EQUB LO((&3000 + n*640)/8)
+.block_stride
+FOR n,0,BLOCK_HEIGHT-1,1
+EQUB n*BLOCK_WIDTH
 NEXT
-
-PAGE_ALIGN_FOR_SIZE 32
-.vram_table_HI
-FOR n,0,31,1
-EQUB HI((&3000 + n*640)/8)
-NEXT
-
-PAGE_ALIGN
-.vram_table_right_LO
-FOR n,0,255,1
-EQUB LO((&3000 + ((255-n) MOD 8)*640)/8)
-NEXT
-
-PAGE_ALIGN
-.vram_table_right_HI
-FOR n,0,255,1
-EQUB HI((&3000 + ((255-n) MOD 8)*640)/8)
-NEXT
-
 
 .data_end
 
@@ -727,6 +702,18 @@ SAVE "MyFX", start, end
 \ ******************************************************************
 
 .bss_start
+
+PAGE_ALIGN
+.wipe_blocks
+equb 0,1,0,1,0,1,0,1,0,1
+equb 1,0,1,0,1,0,1,0,1,0
+equb 0,1,0,1,0,1,0,1,0,1
+equb 1,0,1,0,1,0,1,0,1,0
+equb 0,1,0,1,0,1,0,1,0,1
+equb 1,0,1,0,1,0,1,0,1,0
+equb 0,1,0,1,0,1,0,1,0,1
+equb 1,0,1,0,1,0,1,0,1,0
+
 .bss_end
 
 \ ******************************************************************
@@ -749,4 +736,5 @@ PRINT "------"
 \ *	Any other files for the disc
 \ ******************************************************************
 
-PUTFILE "SCREEN1_bits.BIN", "1", &3000
+PUTFILE "scr.BIN", "1", &3000
+PUTFILE "doom.BIN", "2", &3000
