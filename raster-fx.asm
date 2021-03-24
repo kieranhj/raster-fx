@@ -124,22 +124,20 @@ TimerValue = 32*64 - 2*64 - 2 - 22 - 9 + 8
 
 ORG &70
 GUARD &9F
+.zoom					skip 1
 
 \\ System variables
 
+ORG &80
 .vsync_counter			SKIP 2		; counts up with each vsync
 .escape_pressed			SKIP 1		; set when Escape key pressed
 
-.writeptr		skip 2
-.row_count		skip 1
-.temp			skip 1
+.writeptr				skip 2
+.row_count				skip 1
+.temp					skip 1
 
-.x_zoom			skip 1
-.zoom_dir		skip 1
-.scanline		skip 1
-.v				skip 2
-.x_pos			skip 1
-.x_dir			skip 1
+.v						skip 2
+.scanline				skip 1
 
 \ ******************************************************************
 \ *	CODE START
@@ -445,10 +443,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 .fx_init_function
 {
 	\\ Init vars.
-	lda #0
-	sta x_zoom:sta x_pos
-	sta v:sta v+1
-	lda #1:sta zoom_dir:sta x_dir
+	lda #0:sta v:sta v+1
 
 	\ Ensure MAIN RAM is writeable
     LDA &FE34:AND #&FB:STA &FE34
@@ -480,39 +475,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_update_function
 {
-	{
-		\\ Update zoom factor.
-		clc
-		lda x_zoom
-		adc zoom_dir
-		bpl not_min
-		lda #1:sta zoom_dir
-		lda #0
-		.not_min
-		cmp #64
-		bcc not_max
-		lda #&ff:sta zoom_dir
-		lda #63
-		.not_max
-		sta x_zoom
-	}
-
-	{
-		clc
-		lda x_pos
-		adc x_dir
-		bpl not_min
-		lda #1:sta x_dir
-		lda #0
-		.not_min
-		cmp #80
-		bcc not_max
-		lda #&ff:sta x_dir
-		lda #79
-		.not_max
-		sta x_pos
-	}
-
+IF 0
 	\\ Set screen address for zoom.
 	lda x_zoom
 	lsr a:lsr a		; 64 zooms, 2 scanlines each = 4 per row
@@ -586,7 +549,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	sta &fe21
 	dex
 	bpl pal_loop
-
+ENDIF
 	RTS
 }
 
@@ -667,6 +630,9 @@ PAGE_ALIGN
 		WAIT_CYCLES 11
 
 		.^scanline_even_hcc0
+		\\ Update v value => scanline selection
+		\\ Update R12/R13 plus R9
+
 		clc						; 2c
 		lda v					; 3c
 		.*add_dv
@@ -687,18 +653,11 @@ PAGE_ALIGN
 		sta v+1					; 3c
 		\\ 27c
 
-		tax						; 2c
-		lda frak_lines_LO, X	; 4c
-		sta set_palette+1		; 4c
-		lda frak_lines_HI, X	; 4c
-		sta set_palette+2		; 4c
-		\\ 18c
-
-		WAIT_CYCLES 4
+		WAIT_CYCLES 22
 
 		\\ Ideally call at HCC=68
 		.set_palette
-		jsr frak_line0			; 60c
+		WAIT_CYCLES 60
 
 		.*scanline_odd_hcc_0
 		\\ <=== HCC=0
@@ -784,7 +743,6 @@ PAGE_ALIGN
 }
 
 INCLUDE "lib/disksys.asm"
-INCLUDE "frak.asm"
 
 .fx_end
 
@@ -819,29 +777,38 @@ INCLUDE "frak.asm"
 \ *	FX DATA
 \ ******************************************************************
 
-PAGE_ALIGN_FOR_SIZE 16
-.twister_vram_table_LO
-FOR n,15,0,-1
-EQUB LO((&3000 + (n)*1280)/8)
+PAGE_ALIGN_FOR_SIZE 128
+.vram_table_LO
+FOR n,0,127,1
+EQUB LO((&3000 + (n DIV 4)*640)/8)
 NEXT
 
-PAGE_ALIGN_FOR_SIZE 16
-.twister_vram_table_HI
-FOR n,15,0,-1
-EQUB HI((&3000 + (n)*1280)/8)
+PAGE_ALIGN_FOR_SIZE 128
+.vram_table_HI
+FOR n,0,127,1
+EQUB HI((&3000 + (n DIV 4)*640)/8)
 NEXT
 
-PAGE_ALIGN_FOR_SIZE 64
-.dv_table
-FOR n,63,0,-1
-; u=128*d/80
-; d=1+n*(79/31))
-PRINT 2 / ((1 + n*79/63) / 80)
-EQUB 255 * (1 + n*79/63) / 80		; 128
+PAGE_ALIGN_FOR_SIZE 128
+.dv_table_LO
+FOR n,0,63,1
+height=128
+max_height=height*10
+h=128+n*(max_height-height)/63
+dv = 512 * height / h
+;PRINT h, height/h, dv
+EQUB LO(dv)
 NEXT
 
-.frak_data
-INCBIN "frak.bin"
+PAGE_ALIGN_FOR_SIZE 128
+.dv_table_HI
+FOR n,0,63,1
+height=128
+max_height=1280
+h=128+n*(max_height-height)/63
+dv = 512 * height / h
+EQUB HI(dv)
+NEXT
 
 .data_end
 
@@ -884,4 +851,4 @@ PRINT "------"
 \ *	Any other files for the disc
 \ ******************************************************************
 
-PUTFILE "SCREEN1_2by160.BIN", "1", &3000
+PUTFILE "SCREEN1_logo.BIN", "1", &3000
