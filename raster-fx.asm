@@ -109,7 +109,7 @@ disksys_loadto_addr = &3000
 FramePeriod = 312*64-2
 
 ; Calculate here the timer value to interrupt at the desired line
-TimerValue = 32*64 - 2*64 - 2 - 22 - 9 + 8
+TimerValue = 32*64 - 2*64 - 2 - 22 - 16 + 8
 
 \\ 40 lines for vblank
 \\ 32 lines for vsync (vertical position = 35 / 39)
@@ -137,7 +137,8 @@ ORG &80
 .temp					skip 1
 
 .v						skip 2
-.scanline				skip 1
+.dv						skip 2
+.prev_scanline			skip 1
 
 \ ******************************************************************
 \ *	CODE START
@@ -475,28 +476,29 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_update_function
 {
-IF 0
-	\\ Set screen address for zoom.
-	lda x_zoom
-	lsr a:lsr a		; 64 zooms, 2 scanlines each = 4 per row
-	tax
+	ldx zoom
+	lda dv_table_LO, X
+	sta dv
+	lda dv_table_HI, X
+	sta dv+1
+
+	\\ Set v
+	lda #0:sta v:sta v+1
+
+	\\ Set CRTC start address of row 0.
+	lsr a:tax
 	lda #13:sta &fe00
-	lda twister_vram_table_LO, X
-	clc
-	adc x_pos
+	lda vram_table_LO, X
 	sta &fe01
 	lda #12:sta &fe00
-	lda twister_vram_table_HI, X
-	adc #0
+	lda vram_table_HI, X
 	sta &fe01
 
-	\\ Scanline 0,2,4,6
-	lda x_zoom
-	and #3
-	eor #3
-	asl a
-	sta scanline
+	\\ Scanline of row 0 is always 0.
+	lda #0
+	sta prev_scanline
 
+IF 0
 	\\ Want centre of screen to be centre of sprite.
 	lda #0:sta v
 	lda #SPRITE_HEIGHT/2:sta v+1
@@ -526,30 +528,8 @@ IF 0
 	.sub_ok
 	dey
 	bne sub_loop
-
-	\\ Hi byte of V * 16
-	clc
-	lda #0:sta temp
-	lda v+1
-	asl a:rol temp
-	asl a:rol temp
-	asl a:rol temp
-	asl a:rol temp
-	clc
-	adc #LO(frak_data)
-	sta pal_loop+1
-	lda temp
-	adc #HI(frak_data)
-	sta pal_loop+2
-
-	\\ Set palette for first line.
-	ldx #15
-	.pal_loop
-	lda frak_data, X
-	sta &fe21
-	dex
-	bpl pal_loop
 ENDIF
+
 	RTS
 }
 
@@ -569,131 +549,159 @@ ENDIF
 \ A FULL AND VALID 312 line PAL signal before exiting!
 \ ******************************************************************
 
-\\ To repeat just one scanline, need to burn 6 scanlines.
-\\ 6x4c = 24c hsync at 98,
-\\ <-- 104 cycles w/ 80 visible hsync at 98 --> <4c> <4c> ... <4c>
-\\ Need R0=4 at HCC=104
-\\ Need R0=100 at HCC=0
+PAGE_ALIGN
+\\ Limited RVI
+\\ Display 0,2,4,6 scanline offset for 2 scanlines.
+\\ <--- 102c total w/ 80c visible and hsync at 98c ---> <2c> ..13x <2c> = 128c
+\\ Plus one extra for luck!
+\\ R9 = 13 + current - next
 
 PAGE_ALIGN
 .fx_draw_function
 {
-	\\ R4=0, R7=&ff, R6=1
-	lda #4:sta &fe00			; 8c
-	lda #0:sta &fe01			; 8c
+	\\ <=== HCC=0
 
-	\\ vsync at row 35 = scanline 280.
-	lda #7:sta &fe00			; 8c
-	lda #3:sta &fe01			; 8c
+	\\ R4=0
+	lda #4:sta &fe00					; 8c
+	lda #0:sta &fe01					; 8c
 
-	lda #6:sta &fe00			; 8c
-	lda #1:sta &fe01			; 8c
+	\\ R7 vsync at row 35 = scanline 280.
+	lda #7:sta &fe00					; 8c
+	lda #3:sta &fe01					; 8c
 
-	lda #126:sta row_count		; 5c
+	\\ R6=1
+	lda #6:sta &fe00					; 8c
+	lda #1:sta &fe01					; 8c
+	\\ 48c
 
-	WAIT_CYCLES 61
+	\\ Update v
+	clc:lda v:adc dv:sta v				; 11c
+	lda v+1:adc dv+1:sta v+1			; 9c
+	\\ 20c
 
-		\\ <=== HCC=0
-		.scanline_1_hcc0
-		lda #0:sta &fe00		; 8c
-		lda #101:sta &fe01		; 8c
+	\\ Row 1 screen start
+	lsr a:tax							; 4c
+	lda #13:sta &fe00					; 8c
+	lda vram_table_LO, X				; 4c
+	sta &fe01							; 6c
+	lda #12:sta &fe00					; 8c
+	lda vram_table_HI, X				; 4c
+	sta &fe01							; 6c
+	\\ 40c
+	
+	\\ Row 1 scanline
+	lda #9:sta &fe00					; 8c
+	lda v+1:and #6						; 5c
+	\\ 2-bits * 2
+	tax									; 2c
+	eor #&ff							; 2c
+	clc									; 2c
+	adc #13								; 2c
+		adc prev_scanline					; 3c
+		sta &fe01							; 6c
+		stx prev_scanline					; 3c
+		\\ 33c
 
-		\\ Need to set correct scanline here.
-		\\ 0=>0 R9=13 burn 12
-		\\ 0=>2 R9=11 burn 12
-		\\ 0=>4 R9=9 burn 12
-		\\ 0=>6 R9=7 burn 12
+		lda #126:sta row_count				; 5c
 
-		lda #9:sta &fe00		; 8c
-		sec						; 2c
-		lda #13					; 2c
-		sbc scanline			; 3c
-		sta &fe01				; 6c <== 5c
-		lda #0:sta &fe00		; 8c
+		\\ Set R0=101 (102c)
+		lda #0:sta &fe00					; 8c
+		lda #101:sta &fe01					; 8c
 
-		WAIT_CYCLES 50
-		
-		\\ R0=1 <2c> x13
-		lda #1:sta &fe01		; 8c
-		\\ <=== HCC=102
-
-		WAIT_CYCLES 18
-		lda #127:sta &fe01		; 8c <== 7c
-		\\ <=== HCC=0
-
-		WAIT_CYCLES 16
-		jmp scanline_even_hcc0	; 3c
-
-	\\ Now 2x scanlines per loop.
-	.scanline_loop
-	{
-		WAIT_CYCLES 11
-
-		.^scanline_even_hcc0
-		\\ Update v value => scanline selection
-		\\ Update R12/R13 plus R9
-
-		clc						; 2c
-		lda v					; 3c
-		.*add_dv
-		adc #128				; 2c
-		sta v					; 3c
-		lda v+1					; 3c
-		adc #0					; 2c
-
-		cmp #SPRITE_HEIGHT		; 2c
-		bcc ok
-		; 2c
-		sbc #SPRITE_HEIGHT		; 2c
-		jmp store				; 3c
-		.ok
-		; 3c
-		WAIT_CYCLES 4
-		.store
-		sta v+1					; 3c
-		\\ 27c
-
-		WAIT_CYCLES 22
-
-		\\ Ideally call at HCC=68
-		.set_palette
 		WAIT_CYCLES 60
 
-		.*scanline_odd_hcc_0
+		\\ At HCC=102 set R0=1.
+		lda #1:sta &fe01					; 8c
+		\\ Burn 13 scanlines = 13x2c = 26c
+		WAIT_CYCLES 18
+
+	\\ Now 2x scanlines per loop.
+	.char_row_loop
+	{
+			\\ At HCC=0 set R0=127
+			lda #127:sta &fe01		; 8c
+		
 		\\ <=== HCC=0
-		lda #0:sta &fe00		; 8c
-		lda #103:sta &fe01		; 8c
+		\\ Update v
+		clc:lda v:adc dv:sta v				; 11c
+		lda v+1:adc dv+1:sta v+1			; 9c
+		\\ 20c
 
-		lda #9:sta &fe00		; 8c
-		lda #7:sta &fe01		; 8c
-		lda #0:sta &fe00		; 8c	
+		\\ Row N+1 screen start
+		lsr a:tax							; 4c
+		lda #13:sta &fe00					; 8c
+		lda vram_table_LO, X				; 4c
+		sta &fe01							; 6c
+		lda #12:sta &fe00					; 8c
+		lda vram_table_HI, X				; 4c
+		sta &fe01							; 6c
+		\\ 40c
+	
+		WAIT_CYCLES 68
 
-		WAIT_CYCLES 56
+			\\ <=== HCC=0
+			\\ Row N+1 scanline
+			lda #9:sta &fe00				; 8c
+			lda v+1:and #6					; 5c
+			\\ 2-bits * 2
+			tax								; 2c
+			eor #&ff						; 2c
+			clc								; 2c
+			adc #13							; 2c
+			adc prev_scanline				; 3c
+			sta &fe01						; 6c
+			stx prev_scanline				; 3c
+			\\ 33c
 
-		lda #3:sta &fe01		; 8c
-		\\ <=== HCC=104
+			\\ Set R0=101 (102c)
+			lda #0:sta &fe00				; 8c <= 7c
+			lda #101:sta &fe01				; 8c
 
-		WAIT_CYCLES 16
-		lda #127:sta &fe01		; 8c
-		\\ <=== HCC=0
+			WAIT_CYCLES 46
 
-		dec row_count			; 5c
-		bne scanline_loop		; 3c
+			\\ At HCC=102 set R0=1.
+			lda #1:sta &fe01				; 8c
+			\\ Burn 13 scanlines = 13x2c = 26c
+			WAIT_CYCLES 10
+
+			dec row_count				; 5c
+			bne char_row_loop			; 3c
 	}
-	CHECK_SAME_PAGE_AS scanline_loop
+	CHECK_SAME_PAGE_AS char_row_loop
 	.scanline_last
 
-	\\ Need to recover back to correct scanline count.
-	lda #9:sta &fe00
-	clc
-	lda scanline
-	adc #1
-	sta &fe01
+		ldx #1						; 2c
+		\\ At HCC=0 set R0=127
+		lda #127:sta &fe01			; 8c <= 7c
+	
+	\\ <=== HCC=0
+	jsr cycles_wait_scanlines	
 
-	lda #6:sta &fe00			; 8c
-	lda #0:sta &fe01			; 8c
+		\\ <=== HCC=0
+		\\ Set next scanline back to 0.
+		lda #9:sta &fe00			; 8c
+		clc							; 2c
+		lda #13						; 2c
+		adc prev_scanline			; 3c
+		sta &fe01					; 6c
 
-	ldx #2:jsr cycles_wait_scanlines
+		lda #6:sta &fe00			; 8c <= 7c
+		lda #0:sta &fe01			; 8c
+		\\ 36c
+
+		\\ Set R0=101 (102c)
+		lda #0:sta &fe00			; 8c
+		lda #101:sta &fe01			; 8c
+
+		WAIT_CYCLES 42
+
+		\\ At HCC=102 set R0=1.
+		lda #1:sta &fe01			; 8c
+		\\ Burn 13 scanlines = 13x2c = 26c
+		WAIT_CYCLES 18
+
+		lda #127:sta &fe01			; 8c
+	\\ <=== HCC=0
 
 	\\ R9=7
 	.scanline_end_of_screen
@@ -703,7 +711,6 @@ PAGE_ALIGN
 	\\ Total 312 line - 256 = 56 scanlines
 	LDA #4: STA &FE00
 	LDA #6: STA &FE01
-
     RTS
 }
 
