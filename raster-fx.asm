@@ -485,6 +485,26 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ Set v
 	lda #0:sta v:sta v+1
 
+IF 1
+	\\ Want centre of screen to be centre of sprite.
+	lda #0:sta v
+	lda #128:sta v+1
+
+	\\ Subtract dv 128 times to set starting v.
+	ldy #64
+	.sub_loop
+	sec
+	lda v
+	sbc dv
+	sta v
+	lda v+1
+	sbc dv+1
+	sta v+1
+
+	dey
+	bne sub_loop
+ENDIF
+
 	\\ Set CRTC start address of row 0.
 	lsr a:tax
 	lda #13:sta &fe00
@@ -497,40 +517,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ Scanline of row 0 is always 0.
 	lda #0
 	sta prev_scanline
-
-IF 0
-	\\ Want centre of screen to be centre of sprite.
-	lda #0:sta v
-	lda #SPRITE_HEIGHT/2:sta v+1
-
-	\\ Set dv.
-	ldx x_zoom
-	lda dv_table, X
-	sta add_dv+1
-
-	\\ Subtract dv 128 times to set starting v.
-	ldy #64
-	.sub_loop
-	sec
-	lda v
-	sbc dv_table, X
-	sta v
-	lda v+1
-	sbc #0
-	sta v+1
-
-	\\ Wrap sprite height.
-	bpl sub_ok
-	clc
-	adc #SPRITE_HEIGHT
-	sta v+1
-
-	.sub_ok
-	dey
-	bne sub_loop
-ENDIF
-
-	RTS
+	rts
 }
 
 \ ******************************************************************
