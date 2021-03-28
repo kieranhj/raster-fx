@@ -445,6 +445,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 {
 	\\ Init vars.
 	lda #0:sta v:sta v+1
+	lda #2:sta zoom
 
 	\ Ensure MAIN RAM is writeable
     LDA &FE34:AND #&FB:STA &FE34
@@ -582,8 +583,9 @@ PAGE_ALIGN
 	\\ 2-bits * 2
 	tax									; 2c
 	eor #&ff							; 2c
-	clc									; 2c
+	sec									; 2c
 	adc #13								; 2c
+		clc									; 2c
 		adc prev_scanline					; 3c
 		sta &fe01							; 6c
 		stx prev_scanline					; 3c
@@ -595,7 +597,7 @@ PAGE_ALIGN
 		lda #0:sta &fe00					; 8c
 		lda #101:sta &fe01					; 8c
 
-		WAIT_CYCLES 60
+		WAIT_CYCLES 58
 
 		\\ At HCC=102 set R0=1.
 		lda #1:sta &fe01					; 8c
@@ -633,8 +635,9 @@ PAGE_ALIGN
 			\\ 2-bits * 2
 			tax								; 2c
 			eor #&ff						; 2c
-			clc								; 2c
+			sec								; 2c
 			adc #13							; 2c
+			clc								; 2c
 			adc prev_scanline				; 3c
 			sta &fe01						; 6c
 			stx prev_scanline				; 3c
@@ -644,7 +647,7 @@ PAGE_ALIGN
 			lda #0:sta &fe00				; 8c <= 7c
 			lda #101:sta &fe01				; 8c
 
-			WAIT_CYCLES 46
+			WAIT_CYCLES 44
 
 			\\ At HCC=102 set R0=1.
 			lda #1:sta &fe01				; 8c
