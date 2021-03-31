@@ -589,7 +589,7 @@ PAGE_ALIGN
 		adc prev_scanline					; 3c
 		sta &fe01							; 6c
 		stx prev_scanline					; 3c
-		\\ 33c
+		\\ 35c
 
 		lda #126:sta row_count				; 5c
 
@@ -626,22 +626,24 @@ PAGE_ALIGN
 		sta &fe01							; 6c
 		\\ 40c
 	
-		WAIT_CYCLES 68
+		\\ NB. Must set R9 before final scanline of the row!
+		\\ Row N+1 scanline
+		lda #9:sta &fe00				; 8c
+		lda v+1:and #6					; 5c
+		\\ 2-bits * 2
+		tax								; 2c
+		eor #&ff						; 2c
+		sec								; 2c
+		adc #13							; 2c
+		clc								; 2c
+		adc prev_scanline				; 3c
+		sta &fe01						; 6c
+		stx prev_scanline				; 3c
+		\\ 35c
 
-			\\ <=== HCC=0
-			\\ Row N+1 scanline
-			lda #9:sta &fe00				; 8c
-			lda v+1:and #6					; 5c
-			\\ 2-bits * 2
-			tax								; 2c
-			eor #&ff						; 2c
-			sec								; 2c
-			adc #13							; 2c
-			clc								; 2c
-			adc prev_scanline				; 3c
-			sta &fe01						; 6c
-			stx prev_scanline				; 3c
-			\\ 33c
+		\\ 33c
+			WAIT_CYCLES 68		\\ <=== HCC=0
+			\\ 35c
 
 			\\ Set R0=101 (102c)
 			lda #0:sta &fe00				; 8c <= 7c
