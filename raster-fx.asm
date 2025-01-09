@@ -2,6 +2,9 @@
 \ *	RASTER FX FRAMEWORK
 \ ******************************************************************
 
+_DEBUG_RASTERS=0
+_PRESS_SPACE=1
+
 \ ******************************************************************
 \ *	OS defines
 \ ******************************************************************
@@ -116,20 +119,27 @@ GUARD &9F
 .vsync_counter			SKIP 2		; counts up with each vsync
 .escape_pressed			SKIP 1		; set when Escape key pressed
 
-.writeptr		skip 2
-.row_count		skip 1
-.temp			skip 1
+.rot_angle          skip 1
 
-.prev_offset	skip 1
+.readptr            skip 2
+.writeptr           skip 2
 
-.ta				skip 2
-.yb				skip 2
+.u                  skip 2
+.v                  skip 2
+.dudy               skip 2
+.dvdy               skip 2
+.offset             skip 2
+
+.U0                 skip 2          ; [u,v] coordinates in top-left of screen.
+.V0                 skip 2
+
+.space_pressed      skip 1
 
 \ ******************************************************************
 \ *	CODE START
 \ ******************************************************************
 
-ORG &1900	      			; code origin (like P%=&2000)
+ORG &E00	      			; code origin (like P%=&2000)
 GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .start
@@ -165,7 +175,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	LDA #22
 	JSR oswrch
-	LDA #0
+	LDA #2
 	JSR oswrch
 
 	\\ Turn off cursor
@@ -173,8 +183,8 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #10: STA &FE00
 	LDA #32: STA &FE01
 
-	lda #2:sta &fe00
-	lda #95:sta &fe01
+	;lda #2:sta &fe00
+	;lda #95:sta &fe01
 
 	\\ Initialise system modules here!
 
@@ -285,6 +295,13 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDX #(&70 EOR &80)
 	JSR osbyte
 	STX escape_pressed
+
+    IF _PRESS_SPACE
+	LDA #&79
+	LDX #(&62 EOR &80)      ; SPACE
+	JSR osbyte
+    STX space_pressed
+    ENDIF
 
 	\\ FX update callback here!
 
@@ -403,20 +420,43 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 \ The function can take as long as is necessary to initialise.
 \ ******************************************************************
 
+
+; A=write to byte, X=write to page, Y=#pages
+.memfill
+{
+    stx loop+2
+    ldx #0
+    .loop
+    sta &FF00, X
+    inx
+    bne loop
+    inc loop+2
+    dey
+    bne loop
+    rts
+}
+
 .fx_init_function
 {
-	\\ Init vars.
-	lda #0
-	sta ta:sta ta+1
-
-	\ Ensure MAIN RAM is writeable
-    LDA &FE34:AND #&FB:STA &FE34
 	ldx #LO(file1):ldy #HI(file1):lda #HI(&3000):jsr disksys_load_file
-	\ Ensure SHADOW RAM is writeable
-    LDA &FE34:ORA #&4:STA &FE34
-	ldx #LO(file2):ldy #HI(file2):lda #HI(&3000):jsr disksys_load_file
-	\ Ensure MAIN RAM is writeable
-    LDA &FE34:AND #&FB:STA &FE34
+    ; Select SWRAM bank 4
+    lda #4:sta &f4:sta &fe30
+    ; A=read from PAGE, X=write to page, Y=#pages
+    ;lda #HI(&3000):ldx #HI(xor_texture-&1000):ldy #HI(&1000): jsr disksys_copy_block
+    lda #&03:ldx #HI(xor_texture-&1000):ldy #HI(&1000): jsr memfill
+    lda #HI(&3000):ldx #HI(xor_texture):ldy #HI(&1000): jsr disksys_copy_block
+    ;lda #HI(&3000):ldx #HI(xor_texture+&1000):ldy #HI(&1000): jsr disksys_copy_block
+    lda #&30:ldx #HI(xor_texture+&1000):ldy #HI(&1000): jsr memfill
+    lda #12
+    jsr oswrch              ; cls
+
+    lda #0
+    sta rot_angle
+
+    lda &fe34
+    and #&fa                ; clear bits
+    ora #1                  ; display SHADOW + write MAIN
+    sta &fe34
 
 	RTS
 }
@@ -436,16 +476,176 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 \ be late and your raster timings will be wrong!
 \ ******************************************************************
 
+ROT_ROWS=50
+ROT_COLS=32     ; for now, will be 50
+TEX_WIDTH=64
+
 .fx_update_function
 {
-	clc
-	lda ta:adc #12:sta ta					\ a=4096/600~=6
-	lda ta+1:adc #0:and #15:sta ta+1		\ 4096 byte table
-	lda ta:sta yb:lda ta+1:sta yb+1
-	jsr update_rot
-	lsr a
-	jsr set_rot:sta &fe34
-	lda #0:sta prev_offset
+    IF _DEBUG_RASTERS
+    lda #PAL_blue:sta &fe21
+    ENDIF
+
+    \\ - Update rotation angle.
+    ldx rot_angle
+    IF _PRESS_SPACE
+    lda space_pressed
+    bpl no_space
+    ENDIF
+    inx
+    stx rot_angle
+    .no_space
+
+    \\ - Calculate du,dv
+    lda sin_LO, X                  ; dudy = sin(a)
+    sta dudy+0
+    lda sin_HI, X                  ; dudy = sin(a)
+    sta dudy+1
+    lda cos_LO, X                  ; dvdy = cos(a)
+    sta dvdy+0
+    lda cos_HI, X                  ; dvdy = cos(a)
+    sta dvdy+1
+
+    bmi neg_dy
+    lda #&E6                ; opcode INC zp
+    bne pos_dy
+    .neg_dy
+    lda #&C6                ; opcode DEC zp
+    .pos_dy
+    sta do_inc+1
+
+    \\ - Calculate U0, V0
+    IF 0
+    ; Fix top-left to (0,0)
+    lda #0
+    sta U0:sta U0+1
+    sta V0:sta V0+1
+    ELSE
+    ; Lookup so texture rotates around (32,32)
+    lda tl_corner_U0_LO, X:sta U0
+    lda tl_corner_U0_HI, X:sta U0+1
+    lda tl_corner_V0_LO, X:sta V0
+    lda tl_corner_V0_HI, X:sta V0+1
+    ENDIF
+
+    \\ - Calculate baseptr (top-left texture ptr)
+    clc
+    ldx V0+1                        ; v [0,63]
+    lda v_to_tex_ptr_LO, X
+    adc U0+1                        ; u [0,63]
+    sta readptr
+    lda v_to_tex_ptr_HI, X
+    adc #0
+    sta readptr+1
+
+    \\ - Calculate texture read offset per column and poke in. 
+    lda #0                          ; always starts at [u,v] = (0,0)
+    sta u:sta u+1
+    sta v:sta v+1
+    sta offset:sta offset+1
+
+    lda #LO(col_loop)
+    sta writeptr
+    lda #HI(col_loop)
+    sta writeptr+1
+
+    ldx #ROT_ROWS
+
+    .row_loop
+
+    lda offset
+    ldy #1
+    sta (writeptr), Y       ; SELF-MOD ldy #offset_LO
+
+    \\ u+=dudy
+    \\ v+=dvdy
+
+    clc
+    lda u+0
+    adc dudy+0
+    sta u+0
+    lda u+1
+    adc dudy+1
+    and #TEX_WIDTH-1
+    sta u+1
+
+    clc
+    lda v+0
+    adc dvdy+0
+    sta v+0
+    lda v+1
+    adc dvdy+1
+    ; Remove this for now as this gets used in a lookup table anyway.
+    ;and #TEX_WIDTH-1
+    sta v+1
+
+    ; Calculate offset into texture for new u,v
+
+    clc
+    ldy v+1                        ; v [0,63]
+    lda v_to_offset_LO, Y
+    adc u+1                        ; u [0,63]
+    sta offset
+    lda v_to_offset_HI, Y
+    adc #0
+
+    IF 0
+    clc
+    ldy v+1                        ; v [0,63]
+    lda v_to_offset_LO, Y
+    adc u+1                        ; u [0,63]
+    lda v_to_offset_HI, Y
+    adc #0
+    ; new offset
+    cmp offset+1
+    beq do_equ
+    bmi do_dec
+    bpl do_inc
+    ;bcs do_inc              ; new_offset>old_offset
+    ;bcc do_dec
+    ELSE
+
+    cmp offset+1            ; new_offset != old_offset?
+    sta offset+1
+    beq do_equ
+    bne do_inc
+    ENDIF
+
+    .do_dec
+    lda #&C6                ; opcode DEC zp
+    bne next_row
+
+    .do_inc
+    lda #&E6                ; opcode INC zp
+    bne next_row
+
+    ; Same
+    .do_equ
+    lda #&A0                ; opcode LDY
+
+    .next_row
+    ldy #4
+    sta (writeptr), Y       ; SELF-MOD ldy #writeptr+1
+
+    clc
+    lda writeptr
+    adc #9
+    sta writeptr
+    bcc no_carry
+    inc writeptr+1
+    .no_carry
+
+    dex
+    bne row_loop
+
+    lda &fe34
+    eor #5                  ; flip displays
+    sta &fe34
+
+    IF _DEBUG_RASTERS
+    lda #PAL_black:sta &fe21
+    ENDIF
+
 	RTS
 }
 
@@ -465,18 +665,95 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 \ A FULL AND VALID 312 line PAL signal before exiting!
 \ ******************************************************************
 
-\\ Limited RVI display top or bottom 4 scanlines per row.
-\\ If going from 0 => 0 set R9=11 then burn 8 scanlines after last scanline.
-\\ If going from 0 => 4 set R9=7  then burn 8 scanlines after last scanline.
-\\ If going from 4 => 4 set R9=11 then burn 8 scanlines after last scanline.
-\\ If going from 4 => 0 set R9=15 then burn 8 scanlines after last scanline.
-\\ R9 = 11 + current offset - next offset.
-\\ <--- 104c total w/ 80c visible and hsync at 98c ---> <3c> <3c> ... <3c> = 128c
-\\ <--- 96c total w/ 80c visible and hsync at 95c ---> <4c> <4c> ... <4c> = 128c
-
-
 .fx_draw_function
 {
+    IF _DEBUG_RASTERS
+    lda #PAL_red:sta &fe21
+    ENDIF
+
+\\ Ignore VRUP stuff for now, just get the rotation code correct first. :)
+
+    ldx #0
+
+    .*col_loop
+    {
+        FOR row,0,ROT_ROWS-1,1
+        ldy #0                      ; 2c        offset MOD 256      **SELF MOD**
+        lda (readptr), Y            ; 5/6c 
+        inc readptr+1               ; 2c or 5c  inc|dec readptr+1   **SELF MOD**
+
+        IF 0
+        sta screen_addr+row*640, X  ; 5c        
+        ELSE
+        y=row*4
+        sta screen_addr+(y DIV 8)*640+(y MOD 8), X  ; 5c
+        ENDIF
+        NEXT
+
+        ; Update [U0,V0] to start of next column.
+        ; Do this full-fat first.
+
+        \\ u+=dudx <> u+=dvdy
+
+        clc                             ; 2c
+        lda U0                          ; 3c
+        adc dvdy+0                      ; 3c
+        sta U0                          ; 3c
+        lda U0+1                        ; 3c
+        adc dvdy+1                      ; 3c
+        sta U0+1                        ; 3c
+        \\ 20c (could save 2c)
+
+        \\ v+=dvdx <> v-=dudy
+        sec
+        lda V0
+        sbc dudy+0                      ; CONST FOR LOOP
+        sta V0
+        lda V0+1
+        sbc dudy+1                      ; CONST FOR LOOP
+        sta V0+1
+        \\ 20c (could save 2c)
+
+        \\ - Calculate readptr (ptr to start of column in texture)
+        tay                             ; v [0,63]
+        clc
+        lda v_to_tex_ptr_LO, Y
+        adc U0+1                        ; u [0,63]
+        sta readptr
+        lda v_to_tex_ptr_HI, Y
+        adc #0
+        sta readptr+1
+        \\ 2+2+4+3+3+4+2+3 = 23c
+
+        \\ TODO: Update R12/R13 every 4 scanlines for VRUP.
+        ;LDA #12: STA &FE00				; 8c
+        ;LDA rot_vram_table_HI, X	    ; 4c
+        ;STA &FE01						; 6c
+
+        ;LDA #13: STA &FE00				; 8c
+        ;LDA rot_vram_table_LO, X	    ; 4c
+        ;STA &FE01						; 6c
+        \\ 36c
+
+        clc                         ; 2c - can remove?
+        txa                         ; 2c
+        adc #8                      ; 2c
+        tax                         ; 2c
+        beq done                    ; 2c    HARDCODED TO 32 COLS
+        jmp col_loop                ; 3c
+
+        \\ Something like 112c overhead per column? :S
+    }
+    .done
+
+    IF _DEBUG_RASTERS
+    lda #PAL_black:sta &fe21
+    ENDIF
+
+    rts
+}
+
+IF 0
 	\\ R4=0, R7=&ff, R6=1, R9=3
 	lda #4:sta &fe00
 	lda #0:sta &fe01
@@ -580,9 +857,6 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	lda #9:sta &fe00
 	lda #3:sta &fe01
 
-    RTS
-}
-
 .update_rot							; 6c
 {
 	\ 4096/4000~=1
@@ -614,6 +888,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	rts								; 6c
 }
 \\ 80c
+ENDIF
 
 \ ******************************************************************
 \ Kill FX
@@ -714,13 +989,14 @@ ENDIF
 }
 
 INCLUDE "lib/disksys.asm"
-.file1 EQUS "1",13
-.file2 EQUS "2",13
+;.file1 EQUS "xor",13
+.file1 EQUS "arrow",13
 
 \ ******************************************************************
 \ *	FX DATA
 \ ******************************************************************
 
+IF 0
 PAGE_ALIGN
 .twister_vram_table_LO
 FOR n,0,31,1
@@ -731,9 +1007,10 @@ NEXT
 FOR n,0,31,1
 EQUB HI((&3000 + n*640)/8)
 NEXT
+ENDIF
 
-PAGE_ALIGN
 IF 0
+PAGE_ALIGN
 .sqrlo256
 FOR n,0,255,1
 s256 = (n * n) DIV 4
@@ -767,10 +1044,113 @@ ENDIF
 \ Having a 12-bit COSINE table means that the smallest increment in
 \ the input (1) results in <= 1 angle output.
 PAGE_ALIGN
-.cos
-FOR n,0,4095,1
-EQUB 255*COS(2*PI*n/4096)
+.cos_LO
+FOR n,0,255,1
+c=INT(256*COS(2*PI*n/256))
+EQUB LO(c)
 NEXT
+
+.cos_HI
+FOR n,0,255,1
+c=INT(256*COS(2*PI*n/256))
+EQUB HI(c)
+NEXT
+
+.sin_LO
+FOR n,0,255,1
+s=INT(256*SIN(2*PI*n/256))
+EQUB LO(s)
+NEXT
+
+.sin_HI
+FOR n,0,255,1
+s=INT(256*SIN(2*PI*n/256))
+EQUB HI(s)
+NEXT
+
+PAGE_ALIGN
+.v_to_tex_ptr_HI
+FOR i,0,255,1
+v=i AND TEX_WIDTH-1
+EQUB HI(xor_texture+v * TEX_WIDTH)
+NEXT
+
+.v_to_tex_ptr_LO
+FOR i,0,255,1
+v=i AND TEX_WIDTH-1
+EQUB LO(xor_texture+v * TEX_WIDTH)
+NEXT
+
+.v_to_offset_HI
+FOR i,0,255,1
+v=i; AND TEX_WIDTH-1
+EQUB HI(v * TEX_WIDTH)
+NEXT
+
+.v_to_offset_LO
+FOR i,0,255,1
+v=i AND TEX_WIDTH-1
+EQUB LO(v * TEX_WIDTH)
+NEXT
+
+x=-ROT_COLS/2       ; tl corner
+y=-ROT_ROWS/2
+
+.tl_corner_U0_LO
+FOR a,0,255,1
+ca=COS(2*PI*a/256)
+sa=SIN(2*PI*a/256)
+u=32+x*ca+y*sa
+v=32-x*sa+y*ca
+U0=INT(256 * u) AND &3FFF       ; TEX_WIDTH HARDCODED TO 64
+V0=INT(256 * v) AND &3FFF       ;
+PRINT a,u,v,U0,V0
+EQUB U0 MOD 256
+NEXT
+
+.tl_corner_U0_HI
+FOR a,0,255,1
+ca=COS(2*PI*a/256)
+sa=SIN(2*PI*a/256)
+u=32+x*ca+y*sa
+v=32-x*sa+y*ca
+U0=INT(256 * u) AND &3FFF       ; TEX_WIDTH HARDCODED TO 64
+V0=INT(256 * v) AND &3FFF       ;
+EQUB U0 DIV 256
+NEXT
+
+.tl_corner_V0_LO
+FOR a,0,255,1
+ca=COS(2*PI*a/256)
+sa=SIN(2*PI*a/256)
+u=32+x*ca+y*sa
+v=32-x*sa+y*ca
+U0=INT(256 * u) AND &3FFF       ; TEX_WIDTH HARDCODED TO 64
+V0=INT(256 * v) AND &3FFF       ;
+EQUB V0 MOD 256
+NEXT
+
+.tl_corner_V0_HI
+FOR a,0,255,1
+ca=COS(2*PI*a/256)
+sa=SIN(2*PI*a/256)
+u=32+x*ca+y*sa
+v=32-x*sa+y*ca
+U0=INT(256 * u) AND &3FFF       ; TEX_WIDTH HARDCODED TO 64
+V0=INT(256 * v) AND &3FFF       ;
+EQUB V0 DIV 256
+NEXT
+
+IF 0
+PAGE_ALIGN
+.xor_texture
+; 64x64=4096 bytes here.
+INCBIN "beebxor.bin"
+; Potentially add a second copy for overflow.
+;INCBIN "beebxor.bin"
+ELSE
+xor_texture=&9000       ; copy to SWRAM
+ENDIF
 
 .data_end
 
@@ -819,3 +1199,5 @@ PUTFILE "SCREEN1_64.BIN", "1", &3000
 PUTFILE "SCREEN2_64.BIN", "2", &3000
 PUTFILE "SCREEN1_old.BIN", "N1", &3000
 PUTFILE "SCREEN2_old.BIN", "N2", &3000
+PUTFILE "beebxor.bin", "XOR", &8000
+PUTFILE "arrow.bin", "ARROW", &8000
