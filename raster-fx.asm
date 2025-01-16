@@ -137,13 +137,10 @@ GUARD &9F
 .u_dash             skip 2
 .v_dash             skip 2
 .DU                 skip 2
-.DV                 skip 2
 .delta_offset       skip 2
 
 .x_pressed          skip 1
 .z_pressed          skip 1
-
-.temp               skip 1
 
 
 \ ******************************************************************
@@ -539,7 +536,7 @@ TEX_WIDTH=64
     .neg_dy
     lda #&C6                ; opcode DEC zp
     .pos_dy
-    sta do_inc+1
+    ;sta do_inc+1
 
     \\ - Calculate U0, V0
     IF 0
@@ -583,77 +580,69 @@ TEX_WIDTH=64
 
     .row_loop
 
-    lda offset
+    lda offset              ; offset_LO
     ldy #1
     sta (writeptr), Y       ; SELF-MOD ldy #offset_LO
 
-    \\ u+=dudy <=> u+=sin(a)/scale
-    \\ v+=dvdy <=> v+=cos(a)/scale
+    \\ Calculate u+=dudy <=> u+=sin(a)/scale
 
     clc
     lda u+0
     adc dudy+0
-    sta u_dash+0
+    sta u+0
     lda u+1
     adc dudy+1
     ;and #TEX_WIDTH-1
-    sta u_dash+1
+    tay                     ; sta u_dash+1
 
-    clc
-    lda v+0
-    adc dvdy+0
-    sta v_dash+0
-    lda v+1
-    adc dvdy+1
-    ; Remove this for now as this gets used in a lookup table anyway.
-    ;and #TEX_WIDTH-1
-    sta v_dash+1
-
-    IF 0
-    ; Calculate offset into texture for new u,v
-
-    clc
-    ldy v+1                        ; v [0,63]
-    lda v_to_offset_LO, Y
-    adc u+1                        ; u [0,63]
-    sta offset
-    lda v_to_offset_HI, Y
-    adc #0
-
-    cmp offset+1            ; new_offset != old_offset?
-    sta offset+1
-    beq do_equ
-    bne do_inc
-    ELSE
+    ; Calculate integer DU.
+    ; Q: Is this just dudy + Carry?
 
     sec
-    lda u_dash+1
     sbc u+1
-    sta DU+1
-    
-    sec
-    lda v_dash+1
-    sbc v+1
-    sta DV+1
+    sta DU+0
+    sty u+1                 ; lda u_dash+1:sta u+1
 
-    ; Calculate delta offset for DU,DV.
+    ; Sign extend DU.       [-128,127]
 
-    lda DU+1
     asl a                   ; top bit in C
     lda #0
     sbc #0                  ; C=1 => A=0
                             ; C=0 => A=&ff
     eor #&ff
-    sta temp    
+    sta DU+1                ; &0 or &ff
+
+    \\ Calculate v+=dvdy <=> v+=cos(a)/scale
 
     clc
-    ldy DV+1
+    lda v+0
+    adc dvdy+0
+    sta v+0
+    lda v+1
+    adc dvdy+1
+    ; Remove this for now as this gets used in a lookup table anyway.
+    ;and #TEX_WIDTH-1
+    tay                     ; sta v_dash+1
+
+    ; Calculate integer DV.
+    ; Q: Is this just dvdy + Carry?
+
+    sec
+    sbc v+1
+    sty v+1                 ; lda v_dash+1:sta v+1
+    tay                     ; sta DV+1
+
+    ; Calculate address offset for integer DU,DV.
+
+    clc
     lda v_to_offset_LO, Y
-    adc DU+1                ; somehow want to sign extend this?
+    adc DU+0
     sta delta_offset
     lda v_to_offset_HI, Y
-    adc temp
+    adc DU+1                ; sign extended
     sta delta_offset+1
+
+    ; Calculate new address offset.
 
     clc
     lda offset
@@ -664,31 +653,26 @@ TEX_WIDTH=64
     cmp offset+1
     sta offset+1
 
+    ; Have we crossed a page?
+
     beq do_equ
     bpl do_inc
 
-    ENDIF
-
-    .do_dec                 ; NOT USED
+    .do_dec
     lda #&C6                ; opcode DEC zp
-    bne next_row
-
-    ; Same
-    .do_equ
-    lda #&A0                ; opcode LDY
     bne next_row
 
     .do_inc
     lda #&E6                ; opcode INC zp
+    bne next_row
+
+    ; Same page
+    .do_equ
+    lda #&A0                ; opcode LDY
 
     .next_row
     ldy #4
     sta (writeptr), Y       ; SELF-MOD ldy #writeptr+1
-
-    lda u_dash+0:sta u+0
-    lda u_dash+1:sta u+1
-    lda v_dash+0:sta v+0
-    lda v_dash+1:sta v+1
 
     clc
     lda writeptr
@@ -699,8 +683,7 @@ TEX_WIDTH=64
     .no_carry
 
     dex
-    beq done_loop
-    jmp row_loop
+    bne row_loop
     .done_loop
 
     lda &fe34
