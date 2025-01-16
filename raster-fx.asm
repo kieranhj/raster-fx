@@ -2,8 +2,9 @@
 \ *	RASTER FX FRAMEWORK
 \ ******************************************************************
 
-_DEBUG_RASTERS=0
-_PRESS_SPACE=1
+_DEBUG_RASTERS=1
+_PRESS_KEY=1
+_FILL_NOT_COPY=0
 
 \ ******************************************************************
 \ *	OS defines
@@ -133,7 +134,17 @@ GUARD &9F
 .U0                 skip 2          ; [u,v] coordinates in top-left of screen.
 .V0                 skip 2
 
-.space_pressed      skip 1
+.u_dash             skip 2
+.v_dash             skip 2
+.DU                 skip 2
+.DV                 skip 2
+.delta_offset       skip 2
+
+.x_pressed          skip 1
+.z_pressed          skip 1
+
+.temp               skip 1
+
 
 \ ******************************************************************
 \ *	CODE START
@@ -296,11 +307,16 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	JSR osbyte
 	STX escape_pressed
 
-    IF _PRESS_SPACE
+    IF _PRESS_KEY
 	LDA #&79
-	LDX #(&62 EOR &80)      ; SPACE
+	LDX #(&42 EOR &80)      ; X
 	JSR osbyte
-    STX space_pressed
+    STX x_pressed
+
+	LDA #&79
+	LDX #(&61 EOR &80)      ; Z
+	JSR osbyte
+    STX z_pressed
     ENDIF
 
 	\\ FX update callback here!
@@ -442,11 +458,16 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
     ; Select SWRAM bank 4
     lda #4:sta &f4:sta &fe30
     ; A=read from PAGE, X=write to page, Y=#pages
-    ;lda #HI(&3000):ldx #HI(xor_texture-&1000):ldy #HI(&1000): jsr disksys_copy_block
-    lda #&03:ldx #HI(xor_texture-&1000):ldy #HI(&1000): jsr memfill
     lda #HI(&3000):ldx #HI(xor_texture):ldy #HI(&1000): jsr disksys_copy_block
-    ;lda #HI(&3000):ldx #HI(xor_texture+&1000):ldy #HI(&1000): jsr disksys_copy_block
+
+    IF _FILL_NOT_COPY
+    lda #&03:ldx #HI(xor_texture-&1000):ldy #HI(&1000): jsr memfill
     lda #&30:ldx #HI(xor_texture+&1000):ldy #HI(&1000): jsr memfill
+    ELSE
+    lda #HI(&3000):ldx #HI(xor_texture-&1000):ldy #HI(&1000): jsr disksys_copy_block
+    lda #HI(&3000):ldx #HI(xor_texture+&1000):ldy #HI(&1000): jsr disksys_copy_block
+    ENDIF
+
     lda #12
     jsr oswrch              ; cls
 
@@ -476,7 +497,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 \ be late and your raster timings will be wrong!
 \ ******************************************************************
 
-ROT_ROWS=50
+ROT_ROWS=32
 ROT_COLS=32     ; for now, will be 50
 TEX_WIDTH=64
 
@@ -488,13 +509,19 @@ TEX_WIDTH=64
 
     \\ - Update rotation angle.
     ldx rot_angle
-    IF _PRESS_SPACE
-    lda space_pressed
-    bpl no_space
+    IF _PRESS_KEY
+    lda x_pressed
+    bpl no_x
     ENDIF
     inx
+    .no_x
+    IF _PRESS_KEY
+    lda z_pressed
+    bpl no_z
+    dex
+    ENDIF
+    .no_z
     stx rot_angle
-    .no_space
 
     \\ - Calculate du,dv
     lda sin_LO, X                  ; dudy = sin(a)
@@ -521,6 +548,7 @@ TEX_WIDTH=64
     sta U0:sta U0+1
     sta V0:sta V0+1
     ELSE
+    ldx rot_angle
     ; Lookup so texture rotates around (32,32)
     lda tl_corner_U0_LO, X:sta U0
     lda tl_corner_U0_HI, X:sta U0+1
@@ -540,9 +568,11 @@ TEX_WIDTH=64
 
     \\ - Calculate texture read offset per column and poke in. 
     lda #0                          ; always starts at [u,v] = (0,0)
+    sta offset
     sta u:sta u+1
-    sta v:sta v+1
-    sta offset:sta offset+1
+    sta v:
+    lda #0:sta v+1
+    lda #0:sta offset+1
 
     lda #LO(col_loop)
     sta writeptr
@@ -557,28 +587,29 @@ TEX_WIDTH=64
     ldy #1
     sta (writeptr), Y       ; SELF-MOD ldy #offset_LO
 
-    \\ u+=dudy
-    \\ v+=dvdy
+    \\ u+=dudy <=> u+=sin(a)/scale
+    \\ v+=dvdy <=> v+=cos(a)/scale
 
     clc
     lda u+0
     adc dudy+0
-    sta u+0
+    sta u_dash+0
     lda u+1
     adc dudy+1
-    and #TEX_WIDTH-1
-    sta u+1
+    ;and #TEX_WIDTH-1
+    sta u_dash+1
 
     clc
     lda v+0
     adc dvdy+0
-    sta v+0
+    sta v_dash+0
     lda v+1
     adc dvdy+1
     ; Remove this for now as this gets used in a lookup table anyway.
     ;and #TEX_WIDTH-1
-    sta v+1
+    sta v_dash+1
 
+    IF 0
     ; Calculate offset into texture for new u,v
 
     clc
@@ -589,43 +620,75 @@ TEX_WIDTH=64
     lda v_to_offset_HI, Y
     adc #0
 
-    IF 0
-    clc
-    ldy v+1                        ; v [0,63]
-    lda v_to_offset_LO, Y
-    adc u+1                        ; u [0,63]
-    lda v_to_offset_HI, Y
-    adc #0
-    ; new offset
-    cmp offset+1
-    beq do_equ
-    bmi do_dec
-    bpl do_inc
-    ;bcs do_inc              ; new_offset>old_offset
-    ;bcc do_dec
-    ELSE
-
     cmp offset+1            ; new_offset != old_offset?
     sta offset+1
     beq do_equ
     bne do_inc
+    ELSE
+
+    sec
+    lda u_dash+1
+    sbc u+1
+    sta DU+1
+    
+    sec
+    lda v_dash+1
+    sbc v+1
+    sta DV+1
+
+    ; Calculate delta offset for DU,DV.
+
+    lda DU+1
+    asl a                   ; top bit in C
+    lda #0
+    sbc #0                  ; C=1 => A=0
+                            ; C=0 => A=&ff
+    eor #&ff
+    sta temp    
+
+    clc
+    ldy DV+1
+    lda v_to_offset_LO, Y
+    adc DU+1                ; somehow want to sign extend this?
+    sta delta_offset
+    lda v_to_offset_HI, Y
+    adc temp
+    sta delta_offset+1
+
+    clc
+    lda offset
+    adc delta_offset
+    sta offset
+    lda offset+1
+    adc delta_offset+1
+    cmp offset+1
+    sta offset+1
+
+    beq do_equ
+    bpl do_inc
+
     ENDIF
 
-    .do_dec
+    .do_dec                 ; NOT USED
     lda #&C6                ; opcode DEC zp
-    bne next_row
-
-    .do_inc
-    lda #&E6                ; opcode INC zp
     bne next_row
 
     ; Same
     .do_equ
     lda #&A0                ; opcode LDY
+    bne next_row
+
+    .do_inc
+    lda #&E6                ; opcode INC zp
 
     .next_row
     ldy #4
     sta (writeptr), Y       ; SELF-MOD ldy #writeptr+1
+
+    lda u_dash+0:sta u+0
+    lda u_dash+1:sta u+1
+    lda v_dash+0:sta v+0
+    lda v_dash+1:sta v+1
 
     clc
     lda writeptr
@@ -636,7 +699,9 @@ TEX_WIDTH=64
     .no_carry
 
     dex
-    bne row_loop
+    beq done_loop
+    jmp row_loop
+    .done_loop
 
     lda &fe34
     eor #5                  ; flip displays
@@ -1083,13 +1148,21 @@ NEXT
 
 .v_to_offset_HI
 FOR i,0,255,1
-v=i; AND TEX_WIDTH-1
+IF i>128
+v=-(256-i)
+ELSE
+v=i
+ENDIF
 EQUB HI(v * TEX_WIDTH)
 NEXT
 
 .v_to_offset_LO
 FOR i,0,255,1
-v=i AND TEX_WIDTH-1
+IF i>128
+v=-(256-i)
+ELSE
+v=i
+ENDIF
 EQUB LO(v * TEX_WIDTH)
 NEXT
 
