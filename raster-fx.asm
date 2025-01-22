@@ -99,7 +99,7 @@ disksys_loadto_addr = &3000
 FramePeriod = 312*64-2
 
 ; Calculate here the timer value to interrupt at the desired line
-TimerValue = 32*64 - 2*64 - 2 - 22 - 9 + 8
+TimerValue = 32*64 - 2*64 - 2 - 22 - 9 + 8 - 64
 
 \\ 40 lines for vblank
 \\ 32 lines for vsync (vertical position = 35 / 39)
@@ -690,6 +690,14 @@ TEX_WIDTH=64
     eor #5                  ; flip displays
     sta &fe34
 
+        LDA #12: STA &FE00				; 8c
+        LDA rot_vram_table_HI	    ; 4c
+        STA &FE01						; 6c
+
+        LDA #13: STA &FE00				; 8c
+        LDA rot_vram_table_LO	    ; 4c
+        STA &FE01						; 6c
+
     IF _DEBUG_RASTERS
     lda #PAL_black:sta &fe21
     ENDIF
@@ -715,9 +723,30 @@ TEX_WIDTH=64
 
 .fx_draw_function
 {
+    \\ R9=0 - character row = 1 scanline
+	LDA #9: STA &FE00
+	LDA #0:	STA &FE01
+
+	\\ R4=0 - CRTC cycle is one row
+	LDA #4: STA &FE00
+	LDA #0: STA &FE01
+
+	\\ R7=&FF - no vsync
+	LDA #7:	STA &FE00
+	LDA #&FF: STA &FE01
+
+	\\ R6=1 - one row displayed
+	LDA #6: STA &FE00
+	LDA #1: STA &FE01
+
     IF _DEBUG_RASTERS
     lda #PAL_red:sta &fe21
     ENDIF
+
+    lda dvdy+0:sta add_dvdy0+1
+    lda dudy+0:sta sub_dudy0+1
+    lda dvdy+1:sta add_dvdy1+1
+    lda dudy+1:sta sub_dudy1+1
 
 \\ Ignore VRUP stuff for now, just get the rotation code correct first. :)
 
@@ -730,13 +759,36 @@ TEX_WIDTH=64
         lda (readptr), Y            ; 5/6c 
         inc readptr+1               ; 2c or 5c  inc|dec readptr+1   **SELF MOD**
 
-        IF 0
+        IF 1
         sta screen_addr+row*640, X  ; 5c        
         ELSE
         y=row*4
         sta screen_addr+(y DIV 8)*640+(y MOD 8), X  ; 5c
         ENDIF
         NEXT
+
+        \\ Min per byte = 2+5+2+5 = 14c | per column = 420c
+        \\ Max per byte = 2+6+5+5 = 18c | per column = 540c
+        \\ Expected 2+5.5+0.75*2+0.25*5+5=~15.25c | per column = ~457.5c
+        \\ Plus overhead of 108c. :S      [528c, 648c]
+
+        \\ Need to use linear addressing?
+        \\ No reason why we have to have 4 scanlines. :) Can we get to 640c = 5 scanlines?
+        \\ Max 652-4=648c
+
+        \\ Or overplot bytes, so 4x STA screen, X
+        \\ Min per byte = 2+5+2+20 = 29c | per column = 870c
+        \\ Max per byte = 2+6+5+20 = 33c | per column = 990c
+        \\ Expected 2+5.5+0.75*2+0.25*5+20=~30.25c | per column = ~907.5c
+
+        \\ Time number of columns (50 target) => 45375 > 1 frame.
+        \\ Max 44 columns less the per frame overheads.
+        \\ Can't really get past 32x32. :S
+        \\ Might be able to do 50x30 plotting alternate scanlines. ~30375c
+
+        \\ To do VRUP we'd need to have a whole different approach to
+        \\ interrupts, i.e. we'd have to run with them on and stop every
+        \\ N scanlines to update R12,R13 in a minimal handler.
 
         ; Update [U0,V0] to start of next column.
         ; Do this full-fat first.
@@ -745,22 +797,30 @@ TEX_WIDTH=64
 
         clc                             ; 2c
         lda U0                          ; 3c
-        adc dvdy+0                      ; 3c
+        .^add_dvdy0
+        adc #0                          ; 2c
+        ;adc dvdy+0                      ; 3c
         sta U0                          ; 3c
         lda U0+1                        ; 3c
-        adc dvdy+1                      ; 3c
+        .^add_dvdy1
+        adc #0                          ; 2c
+        ;adc dvdy+1                      ; 3c
         sta U0+1                        ; 3c
-        \\ 20c (could save 2c)
+        \\ 18c
 
         \\ v+=dvdx <> v-=dudy
         sec
         lda V0
-        sbc dudy+0                      ; CONST FOR LOOP
+        .^sub_dudy0
+        sbc #0                          ; 2c
+        ;sbc dudy+0                      ; CONST FOR LOOP
         sta V0
         lda V0+1
-        sbc dudy+1                      ; CONST FOR LOOP
+        .^sub_dudy1
+        sbc #0                          ; 2c
+        ;sbc dudy+1                      ; CONST FOR LOOP
         sta V0+1
-        \\ 20c (could save 2c)
+        \\ 18c
 
         \\ - Calculate readptr (ptr to start of column in texture)
         tay                             ; v [0,63]
@@ -773,21 +833,22 @@ TEX_WIDTH=64
         sta readptr+1
         \\ 2+2+4+3+3+4+2+3 = 23c
 
-        \\ TODO: Update R12/R13 every 4 scanlines for VRUP.
-        ;LDA #12: STA &FE00				; 8c
-        ;LDA rot_vram_table_HI, X	    ; 4c
-        ;STA &FE01						; 6c
-
-        ;LDA #13: STA &FE00				; 8c
-        ;LDA rot_vram_table_LO, X	    ; 4c
-        ;STA &FE01						; 6c
-        \\ 36c
-
         clc                         ; 2c - can remove?
         txa                         ; 2c
         adc #8                      ; 2c
         tax                         ; 2c
         beq done                    ; 2c    HARDCODED TO 32 COLS
+
+        \\ TODO: Update R12/R13 every 5 scanlines for VRUP.
+        LDA #12: STA &FE00				; 8c
+        LDA rot_vram_table_HI, X	    ; 4c
+        STA &FE01						; 6c
+
+        LDA #13: STA &FE00				; 8c
+        LDA rot_vram_table_LO, X	    ; 4c
+        STA &FE01						; 6c
+        \\ 36c
+
         jmp col_loop                ; 3c
 
         \\ Something like 112c overhead per column? :S
@@ -797,6 +858,26 @@ TEX_WIDTH=64
     IF _DEBUG_RASTERS
     lda #PAL_black:sta &fe21
     ENDIF
+
+    \\ Loops 32 times x approx 5 scanlines per loop = scanline 160 (if we're lucky :)
+    \\ Wait until scanline 255.
+    ldx #254-144:JSR cycles_wait_scanlines
+
+	\\ R9=7 - character row = 8 scanlines
+	LDA #9: STA &FE00
+	LDA #1-1:	STA &FE01		; 1 scanline
+
+	\\ R4=6 - CRTC cycle is 32 + 7 more rows = 312 scanlines
+	LDA #4: STA &FE00
+	LDA #56-1+1: STA &FE01		; 312 - 256 = 56 scanlines
+
+	\\ R7=3 - vsync is at row 35 = 280 scanlines
+	LDA #7:	STA &FE00
+	LDA #24+1: STA &FE01			; 280 - 256 = 24 scanlines
+
+	\\ R6=1 - got to display just one row
+	LDA #6: STA &FE00
+	LDA #1: STA &FE01
 
     rts
 }
@@ -1044,18 +1125,18 @@ INCLUDE "lib/disksys.asm"
 \ *	FX DATA
 \ ******************************************************************
 
-IF 0
 PAGE_ALIGN
-.twister_vram_table_LO
-FOR n,0,31,1
-EQUB LO((&3000 + n*640)/8)
+.rot_vram_table_LO
+FOR n,0,255,1
+x=n DIV 8
+EQUB LO((&3000 + x*640)/8)
 NEXT
 
-.twister_vram_table_HI
-FOR n,0,31,1
-EQUB HI((&3000 + n*640)/8)
+.rot_vram_table_HI
+FOR n,0,255,1
+x=n DIV 8
+EQUB HI((&3000 + x*640)/8)
 NEXT
-ENDIF
 
 IF 0
 PAGE_ALIGN
