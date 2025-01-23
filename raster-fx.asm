@@ -6,6 +6,8 @@ _DEBUG_RASTERS=0
 _PRESS_KEY=1
 _FILL_NOT_COPY=0
 _LINEAR_MODE=1
+_OLD_OFFSET=0               ; simpler broken with negative du/dv values.
+                            ; but the more complicated solution still isn't right
 
 \ ******************************************************************
 \ *	OS defines
@@ -565,7 +567,9 @@ TEX_WIDTH=64
     .neg_dy
     lda #&C6                ; opcode DEC zp
     .pos_dy
-    ;sta do_inc+1
+    IF _OLD_OFFSET
+    sta do_inc+1
+    ENDIF
 
     \\ - Calculate U0, V0
     IF 0
@@ -624,6 +628,37 @@ TEX_WIDTH=64
     ;and #TEX_WIDTH-1
     tay                     ; sta u_dash+1
 
+    IF _OLD_OFFSET
+    sta u+1
+    
+    ; OLD ==> Calculate offset into texture for new u,v
+
+    \\ Calculate v+=dvdy <=> v+=cos(a)/scale
+
+    clc
+    lda v+0
+    adc dvdy+0
+    sta v+0
+    lda v+1
+    adc dvdy+1
+    ; Remove this for now as this gets used in a lookup table anyway.
+    ;and #TEX_WIDTH-1
+    tay                     ; sta v_dash+1
+
+    sta v+1                        ; v [0,63]
+    clc
+    lda v_to_offset_LO, Y
+    adc u+1                        ; u [0,63]
+    sta offset
+    lda v_to_offset_HI, Y
+    adc #0
+
+    cmp offset+1            ; new_offset != old_offset?
+    sta offset+1
+    beq do_equ
+    bne do_inc
+
+    ELSE
     ; Calculate integer DU.
     ; Q: Is this just dudy + Carry?
 
@@ -686,6 +721,7 @@ TEX_WIDTH=64
 
     beq do_equ
     bpl do_inc
+    ENDIF
 
     .do_dec
     lda #&C6                ; opcode DEC zp
@@ -985,8 +1021,8 @@ ENDIF
 }
 
 INCLUDE "lib/disksys.asm"
-;.file1 EQUS "xor",13
-.file1 EQUS "arrow",13
+.file1 EQUS "xor",13
+;.file1 EQUS "arrow",13
 
 \ ******************************************************************
 \ *	FX DATA
@@ -1077,6 +1113,19 @@ v=i AND TEX_WIDTH-1
 EQUB LO(xor_texture+v * TEX_WIDTH)
 NEXT
 
+IF _OLD_OFFSET
+.v_to_offset_HI
+FOR i,0,255,1
+v=i; AND TEX_WIDTH-1
+EQUB HI(v * TEX_WIDTH)
+NEXT
+
+.v_to_offset_LO
+FOR i,0,255,1
+v=i AND TEX_WIDTH-1
+EQUB LO(v * TEX_WIDTH)
+NEXT
+ELSE
 .v_to_offset_HI
 FOR i,0,255,1
 IF i>128
@@ -1096,6 +1145,7 @@ v=i
 ENDIF
 EQUB LO(v * TEX_WIDTH)
 NEXT
+ENDIF
 
 x=-ROT_COLS/2       ; tl corner
 y=-ROT_ROWS/2
