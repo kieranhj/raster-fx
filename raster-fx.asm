@@ -2,9 +2,10 @@
 \ *	RASTER FX FRAMEWORK
 \ ******************************************************************
 
-_DEBUG_RASTERS=1
+_DEBUG_RASTERS=0
 _PRESS_KEY=1
 _FILL_NOT_COPY=0
+_LINEAR_MODE=1
 
 \ ******************************************************************
 \ *	OS defines
@@ -142,6 +143,8 @@ GUARD &9F
 .x_pressed          skip 1
 .z_pressed          skip 1
 
+.col_count          skip 1
+
 
 \ ******************************************************************
 \ *	CODE START
@@ -183,8 +186,24 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	LDA #22
 	JSR oswrch
+
+    IF _LINEAR_MODE
+	LDA #5
+	JSR oswrch
+
+    lda #&C0
+    sta &fe20   ; MODE 8?
+
+	LDX #15
+	.palloop
+	LDA palette, X
+	STA &FE21
+	DEX
+	BPL palloop
+    ELSE
 	LDA #2
 	JSR oswrch
+    ENDIF
 
 	\\ Turn off cursor
 
@@ -476,6 +495,16 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
     ora #1                  ; display SHADOW + write MAIN
     sta &fe34
 
+    IF _LINEAR_MODE
+	LDX #13
+	.loop
+	STX &FE00
+	LDA crtc_regs_linear,X
+	STA &FE01
+	DEX
+	BPL loop
+    ENDIF
+
 	RTS
 }
 
@@ -721,6 +750,9 @@ TEX_WIDTH=64
 
 \\ Ignore VRUP stuff for now, just get the rotation code correct first. :)
 
+    lda #ROT_COLS
+    sta col_count
+
     ldx #0
 
     .*col_loop
@@ -730,8 +762,13 @@ TEX_WIDTH=64
         lda (readptr), Y            ; 5/6c 
         inc readptr+1               ; 2c or 5c  inc|dec readptr+1   **SELF MOD**
 
-        IF 0
-        sta screen_addr+row*640, X  ; 5c        
+        IF _LINEAR_MODE
+        sta &7C00+row*32, X         ; linear
+        ; First row &7C00, &7C41, &7C02, &7C43...
+        ; Second    &7C20, &7C61, &7C22, &7C63...
+        ;           &7C40, &7C01, &7C42, &7C03
+        ;           &7C60, &7C21, &7C62, &7C23
+        ;           &7C80, &7CC1, &7C82, &7CC3
         ELSE
         y=row*4
         sta screen_addr+(y DIV 8)*640+(y MOD 8), X  ; 5c
@@ -783,11 +820,16 @@ TEX_WIDTH=64
         ;STA &FE01						; 6c
         \\ 36c
 
-        clc                         ; 2c - can remove?
-        txa                         ; 2c
-        adc #8                      ; 2c
-        tax                         ; 2c
-        beq done                    ; 2c    HARDCODED TO 32 COLS
+        IF _LINEAR_MODE
+        inx
+        ELSE
+        clc
+        txa
+        adc #8
+        tax
+        ENDIF
+        dec col_count
+        beq done                    ; 2c
         jmp col_loop                ; 3c
 
         \\ Something like 112c overhead per column? :S
@@ -800,143 +842,6 @@ TEX_WIDTH=64
 
     rts
 }
-
-IF 0
-	\\ R4=0, R7=&ff, R6=1, R9=3
-	lda #4:sta &fe00
-	lda #0:sta &fe01
-
-	lda #7:sta &fe00
-	lda #7:sta &fe01
-
-	lda #6:sta &fe00
-	lda #1:sta &fe01
-
-	lda #9:sta &fe00
-	lda #3:sta &fe01
-
-	lda #62:sta row_count
-	\\ 52c
-
-	WAIT_CYCLES 50
-
-	\\ Row 0
-	ldx #2:jsr cycles_wait_scanlines
-
-	jsr update_rot
-	lsr a
-	jsr set_rot:sta &fe34
-
-	\\ Want to get to:
-	\\ a = SIN(t * a + y * b)
-	\\ PICO-8 example: a = COS(t/300 + y/2000)
-
-	\\ Rows 1-30
-	.char_row_loop
-	{
-		ldx #2								; 2c
-		jsr cycles_wait_scanlines			; 256c
-
-		lda #9:sta &fe00					; 8c
-
-		jsr update_rot						; 47c
-		sta temp							; 3c
-
-		\\ Bottom bit * 4
-		and #1:asl a: asl a					; 6c
-		tax									; 2c
-		eor #&ff							; 2c
-		clc									; 2c
-		adc #11								; 2c
-		adc prev_offset						; 3c
-		sta &fe01							; 6c
-		stx prev_offset						; 3c
-		\\ 26c
-
-		\\ Sets R12,R13 + SHADOW
-		lda temp							; 3c
-		lsr a								; 2c
-		jsr set_rot							; 80c
-		tay									; 2c
-
-		\\ Set R0=95. (96c)
-		lda #0:sta &fe00					; 8c <= 7c
-		lda #95:sta &fe01					; 8c
-
-		WAIT_CYCLES 16
-
-		\\ At HCC=96 set R0=3.
-		.here
-		lda #3:sta &fe01					; 8c
-
-		\\ Burn 8 scanlines = 4x8c = 32c
-		lda #127							; 2c
-		sty &fe34							; 4c
-		WAIT_CYCLES 20
-		\\ At HCC=0 set R0=127
-		sta &fe01							; 6c
-		\\ <== start of new scanline here
-
-		NOP									; 2c
-		DEC row_count						; 5c
-		BEQ done							; 2c
-		JMP char_row_loop					; 3c
-		.done
-	}
-
-	\\ R4=6 - CRTC cycle is 32 + 7 more rows = 312 scanlines
-	LDA #4: STA &FE00
-	LDA #14: STA &FE01			; 312 - 256 = 56 scanlines
-
-	\\ If prev_offset=4 then R9=7
-	\\ If prev_offset=0 then R9=3
-	{
-		lda #9:sta &fe00
-		clc
-		lda #3
-		adc prev_offset
-		sta &fe01
-	}
-
-	\\ Row 31
-	ldx #4:jsr cycles_wait_scanlines
-
-	\\ R9=3
-	lda #9:sta &fe00
-	lda #3:sta &fe01
-
-.update_rot							; 6c
-{
-	\ 4096/4000~=1
-	clc:lda yb:adc #2:sta yb		; 10c
-	lda yb+1:adc #0:and #15:sta yb+1	; 10c
-	clc:adc #HI(cos):sta load+2		; 8c
-	ldy yb							; 3c
-	.load
-	lda cos,Y						; 4c
-	rts								; 6c
-}
-\\ 47c
-
-.set_rot
-{
-	AND #&3F:tax		; 0-63		; 4c
-	and #&1f:TAY		; 0-31		; 4c
-
-	LDA #12: STA &FE00				; 8c
-	LDA twister_vram_table_HI, Y	; 4c
-	STA &FE01						; 6c
-
-	LDA #13: STA &FE00				; 8c
-	LDA twister_vram_table_LO, Y	; 4c
-	STA &FE01						; 6c
-	
-	txa:lsr a:lsr a:lsr a:lsr a:lsr a:sta temp	; main/shadow ; 15c
-	lda &fe34:and #&fe:ora temp		; 9c
-	rts								; 6c
-}
-\\ 80c
-ENDIF
 
 \ ******************************************************************
 \ Kill FX
@@ -969,6 +874,11 @@ ENDIF
 	STA &FE01
 	DEX
 	BPL loop
+
+    IF _LINEAR_MODE
+    lda #&F4
+    sta &FE20
+    ENDIF
 
 	RTS
 }
@@ -1034,6 +944,44 @@ ENDIF
 	EQUB 8					; R11 cursor end
 	EQUB HI(screen_addr/8)	; R12 screen start address, high
 	EQUB LO(screen_addr/8)	; R13 screen start address, low
+}
+
+.crtc_regs_linear
+{
+	EQUB 63 				; R0  horizontal total
+	EQUB 32					; R1  horizontal displayed
+	EQUB 49					; R2  horizontal position
+	EQUB &24				; R3  sync width 40 = &28
+	EQUB 38;77					; R4  vertical total
+	EQUB 0					; R5  vertical total adjust
+	EQUB 32					; R6  vertical displayed
+	EQUB 35;70					; R7  vertical position; 35=top of screen
+	EQUB &0					; R8  interlace; &30 = HIDE SCREEN
+	EQUB 7;3					; R9  scanlines per row
+	EQUB 32					; R10 cursor start
+	EQUB 8					; R11 cursor end
+	EQUB HI(&2800)	; R12 screen start address, high
+	EQUB LO(&2800)	; R13 screen start address, low
+}
+
+.palette
+{
+	EQUB &00 + PAL_black
+	EQUB &10 + PAL_red
+	EQUB &20 + PAL_green
+	EQUB &30 + PAL_yellow
+	EQUB &40 + PAL_blue
+	EQUB &50 + PAL_magenta
+	EQUB &60 + PAL_cyan
+	EQUB &70 + PAL_white
+	EQUB &80 + PAL_black
+	EQUB &90 + PAL_red
+	EQUB &A0 + PAL_green
+	EQUB &B0 + PAL_yellow
+	EQUB &C0 + PAL_blue
+	EQUB &D0 + PAL_magenta
+	EQUB &E0 + PAL_cyan
+	EQUB &F0 + PAL_white
 }
 
 INCLUDE "lib/disksys.asm"
