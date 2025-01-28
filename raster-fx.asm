@@ -3,11 +3,14 @@
 \ ******************************************************************
 
 _DEBUG_RASTERS=0
-_PRESS_KEY=1
+_PRESS_KEY=0
 _FILL_NOT_COPY=0
 _LINEAR_MODE=1
 _OLD_OFFSET=0               ; simpler broken with negative du/dv values.
                             ; but the more complicated solution still isn't right
+_ZOOM_OUT=0                 ; d values * 2
+_ZOOM_IN=0                  ; d values / 2
+_ZOOM_BAKED=1
 
 \ ******************************************************************
 \ *	OS defines
@@ -561,6 +564,33 @@ TEX_WIDTH=64
     lda cos_HI, X                  ; dvdy = cos(a)
     sta dvdy+1
 
+    IF _ZOOM_OUT
+    clc
+    rol dudy+0
+    rol dudy+1
+    clc
+    rol dvdy+0
+    rol dvdy+1
+    ENDIF
+
+    IF _ZOOM_IN
+    clc
+    lda dudy+1
+    bpl pos_du
+    sec
+    .pos_du
+    ror dudy+1
+    ror dudy+0
+
+    clc
+    lda dvdy+1
+    bpl pos_dv
+    sec
+    .pos_dv
+    ror dvdy+1
+    ror dvdy+0
+    ENDIF
+
     bmi neg_dy
     lda #&E6                ; opcode INC zp
     bne pos_dy
@@ -1021,8 +1051,8 @@ ENDIF
 }
 
 INCLUDE "lib/disksys.asm"
-.file1 EQUS "xor",13
-;.file1 EQUS "arrow",13
+;.file1 EQUS "xor",13
+.file1 EQUS "arrow",13
 
 \ ******************************************************************
 \ *	FX DATA
@@ -1078,25 +1108,45 @@ ENDIF
 PAGE_ALIGN
 .cos_LO
 FOR n,0,255,1
-c=INT(256*COS(2*PI*n/256))
+IF _ZOOM_BAKED
+r=1.25 + 0.75*SIN(2*PI*n/256)
+ELSE
+r=1
+ENDIF
+c=INT(256*COS(2*PI*n/256)*r)
 EQUB LO(c)
 NEXT
 
 .cos_HI
 FOR n,0,255,1
-c=INT(256*COS(2*PI*n/256))
+IF _ZOOM_BAKED
+r=1.25 + 0.75*SIN(2*PI*n/256)
+ELSE
+r=1
+ENDIF
+c=INT(256*COS(2*PI*n/256)*r)
 EQUB HI(c)
 NEXT
 
 .sin_LO
 FOR n,0,255,1
-s=INT(256*SIN(2*PI*n/256))
+IF _ZOOM_BAKED
+r=1.25 + 0.75*SIN(2*PI*n/256)
+ELSE
+r=1
+ENDIF
+s=INT(256*SIN(2*PI*n/256)*r)
 EQUB LO(s)
 NEXT
 
 .sin_HI
 FOR n,0,255,1
-s=INT(256*SIN(2*PI*n/256))
+IF _ZOOM_BAKED
+r=1.25 + 0.75*SIN(2*PI*n/256)
+ELSE
+r=1
+ENDIF
+s=INT(256*SIN(2*PI*n/256)*r)
 EQUB HI(s)
 NEXT
 
@@ -1152,10 +1202,15 @@ y=-ROT_ROWS/2
 
 .tl_corner_U0_LO
 FOR a,0,255,1
+IF _ZOOM_BAKED
+r=1.25 + 0.75*SIN(2*PI*a/256)
+ELSE
+r=1
+ENDIF
 ca=COS(2*PI*a/256)
 sa=SIN(2*PI*a/256)
-u=32+x*ca+y*sa
-v=32-x*sa+y*ca
+u=32+x*ca*r+y*sa*r
+v=32-x*sa*r+y*ca*r
 U0=INT(256 * u) AND &3FFF       ; TEX_WIDTH HARDCODED TO 64
 V0=INT(256 * v) AND &3FFF       ;
 PRINT a,u,v,U0,V0
@@ -1164,10 +1219,15 @@ NEXT
 
 .tl_corner_U0_HI
 FOR a,0,255,1
+IF _ZOOM_BAKED
+r=1.25 + 0.75*SIN(2*PI*a/256)
+ELSE
+r=1
+ENDIF
 ca=COS(2*PI*a/256)
 sa=SIN(2*PI*a/256)
-u=32+x*ca+y*sa
-v=32-x*sa+y*ca
+u=32+x*ca*r+y*sa*r
+v=32-x*sa*r+y*ca*r
 U0=INT(256 * u) AND &3FFF       ; TEX_WIDTH HARDCODED TO 64
 V0=INT(256 * v) AND &3FFF       ;
 EQUB U0 DIV 256
@@ -1175,10 +1235,15 @@ NEXT
 
 .tl_corner_V0_LO
 FOR a,0,255,1
+IF _ZOOM_BAKED
+r=1.25 + 0.75*SIN(2*PI*a/256)
+ELSE
+r=1
+ENDIF
 ca=COS(2*PI*a/256)
 sa=SIN(2*PI*a/256)
-u=32+x*ca+y*sa
-v=32-x*sa+y*ca
+u=32+x*ca*r+y*sa*r
+v=32-x*sa*r+y*ca*r
 U0=INT(256 * u) AND &3FFF       ; TEX_WIDTH HARDCODED TO 64
 V0=INT(256 * v) AND &3FFF       ;
 EQUB V0 MOD 256
@@ -1186,10 +1251,15 @@ NEXT
 
 .tl_corner_V0_HI
 FOR a,0,255,1
+IF _ZOOM_BAKED
+r=1.25 + 0.75*SIN(2*PI*a/256)
+ELSE
+r=1
+ENDIF
 ca=COS(2*PI*a/256)
 sa=SIN(2*PI*a/256)
-u=32+x*ca+y*sa
-v=32-x*sa+y*ca
+u=32+x*ca*r+y*sa*r
+v=32-x*sa*r+y*ca*r
 U0=INT(256 * u) AND &3FFF       ; TEX_WIDTH HARDCODED TO 64
 V0=INT(256 * v) AND &3FFF       ;
 EQUB V0 DIV 256
