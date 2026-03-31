@@ -95,7 +95,7 @@ disksys_loadto_addr = &3000
 FramePeriod = 312*64-2
 
 ; Calculate here the timer value to interrupt at the desired line
-TimerValue = 32*64 - 2*64 - 2 - 22 - 9 + 8
+TimerValue = 32*64 - 2*64 - 2 - 22 - 9
 
 \\ 40 lines for vblank
 \\ 32 lines for vsync (vertical position = 35 / 39)
@@ -103,6 +103,9 @@ TimerValue = 32*64 - 2*64 - 2 - 22 - 9 + 8
 \\ 2 us for latch
 \\ XX us to fire the timer before the start of the scanline so first colour set on column -1
 \\ YY us for code that executes after timer interupt fires
+
+PALETTE_SIZE=16+128*9
+PALETTE_ADDR=HI(screen_addr-PALETTE_SIZE)*&100
 
 \ ******************************************************************
 \ *	ZERO PAGE
@@ -165,7 +168,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	LDA #22
 	JSR oswrch
-	LDA #0
+	LDA #1
 	JSR oswrch
 
 	\\ Turn off cursor
@@ -173,8 +176,8 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #10: STA &FE00
 	LDA #32: STA &FE01
 
-	lda #2:sta &fe00
-	lda #95:sta &fe01
+	;lda #2:sta &fe00
+	;lda #95:sta &fe01
 
 	\\ Initialise system modules here!
 
@@ -411,12 +414,19 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 	\ Ensure MAIN RAM is writeable
     LDA &FE34:AND #&FB:STA &FE34
-	ldx #LO(file1):ldy #HI(file1):lda #HI(&3000):jsr disksys_load_file
+	ldx #LO(file1):ldy #HI(file1):lda #HI(screen_addr):jsr disksys_load_file
+	ldx #LO(file2):ldy #HI(file2):lda #HI(PALETTE_ADDR):jsr disksys_load_file
+
+    \ Copy up.
+;    lda #LO(screen_addr):sta writeptr
+;    lda #HI(screen_addr):sta writeptr+1
+;    ldx #LO(SCREEN_BASE):lda #HI(SCREEN_BASE):ldy #HI(SCREEN_SIZE_BYTES):jsr copy_block_not_page_aligned
+
 	\ Ensure SHADOW RAM is writeable
-    LDA &FE34:ORA #&4:STA &FE34
-	ldx #LO(file2):ldy #HI(file2):lda #HI(&3000):jsr disksys_load_file
+    ;LDA &FE34:ORA #&4:STA &FE34
+	;ldx #LO(file2):ldy #HI(file2):lda #HI(&3000):jsr disksys_load_file
 	\ Ensure MAIN RAM is writeable
-    LDA &FE34:AND #&FB:STA &FE34
+    ;LDA &FE34:AND #&FB:STA &FE34
 
 	RTS
 }
@@ -438,14 +448,14 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_update_function
 {
-	clc
-	lda ta:adc #12:sta ta					\ a=4096/600~=6
-	lda ta+1:adc #0:and #15:sta ta+1		\ 4096 byte table
-	lda ta:sta yb:lda ta+1:sta yb+1
-	jsr update_rot
-	lsr a
-	jsr set_rot:sta &fe34
-	lda #0:sta prev_offset
+    \ Set initial palette.
+    ldx #15
+.loop
+    lda PALETTE_ADDR, X
+    sta &FE21
+    dex
+    bpl loop
+
 	RTS
 }
 
@@ -477,6 +487,83 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
 .fx_draw_function
 {
+    \\ Enters at scanline 0, char 0.
+
+
+IF 1
+    \\ Set initial palette if before scanline 0?
+    \\ Loops of two scanlines x 128.
+    \\ Read 9 palette entries and write into hblank code.
+    \\ Wait for hblank.
+    \\ Write 9 palette entries.
+
+    WAIT_CYCLES 3
+
+    \\ Row loop.
+    ldx #0                          ; 2c
+.loop
+    ; <== 5c
+
+    jsr cycles_wait_128             ; 128c
+
+    ; <== 5c
+    WAIT_CYCLES 7
+    ; <== 12c
+
+    lda PALETTE_ADDR+16+2*128, X        ; 4c
+    sta load2+1                         ; 4c
+    lda PALETTE_ADDR+16+3*128, X        ; 4c
+    sta load3+1                         ; 4c
+    lda PALETTE_ADDR+16+4*128, X        ; 4c
+    sta load4+1                         ; 4c
+    lda PALETTE_ADDR+16+5*128, X        ; 4c
+    sta load5+1                         ; 4c
+    lda PALETTE_ADDR+16+6*128, X        ; 4c
+    sta load6+1                         ; 4c
+    lda PALETTE_ADDR+16+7*128, X        ; 4c
+    sta load7+1                         ; 4c
+    lda PALETTE_ADDR+16+8*128, X        ; 4c
+    sta load8+1                         ; 4c
+    lda PALETTE_ADDR+16+0*128, X        ; 4c
+    ldy PALETTE_ADDR+16+1*128, X        ; 4c
+  
+    ; <== +16*4= 12+64c = 76c
+
+    sta &FE21                       ; 4c
+    ; <== LAND THIS WRITE ON 80c
+    sty &FE21                       ; 4c
+    .load2
+    lda #0                          ; 2c
+    sta &FE21                       ; 4c
+    .load3
+    lda #0                          ; 2c
+    sta &FE21                       ; 4c
+    .load4
+    lda #0                          ; 2c
+    sta &FE21                       ; 4c
+    .load5
+    lda #0                          ; 2c
+    sta &FE21                       ; 4c
+    .load6
+    lda #0                          ; 2c
+    sta &FE21                       ; 4c
+    .load7
+    lda #0                          ; 2c
+    sta &FE21                       ; 4c
+    .load8
+    lda #0                          ; 2c
+    sta &FE21                       ; 4c
+
+    ; <== +46 = 126c
+
+    inx                             ; 2c
+
+    ; 128c = 0c
+
+    cpx #128                      ; 2c
+    bne loop                        ; 3c
+
+ELSE
 	\\ R4=0, R7=&ff, R6=1, R9=3
 	lda #4:sta &fe00
 	lda #0:sta &fe01
@@ -579,6 +666,7 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	\\ R9=3
 	lda #9:sta &fe00
 	lda #3:sta &fe01
+ENDIF
 
     RTS
 }
@@ -714,8 +802,8 @@ ENDIF
 }
 
 INCLUDE "lib/disksys.asm"
-.file1 EQUS "1",13
-.file2 EQUS "2",13
+.file1 EQUS "PIC",13
+.file2 EQUS "PAL",13
 
 \ ******************************************************************
 \ *	FX DATA
@@ -813,9 +901,7 @@ PRINT "------"
 \ *	Any other files for the disc
 \ ******************************************************************
 
-PUTBASIC "circle.bas", "Circle"
-PUTFILE "screen.bin", "Screen", &3000
-PUTFILE "SCREEN1_64.BIN", "1", &3000
-PUTFILE "SCREEN2_64.BIN", "2", &3000
-PUTFILE "SCREEN1_old.BIN", "N1", &3000
-PUTFILE "SCREEN2_old.BIN", "N2", &3000
+;PUTFILE "parrpic.bin", "PIC", &3000
+;PUTFILE "parrpal.bin", "PAL", &2B00
+PUTFILE "palsearch/duckpic.bin", "PIC", &3000
+PUTFILE "palsearch/duckpal.bin", "PAL", &2B00
