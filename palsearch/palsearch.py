@@ -60,10 +60,6 @@ BYTES_PER_ROW  = 80   # SCREEN_W // 4 pixels-per-byte
 INV_GAMMA = 1.7       # inverse gamma applied to input pixels
 BORDER    = 0.1       # fraction of range reserved at top and bottom
 
-# Bayer 2×2 dither offsets, indexed as [dy*2 + dx].
-# Matching OCaml: let offset = [| -96; 32; 96; -32 |].(dy * 2 + dx)
-BAYER_OFFSETS = [-96, 32, 96, -32]
-
 
 # ── BBC colour utilities ──────────────────────────────────────────────────────
 
@@ -118,6 +114,81 @@ def quad_rgb_distance(q1, q2) -> float:
     return total
 
 
+# ── Mixes table (matches OCaml mixes()) ──────────────────────────────────────
+
+def _rgb01(col):
+    """BBC colour 0-7 → (r,g,b) each 0 or 1 (OCaml rgb_of_col)."""
+    return col & 1, (col >> 1) & 1, (col >> 2) & 1
+
+def _intensity01(r, g, b):
+    """Perceptual intensity for r,g,b ∈ {0,1} (OCaml intensity)."""
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+def _build_mixes():
+    """
+    Build the 125-entry mixes table matching OCaml mixes().
+
+    Each entry corresponds to one of the 125 quantised (r/52, g/52, b/52)
+    RGB buckets and holds a list of (variance, [c0,c1,c2,c3]) tuples sorted
+    by variance ascending.  The four colours in each tuple are ordered
+    brightest-to-darkest.
+
+    Deduplication matches OCaml: entries with the same sorted colour list
+    (regardless of original ordering) appear only once per bucket.
+    """
+    buckets = [dict() for _ in range(125)]   # key: sorted-cols tuple → var
+
+    for c1 in range(8):
+        for c2 in range(c1, 8):
+            for c3 in range(c2, 8):
+                for c4 in range(c3, 8):
+                    cols = [c1, c2, c3, c4]
+                    intensities = [_intensity01(*_rgb01(c)) for c in cols]
+                    rv = sum(_rgb01(c)[0] for c in cols)
+                    gv = sum(_rgb01(c)[1] for c in cols)
+                    bv = sum(_rgb01(c)[2] for c in cols)
+                    idx = bv * 25 + gv * 5 + rv
+                    mean = sum(intensities) / 4
+                    var  = sum((i - mean) ** 2 for i in intensities) / 4
+                    # Sort descending by intensity (OCaml: compare i2 i1)
+                    sorted_cols = tuple(
+                        c for c, _ in sorted(zip(cols, intensities),
+                                             key=lambda p: -p[1]))
+                    if sorted_cols not in buckets[idx]:
+                        buckets[idx][sorted_cols] = var
+
+    result = []
+    for bucket in buckets:
+        entries = sorted(((var, list(cols)) for cols, var in bucket.items()),
+                         key=lambda e: e[0])
+        result.append(entries)
+    return result
+
+_MIXES_TABLE = _build_mixes()
+
+# Bayer position (dy*2+dx) → index into the descending-intensity colour list.
+# Matches OCaml: let offset = [| 0; 3; 2; 1 |]
+_DITHER2_POS = [0, 3, 2, 1]
+
+
+def ordered_dither_2(x: int, y: int, r: int, g: int, b: int, mixno: int = 0) -> int:
+    """
+    Colour-aware 2×2 ordered dither (matches OCaml ordered_dither_2).
+
+    Quantises (r,g,b) into a 5-level bucket, selects a 4-BBC-colour
+    combination from the precomputed mixes table that averages to that bucket,
+    then returns the colour for spatial position (x,y) using the Bayer pattern
+    applied to the descending-intensity-sorted colour list.
+    """
+    r5  = r // 52
+    g5  = g // 52
+    b5  = b // 52
+    idx = b5 * 25 + g5 * 5 + r5
+    bucket = _MIXES_TABLE[idx]
+    _, col_list = bucket[min(mixno, len(bucket) - 1)]
+    return col_list[_DITHER2_POS[(y & 1) * 2 + (x & 1)]]
+
+
 # ── Image preprocessing ───────────────────────────────────────────────────────
 
 def preprocess_pixel(r: int, g: int, b: int):
@@ -135,7 +206,12 @@ def preprocess_pixel(r: int, g: int, b: int):
 
 def dither_section_ordered(img: np.ndarray, section: int):
     """
-    Bayer 2×2 ordered dither for 2 rows of section.
+    Colour-aware ordered dither for 2 rows of section using the mixes table.
+
+    Matches the OCaml default 'ordered' mode (ordered_dither_2, mixno=0).
+    Each pixel is mapped to a 5-level RGB bucket; a 4-BBC-colour combination
+    is selected from the precomputed mixes table and assigned to spatial
+    positions via a Bayer pattern over the sorted colour list.
 
     Returns a list of 160 quads in screen order:
     [row0_byte0, …, row0_byte79, row1_byte0, …, row1_byte79].
@@ -149,11 +225,7 @@ def dither_section_ordered(img: np.ndarray, section: int):
                 x = bp * 4 + p
                 pr, pg, pb = preprocess_pixel(
                     int(img[y, x, 0]), int(img[y, x, 1]), int(img[y, x, 2]))
-                off = BAYER_OFFSETS[(y & 1) * 2 + (x & 1)]
-                col = closest_colour(
-                    max(0, min(255, pr + off)),
-                    max(0, min(255, pg + off)),
-                    max(0, min(255, pb + off)))
+                col = ordered_dither_2(x, y, pr, pg, pb)
                 pix.append(col)
             quads.append(tuple(pix))
     return quads
