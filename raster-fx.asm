@@ -489,8 +489,6 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 {
     \\ Enters at scanline 0, char 0.
 
-
-IF 1
     \\ Set initial palette if before scanline 0?
     \\ Loops of two scanlines x 128.
     \\ Read 9 palette entries and write into hblank code.
@@ -562,111 +560,6 @@ IF 1
 
     cpx #128                      ; 2c
     bne loop                        ; 3c
-
-ELSE
-	\\ R4=0, R7=&ff, R6=1, R9=3
-	lda #4:sta &fe00
-	lda #0:sta &fe01
-
-	lda #7:sta &fe00
-	lda #7:sta &fe01
-
-	lda #6:sta &fe00
-	lda #1:sta &fe01
-
-	lda #9:sta &fe00
-	lda #3:sta &fe01
-
-	lda #62:sta row_count
-	\\ 52c
-
-	WAIT_CYCLES 50
-
-	\\ Row 0
-	ldx #2:jsr cycles_wait_scanlines
-
-	jsr update_rot
-	lsr a
-	jsr set_rot:sta &fe34
-
-	\\ Want to get to:
-	\\ a = SIN(t * a + y * b)
-	\\ PICO-8 example: a = COS(t/300 + y/2000)
-
-	\\ Rows 1-30
-	.char_row_loop
-	{
-		ldx #2								; 2c
-		jsr cycles_wait_scanlines			; 256c
-
-		lda #9:sta &fe00					; 8c
-
-		jsr update_rot						; 47c
-		sta temp							; 3c
-
-		\\ Bottom bit * 4
-		and #1:asl a: asl a					; 6c
-		tax									; 2c
-		eor #&ff							; 2c
-		clc									; 2c
-		adc #11								; 2c
-		adc prev_offset						; 3c
-		sta &fe01							; 6c
-		stx prev_offset						; 3c
-		\\ 26c
-
-		\\ Sets R12,R13 + SHADOW
-		lda temp							; 3c
-		lsr a								; 2c
-		jsr set_rot							; 80c
-		tay									; 2c
-
-		\\ Set R0=95. (96c)
-		lda #0:sta &fe00					; 8c <= 7c
-		lda #95:sta &fe01					; 8c
-
-		WAIT_CYCLES 16
-
-		\\ At HCC=96 set R0=3.
-		.here
-		lda #3:sta &fe01					; 8c
-
-		\\ Burn 8 scanlines = 4x8c = 32c
-		lda #127							; 2c
-		sty &fe34							; 4c
-		WAIT_CYCLES 20
-		\\ At HCC=0 set R0=127
-		sta &fe01							; 6c
-		\\ <== start of new scanline here
-
-		NOP									; 2c
-		DEC row_count						; 5c
-		BEQ done							; 2c
-		JMP char_row_loop					; 3c
-		.done
-	}
-
-	\\ R4=6 - CRTC cycle is 32 + 7 more rows = 312 scanlines
-	LDA #4: STA &FE00
-	LDA #14: STA &FE01			; 312 - 256 = 56 scanlines
-
-	\\ If prev_offset=4 then R9=7
-	\\ If prev_offset=0 then R9=3
-	{
-		lda #9:sta &fe00
-		clc
-		lda #3
-		adc prev_offset
-		sta &fe01
-	}
-
-	\\ Row 31
-	ldx #4:jsr cycles_wait_scanlines
-
-	\\ R9=3
-	lda #9:sta &fe00
-	lda #3:sta &fe01
-ENDIF
 
     RTS
 }
@@ -903,5 +796,11 @@ PRINT "------"
 
 ;PUTFILE "parrpic.bin", "PIC", &3000
 ;PUTFILE "parrpal.bin", "PAL", &2B00
-PUTFILE "palsearch/duckpic.bin", "PIC", &3000
-PUTFILE "palsearch/duckpal.bin", "PAL", &2B00
+;PUTFILE "palsearch/duckpic.bin", "PIC", &3000
+;PUTFILE "palsearch/duckpal.bin", "PAL", &2B00
+PUTFILE "palsearch/frogpic.bin", "PIC", &3000
+PUTFILE "palsearch/frogpal.bin", "PAL", &2B00
+;PUTFILE "palsearch/pyduckpic.bin", "PIC", &3000
+;PUTFILE "palsearch/pyduckpal.bin", "PAL", &2B00
+;PUTFILE "testpic.bin", "PIC", &3000
+;PUTFILE "testpal.bin", "PAL", &2B00
