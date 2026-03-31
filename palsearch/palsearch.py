@@ -386,7 +386,8 @@ def screen_offset(section: int, byte_in_section: int) -> int:
 # ── Main pipeline ─────────────────────────────────────────────────────────────
 
 def process_image(png_path: str, output_path: str,
-                  dither: str = 'ordered', verbose: bool = True):
+                  dither: str = 'ordered', verbose: bool = True,
+                  preview_path: str = None):
     """
     Load a PNG, resize to 320×256, run the palsearch algorithm for all 128
     sections, and write the output binary.
@@ -394,6 +395,10 @@ def process_image(png_path: str, output_path: str,
     Output layout:
         Bytes 0–1167  : palette data (16-byte initial + 9*128 delta bytes)
         Bytes 1168+   : 20480 bytes of BBC screen data
+
+    If preview_path is given, also write a 320×256 PNG showing the actual
+    colours that will appear on the BBC (i.e. after palette solve and
+    best-effort fallback, not the dithered input).
     """
     # Load and resize
     img = Image.open(png_path).convert('RGB')
@@ -408,6 +413,9 @@ def process_image(png_path: str, output_path: str,
 
     previous_palette = None
     fs_err = np.zeros((3, SCREEN_W), dtype=float)   # FS error diffusion state
+
+    # Preview buffer: RGB pixels at native 320×256
+    preview_arr = np.zeros((SCREEN_H, SCREEN_W, 3), dtype=np.uint8) if preview_path else None
 
     for section in range(NUM_SECTIONS):
         if verbose:
@@ -430,12 +438,23 @@ def process_image(png_path: str, output_path: str,
         palette, matched, besteffort = find_palette_for_section(
             sorted_quads, previous_palette, verbose=verbose)
 
-        # ── Write screen bytes ─────────────────────────────────────────────────
+        # ── Write screen bytes & preview ───────────────────────────────────────
         for idx, quad in enumerate(quads):
             off = screen_offset(section, idx)
             if off < 20480:
                 bv = matched.get(quad, besteffort.get(quad, 0))
                 screen_bytes[off] = bv
+
+            if preview_arr is not None:
+                # Reconstruct the four pixel colours actually stored
+                actual_quad = lookup_cols(palette,
+                                          matched.get(quad, besteffort.get(quad, 0)))
+                row_in_section = idx // BYTES_PER_ROW
+                bp             = idx  % BYTES_PER_ROW
+                y = section * CHUNKSIZE + row_in_section
+                for p, col in enumerate(actual_quad):
+                    x = bp * 4 + p
+                    preview_arr[y, x] = col_to_rgb(col)
 
         # ── Write palette data ─────────────────────────────────────────────────
         if section == 0:
@@ -476,6 +495,12 @@ def process_image(png_path: str, output_path: str,
         print(f"\nWrote {output_path}: {total} bytes "
               f"({len(output_palettes)} palette + {len(screen_bytes)} screen)")
 
+    # ── Write preview PNG ──────────────────────────────────────────────────────
+    if preview_path is not None:
+        Image.fromarray(preview_arr, 'RGB').save(preview_path)
+        if verbose:
+            print(f"Wrote preview {preview_path}")
+
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
@@ -487,6 +512,7 @@ def main():
 Examples:
     python palsearch.py photo.png -o frog.bin
     python palsearch.py photo.png -o frog.bin -d fs
+    python palsearch.py photo.png -o frog.bin -p preview.png
     python palsearch.py photo.png -o frog.bin -q
 
 The output binary is compatible with showimage.s for playback on BBC Master.
@@ -499,12 +525,15 @@ The output binary is compatible with showimage.s for playback on BBC Master.
                     help=('Dithering method: '
                           'ordered = Bayer 2×2 (default), '
                           'fs = Floyd-Steinberg'))
+    ap.add_argument('-p', '--preview',
+                    help='Write a preview PNG of the converted image')
     ap.add_argument('-q', '--quiet', action='store_true',
                     help='Suppress per-section progress output')
     args = ap.parse_args()
 
     process_image(args.input, args.output,
-                  dither=args.dither, verbose=not args.quiet)
+                  dither=args.dither, verbose=not args.quiet,
+                  preview_path=args.preview)
 
 
 if __name__ == '__main__':
