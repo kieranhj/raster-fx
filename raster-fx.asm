@@ -497,19 +497,19 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
     \\ Wait for hblank.
     \\ Write 9 palette entries.
 
-    WAIT_CYCLES 3
+    WAIT_CYCLES 5
 
     \\ Row loop.
     ldx #0                          ; 2c
 .loop
-    ; <== 5c
+    ; <== 7c
 
 IF CHUNK_SIZE==2
     jsr cycles_wait_128             ; 128c
 
-    ; <== 5c
+    ; <== 7c
     WAIT_CYCLES 7
-    ; <== 12c
+    ; <== 14c
 
     lda PALETTE_ADDR+256+2*128, X       ; 4c
     sta load2+1                         ; 4c
@@ -528,10 +528,10 @@ IF CHUNK_SIZE==2
     lda PALETTE_ADDR+256+0*128, X       ; 4c
     ldy PALETTE_ADDR+256+1*128, X       ; 4c
   
-    ; <== +16*4= 12+64c = 76c
+    ; <== +16*4= 14+64c = 78c
 
     sta &FE21                       ; 4c
-    ; <== LAND THIS WRITE ON 80c
+    ; <== LAND THIS WRITE ON 82c
     sty &FE21                       ; 4c
     .load2
     lda #0                          ; 2c
@@ -555,19 +555,19 @@ IF CHUNK_SIZE==2
     lda #0                          ; 2c
     sta &FE21                       ; 4c
 
-    ; <== +46 = 126c
+    ; <== +46 = 128c
 
     inx                             ; 2c
 
-    ; 128c = 0c
+    ; 130c = 2c
 
     cpx #128                      ; 2c
     bne loop                        ; 3c
 
 ELSE
-    ; <== 5c
+    ; <== 7c
     WAIT_CYCLES 7
-    ; <== 12c
+    ; <== 14c
 
 	; Streams at PALETTE_ADDR+256+N*256: LO=0, so LDA abs,X never crosses a page.
 
@@ -588,10 +588,10 @@ ELSE
     lda PALETTE_ADDR+256+0*256, X       ; 4c
     ldy PALETTE_ADDR+256+1*256, X       ; 4c
   
-    ; <== +16*4= 12+64c = 76c
+    ; <== +16*4= 14+64c = 78c
 
     sta &FE21                       ; 4c
-    ; <== LAND THIS WRITE ON 80c
+    ; <== LAND THIS WRITE ON 82c
     sty &FE21                       ; 4c
     .load2
     lda #0                          ; 2c
@@ -615,11 +615,11 @@ ELSE
     lda #0                          ; 2c
     sta &FE21                       ; 4c
 
-    ; <== +46 = 126c
+    ; <== +46 = 128c
 
     inx                             ; 2c
 
-    ; 128c = 0c
+    ; 130c = 2c
 
     cpx #0                          ; 2c
     bne loop                        ; 3c
@@ -627,38 +627,6 @@ ENDIF
 
     RTS
 }
-
-.update_rot							; 6c
-{
-	\ 4096/4000~=1
-	clc:lda yb:adc #2:sta yb		; 10c
-	lda yb+1:adc #0:and #15:sta yb+1	; 10c
-	clc:adc #HI(cos):sta load+2		; 8c
-	ldy yb							; 3c
-	.load
-	lda cos,Y						; 4c
-	rts								; 6c
-}
-\\ 47c
-
-.set_rot
-{
-	AND #&3F:tax		; 0-63		; 4c
-	and #&1f:TAY		; 0-31		; 4c
-
-	LDA #12: STA &FE00				; 8c
-	LDA twister_vram_table_HI, Y	; 4c
-	STA &FE01						; 6c
-
-	LDA #13: STA &FE00				; 8c
-	LDA twister_vram_table_LO, Y	; 4c
-	STA &FE01						; 6c
-	
-	txa:lsr a:lsr a:lsr a:lsr a:lsr a:sta temp	; main/shadow ; 15c
-	lda &fe34:and #&fe:ora temp		; 9c
-	rts								; 6c
-}
-\\ 80c
 
 \ ******************************************************************
 \ Kill FX
@@ -695,43 +663,6 @@ ENDIF
 	RTS
 }
 
-\\ RTW's fast 8x8 multiply routine (made slower by kieranhj :)
-IF 0
-.mult											; 6c
-{
-	SEC:LDA num1:SBC num2						; 8c
-	BCS positive
-
-	; 2c
-	EOR #255:ADC #1								; 4c
-	jmp continue								; 3c
-
-	.positive
-	; 3c
-	WAIT_CYCLES 6
-
-	.continue
-	TAY:CLC:LDA num1:ADC num2:TAX				; 12c
-	BCS morethan256
-
-	; 2c
-	SEC											; 2c
-	LDA sqrlo256,X:SBC sqrlo256,Y:STA result	; 11c
-	LDA sqrhi256,X:SBC sqrhi256,Y:STA result+1	; 11c
-	jmp exit									; 3c
-
-	.morethan256
-	; 3c
-	LDA sqrlo512,X:SBC sqrlo256,Y:STA result	; 11c
-	LDA sqrhi512,X:SBC sqrhi256,Y:STA result+1	; 11c
-	WAIT_CYCLES 4
-
-	.exit
-	RTS											; 6c
-	\\ 70c fixed
-}
-ENDIF
-
 .fx_end
 
 \ ******************************************************************
@@ -759,6 +690,7 @@ ENDIF
 }
 
 INCLUDE "lib/disksys.asm"
+
 .file1 EQUS "PIC",13
 .file2 EQUS "PAL",13
 
