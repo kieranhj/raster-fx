@@ -32,6 +32,7 @@ Dependencies:
 
 import sys
 import argparse
+import random
 from collections import Counter
 
 import numpy as np
@@ -254,7 +255,7 @@ def preprocess_pixel(r: int, g: int, b: int):
 
 # ── Dithering ─────────────────────────────────────────────────────────────────
 
-def dither_section_ordered(img: np.ndarray, section: int):
+def dither_section_ordered(img: np.ndarray, section: int, randomness: int = 64):
     """
     Colour-aware ordered dither for 2 rows of section using the mixes table.
 
@@ -263,9 +264,19 @@ def dither_section_ordered(img: np.ndarray, section: int):
     is selected from the precomputed mixes table and assigned to spatial
     positions via a Bayer pattern over the sorted colour list.
 
+    randomness (0–255): per-pixel correlated random bias applied before bucket
+    assignment, matching OCaml's -random flag (default 64).  A single random
+    value is drawn per pixel and scaled by perceptual channel weights
+    (R×54/256, G×183/256, B×18/256), then added to the preprocessed colour.
+    Set to 0 to disable.
+
     Returns a list of 160 quads in screen order:
     [row0_byte0, …, row0_byte79, row1_byte0, …, row1_byte79].
     """
+    r_rand = (randomness * 54) // 256
+    g_rand = (randomness * 183) // 256
+    b_rand = (randomness * 18) // 256
+
     quads = []
     for row in range(CHUNKSIZE):
         y = section * CHUNKSIZE + row
@@ -275,6 +286,11 @@ def dither_section_ordered(img: np.ndarray, section: int):
                 x = bp * 4 + p
                 pr, pg, pb = preprocess_pixel(
                     int(img[y, x, 0]), int(img[y, x, 1]), int(img[y, x, 2]))
+                if randomness:
+                    rnd = random.randint(0, 255) - 128
+                    pr = max(0, min(255, pr + (rnd * r_rand) // 256))
+                    pg = max(0, min(255, pg + (rnd * g_rand) // 256))
+                    pb = max(0, min(255, pb + (rnd * b_rand) // 256))
                 col = ordered_dither_2(x, y, pr, pg, pb)
                 pix.append(col)
             quads.append(tuple(pix))
@@ -659,7 +675,7 @@ def _fit_image(img: Image.Image, mode: str) -> Image.Image:
 def process_image(png_path: str, output_path: str,
                   dither: str = 'ordered', verbose: bool = True,
                   preview_path: str = None, solver: str = 'greedy',
-                  resize: str = 'fit'):
+                  resize: str = 'fit', randomness: int = 64):
     """
     Load a PNG, resize to 320×256, run the palsearch algorithm for all 128
     sections, and write the output binary.
@@ -696,7 +712,7 @@ def process_image(png_path: str, output_path: str,
 
         # ── Dither ────────────────────────────────────────────────────────────
         if dither == 'ordered':
-            quads = dither_section_ordered(arr, section)
+            quads = dither_section_ordered(arr, section, randomness=randomness)
         else:
             quads = dither_section_fs(arr, section, fs_err)
 
@@ -812,6 +828,11 @@ The output binary is compatible with showimage.s for playback on BBC Master.
                     help=('Palette solver: '
                           'greedy = fast hill-climbing (default), '
                           'z3 = SMT binary search (requires pip install z3-solver)'))
+    ap.add_argument('--randomness', type=int, default=64, metavar='N',
+                    help=('Per-pixel random bias for ordered dither, 0–255 '
+                          '(default 64, matching OCaml -random 64). '
+                          'Higher values break up flat colour regions more. '
+                          'Use 0 to disable.'))
     ap.add_argument('-q', '--quiet', action='store_true',
                     help='Suppress per-section progress output')
     args = ap.parse_args()
@@ -819,7 +840,7 @@ The output binary is compatible with showimage.s for playback on BBC Master.
     process_image(args.input, args.output,
                   dither=args.dither, verbose=not args.quiet,
                   preview_path=args.preview, solver=args.solver,
-                  resize=args.resize)
+                  resize=args.resize, randomness=args.randomness)
 
 
 if __name__ == '__main__':
