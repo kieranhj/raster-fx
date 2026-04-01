@@ -3,7 +3,7 @@
 palsearch.py  —  Python reimplementation of palsearch.ml
 
 Converts a PNG image to BBC Master Mode 1 screen data with per-2-scanline
-palette changes, using Z3 SMT solver for palette constraint solving.
+palette changes, using a greedy palette solver with numpy-accelerated fallback.
 
 Usage:
     python palsearch.py input.png -o output.bin [-d ordered|fs] [-q]
@@ -27,7 +27,7 @@ Mode 1 ULA bit-extraction (lookup_cols):
     pixel 1 is free, pixel 3 index is (pixel1_index & 7)*2+1.
 
 Dependencies:
-    pip install z3-solver Pillow numpy
+    pip install Pillow numpy
 """
 
 import sys
@@ -43,10 +43,10 @@ except ImportError:
     sys.exit(1)
 
 try:
-    import z3
+    import z3 as _z3_mod
+    _Z3_AVAILABLE = True
 except ImportError:
-    print("ERROR: z3-solver not installed.  Run: pip install z3-solver", file=sys.stderr)
-    sys.exit(1)
+    _Z3_AVAILABLE = False
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -112,6 +112,56 @@ def quad_rgb_distance(q1, q2) -> float:
                   0.7152 * abs(g1 - g2) +
                   0.0722 * abs(b1 - b2))
     return total
+
+
+# ── Precomputed slot→bytes map (used by hill-climbing greedy) ─────────────────
+
+def _compute_slot_bytes():
+    """For each palette slot s, which byte values b reference palette[s]?"""
+    slot_bytes = [set() for _ in range(16)]
+    for b in range(256):
+        byte = b
+        for _ in range(4):
+            idx = (((byte & 0x80) >> 4) |
+                   ((byte & 0x20) >> 3) |
+                   ((byte & 0x08) >> 2) |
+                   ((byte & 0x02) >> 1))
+            slot_bytes[idx].add(b)
+            byte = ((byte << 1) | 1) & 0xFF
+    return [sorted(s) for s in slot_bytes]
+
+_SLOT_BYTES = _compute_slot_bytes()
+
+
+# ── Numpy colour table (used by best-effort vectorised fallback) ───────────────
+
+_BBC_RGB_NP = np.array([[255 if c & 1 else 0,
+                          255 if c & 2 else 0,
+                          255 if c & 4 else 0] for c in range(8)], dtype=np.float32)
+_PERC_WEIGHTS = np.array([0.2126, 0.7152, 0.0722], dtype=np.float32)
+
+
+def _best_effort_numpy(palette, unmatched_quads):
+    """
+    Option B: numpy-vectorised best-effort fallback.
+
+    For each quad in unmatched_quads, find the byte value 0-255 whose
+    lookup_cols result has the smallest perceptual distance to that quad.
+    Replaces the O(256 × n_unmatched) Python loop with numpy operations.
+    """
+    if not unmatched_quads:
+        return {}
+    # (256, 4) — BBC colour index for each byte value × 4 pixels
+    all_arr = np.array([lookup_cols(palette, b) for b in range(256)], dtype=np.int32)
+    # (256, 4, 3) — RGB for each (byte, pixel)
+    all_rgb = _BBC_RGB_NP[all_arr]
+    besteffort = {}
+    for quad in unmatched_quads:
+        quad_rgb = _BBC_RGB_NP[np.array(quad, dtype=np.int32)]   # (4, 3)
+        diffs = np.abs(all_rgb - quad_rgb[np.newaxis, :, :])      # (256, 4, 3)
+        dists = (diffs * _PERC_WEIGHTS).sum(axis=(1, 2))           # (256,)
+        besteffort[quad] = int(np.argmin(dists))
+    return besteffort
 
 
 # ── Mixes table (matches OCaml mixes()) ──────────────────────────────────────
@@ -281,68 +331,105 @@ def dither_section_fs(img: np.ndarray, section: int, err: np.ndarray):
     return quads
 
 
-# ── Z3 palette solver ─────────────────────────────────────────────────────────
+# ── Greedy palette solver (Option A) ──────────────────────────────────────────
 
-def _add_quad_constraint(solver, pal, quad):
+def _greedy_palette(required_quads, previous_palette=None):
     """
-    Add Z3 constraints asserting that quad (c0,c1,c2,c3) is achievable.
+    Option A: hill-climbing greedy palette solver replacing Z3.
 
-    Derivation from ULA bit-extraction coupling:
-        p2_index = (p0_index % 8) * 2 + 1
-        p3_index = (p1_index % 8) * 2 + 1
+    At each of up to CHANGE_PER_ROW budget steps, evaluates every possible
+    single-slot change (16 slots × 7 values = 112 candidates) and applies the
+    one that maximises the number of newly-covered required quads.  Uses
+    _SLOT_BYTES to compute score deltas incrementally (O(~16) affected bytes
+    per candidate) rather than recomputing from scratch.
 
-    So for a given group g in 0..7:
-        idx2 = g*2+1;  p0 index can be g or g+8 (both map to same idx2)
-        idx3 = g*2+1;  p1 index can be g or g+8
-
-    The two constraints are independent (p0/p2 and p1/p3 use separate bit
-    planes of the byte), so they are added as separate OR clauses.
+    Returns (palette, matched_dict).  Never exceeds CHANGE_PER_ROW budget;
+    unmatched quads fall through to best-effort.
     """
-    c0, c1, c2, c3 = quad
+    prev = list(previous_palette) if previous_palette else [0] * 16
+    palette = list(prev)
+    has_budget = previous_palette is not None
+    budget = CHANGE_PER_ROW if has_budget else 16
 
-    alts_02 = []
-    alts_13 = []
-    for g in range(8):
-        idx_odd = g * 2 + 1           # forced-odd palette index (for p2/p3)
-        for idx_free in (g, g + 8):   # two free indices that both map to idx_odd
-            alts_02.append(z3.And(pal[idx_free] == c0, pal[idx_odd] == c2))
-            alts_13.append(z3.And(pal[idx_free] == c1, pal[idx_odd] == c3))
+    required_set = set(required_quads)
+    if not required_set:
+        return palette, {}
 
-    solver.add(z3.Or(*alts_02))
-    solver.add(z3.Or(*alts_13))
+    # Current quad for each byte value, and a coverage counter
+    quads = [lookup_cols(palette, b) for b in range(256)]
+    achievable_cnt = Counter(quads)   # quad → number of bytes producing it
 
+    # Slots already changed from prev (for budget tracking)
+    changed: set = set()
 
-def solve_palette(required_quads, previous_palette=None):
-    """
-    Find a 16-entry BBC palette satisfying all required_quads.
+    for _step in range(budget):
+        cur_score = sum(1 for q in required_set if achievable_cnt[q] > 0)
 
-    previous_palette : list of 16 colours from the previous section, or None.
-                       If given, at least (16 - CHANGE_PER_ROW) entries must
-                       remain unchanged (the OCaml constrain_previous_palette).
+        best_gain  = 0
+        best_slot  = None
+        best_val   = None
 
-    Returns (palette_list, matched_dict) on SAT, or None on UNSAT.
-    matched_dict maps quad → byte_value.
-    """
-    s = z3.Solver()
-    pal = [z3.Int(f'p{i}') for i in range(16)]
-    for p in pal:
-        s.add(p >= 0, p <= 7)
+        for slot in range(16):
+            for val in range(8):
+                if val == palette[slot]:
+                    continue
+                # Budget guard: only count as a change if slot not already changed
+                # and new value differs from prev
+                if has_budget:
+                    if slot not in changed and val != prev[slot]:
+                        if len(changed) >= budget:
+                            continue   # out of budget
 
-    for quad in required_quads:
-        _add_quad_constraint(s, pal, quad)
+                # Compute coverage delta for this candidate change
+                old_slot_val = palette[slot]
+                palette[slot] = val
 
-    if previous_palette is not None:
-        same = [z3.If(pal[i] == int(previous_palette[i]),
-                      z3.IntVal(1), z3.IntVal(0))
-                for i in range(16)]
-        s.add(z3.Sum(same) >= 16 - CHANGE_PER_ROW)
+                delta: dict = {}
+                for b in _SLOT_BYTES[slot]:
+                    old_q = quads[b]
+                    new_q = lookup_cols(palette, b)
+                    if old_q != new_q:
+                        delta[old_q] = delta.get(old_q, 0) - 1
+                        delta[new_q] = delta.get(new_q, 0) + 1
 
-    if s.check() != z3.sat:
-        return None
+                palette[slot] = old_slot_val
 
-    model = s.model()
-    palette = [model[pal[i]].as_long() for i in range(16)]
+                gain = 0
+                for q, d in delta.items():
+                    if q in required_set:
+                        was = achievable_cnt[q] > 0
+                        now = achievable_cnt[q] + d > 0
+                        gain += (1 if now else 0) - (1 if was else 0)
 
+                if gain > best_gain:
+                    best_gain = gain
+                    best_slot = slot
+                    best_val  = val
+
+        if best_slot is None or best_gain <= 0:
+            break   # no improvement possible within budget
+
+        # Apply the best change
+        old_val = palette[best_slot]
+        palette[best_slot] = best_val
+
+        # Update achievable_cnt and quads incrementally
+        for b in _SLOT_BYTES[best_slot]:
+            old_q = quads[b]
+            new_q = lookup_cols(palette, b)
+            if old_q != new_q:
+                achievable_cnt[old_q] -= 1
+                achievable_cnt[new_q]  += 1
+                quads[b] = new_q
+
+        # Track budget
+        if has_budget:
+            if best_slot not in changed and best_val != prev[best_slot]:
+                changed.add(best_slot)
+            elif best_slot in changed and best_val == prev[best_slot]:
+                changed.discard(best_slot)   # reverted to prev
+
+    # Build matched dict
     matched = {}
     for quad in required_quads:
         bv = find_byte_for_quad(palette, quad)
@@ -352,19 +439,66 @@ def solve_palette(required_quads, previous_palette=None):
     return palette, matched
 
 
+# ── Z3 palette solver (legacy, used when --solver z3) ─────────────────────────
+
+def _add_quad_constraint(solver, pal, quad):
+    """Add Z3 constraints asserting that quad (c0,c1,c2,c3) is achievable."""
+    z3 = _z3_mod
+    c0, c1, c2, c3 = quad
+    alts_02, alts_13 = [], []
+    for g in range(8):
+        idx_odd = g * 2 + 1
+        for idx_free in (g, g + 8):
+            alts_02.append(z3.And(pal[idx_free] == c0, pal[idx_odd] == c2))
+            alts_13.append(z3.And(pal[idx_free] == c1, pal[idx_odd] == c3))
+    solver.add(z3.Or(*alts_02))
+    solver.add(z3.Or(*alts_13))
+
+
+def _solve_palette_z3(required_quads, previous_palette=None):
+    """
+    Find a 16-entry BBC palette satisfying all required_quads using Z3.
+
+    Returns (palette_list, matched_dict) on SAT, or None on UNSAT.
+    """
+    z3 = _z3_mod
+    s   = z3.Solver()
+    pal = [z3.Int(f'p{i}') for i in range(16)]
+    for p in pal:
+        s.add(p >= 0, p <= 7)
+    for quad in required_quads:
+        _add_quad_constraint(s, pal, quad)
+    if previous_palette is not None:
+        same = [z3.If(pal[i] == int(previous_palette[i]),
+                      z3.IntVal(1), z3.IntVal(0)) for i in range(16)]
+        s.add(z3.Sum(same) >= 16 - CHANGE_PER_ROW)
+    if s.check() != z3.sat:
+        return None
+    model   = s.model()
+    palette = [model[pal[i]].as_long() for i in range(16)]
+    matched = {}
+    for quad in required_quads:
+        bv = find_byte_for_quad(palette, quad)
+        if bv is not None:
+            matched[quad] = bv
+    return palette, matched
+
+
 # ── Per-section palette search ────────────────────────────────────────────────
 
-def find_palette_for_section(sorted_quads, previous_palette, verbose=True):
+def find_palette_for_section(sorted_quads, previous_palette,
+                              verbose=True, solver='greedy'):
     """
-    Find a palette for this section via binary search, then best-effort fallback.
+    Find a palette for this section.
+
+    solver : 'greedy' (default) — hill-climbing greedy with numpy best-effort
+             'z3'               — Z3 SMT binary search (requires z3-solver)
+
+    Both paths share Option C (early exit when palette is already sufficient)
+    and Option B (numpy-vectorised best-effort for unmatched quads).
 
     sorted_quads : list of (quad, count) sorted by count descending.
     Returns (palette, matched_dict, besteffort_dict).
-
-    Strategy (simplified from OCaml search_down / find_splitpoint):
-      1. Try satisfying all unique quads.
-      2. If UNSAT, binary-search for the longest satisfiable prefix.
-      3. For remaining quads, brute-force the closest achievable quad.
     """
     all_quads = [q for q, _ in sorted_quads]
     n = len(all_quads)
@@ -373,67 +507,86 @@ def find_palette_for_section(sorted_quads, previous_palette, verbose=True):
         palette = list(previous_palette) if previous_palette else [0] * 16
         return palette, {}, {}
 
+    # ── Option C: skip solver if current palette already covers all quads ─────
+    if previous_palette is not None:
+        achievable = {lookup_cols(previous_palette, b) for b in range(256)}
+        if all(q in achievable for q in all_quads):
+            matched = {}
+            for quad in all_quads:
+                bv = find_byte_for_quad(previous_palette, quad)
+                if bv is not None:
+                    matched[quad] = bv
+            if verbose:
+                print(f"    All {n} unique quads achievable (palette unchanged)")
+            return list(previous_palette), matched, {}
+
+    if solver == 'z3':
+        palette, matched, besteffort = _find_palette_z3(
+            all_quads, previous_palette, verbose)
+    else:
+        # ── Option A: greedy hill-climbing solver ─────────────────────────────
+        palette, matched = _greedy_palette(all_quads, previous_palette)
+        unmatched = [q for q in all_quads if q not in matched]
+        if verbose:
+            if unmatched:
+                print(f"    Greedy: {n - len(unmatched)}/{n} quads satisfied; "
+                      f"{len(unmatched)} best-effort")
+            else:
+                print(f"    All {n} unique quads satisfied by greedy")
+        # ── Option B: numpy-vectorised best-effort ────────────────────────────
+        besteffort = _best_effort_numpy(palette, unmatched)
+
+    return palette, matched, besteffort
+
+
+def _find_palette_z3(all_quads, previous_palette, verbose):
+    """Z3 binary-search solver path (mirrors the original OCaml approach)."""
+    if not _Z3_AVAILABLE:
+        raise RuntimeError("z3-solver is not installed.  "
+                           "Run: pip install z3-solver")
+    n = len(all_quads)
+
     # Try satisfying everything first
-    result = solve_palette(all_quads, previous_palette)
+    result = _solve_palette_z3(all_quads, previous_palette)
     if result:
         palette, matched = result
         if verbose:
-            print(f"    All {n} unique quads satisfied")
+            print(f"    Z3: all {n} unique quads satisfied")
         return palette, matched, {}
 
     # Binary search for maximum satisfiable prefix
-    best_result = None
-    best_split  = -1
-
-    # Check that at least the top-1 quad is satisfiable
-    r1 = solve_palette(all_quads[:1], previous_palette)
+    prev_pal = previous_palette
+    r1 = _solve_palette_z3(all_quads[:1], prev_pal)
     if r1 is None:
-        # Continuity constraint is too tight even for 1 quad — drop it
-        r1 = solve_palette(all_quads[:1], None)
+        r1 = _solve_palette_z3(all_quads[:1], None)
         if r1 is None:
-            raise RuntimeError("Single-quad solve failed even without continuity")
+            raise RuntimeError("Single-quad Z3 solve failed even without continuity")
         if verbose:
-            print("    Warning: continuity constraint dropped for 1-quad fallback")
-        previous_palette = None   # drop continuity for the binary search too
+            print("    Z3 warning: continuity constraint dropped for 1-quad fallback")
+        prev_pal = None
 
-    best_result = r1
-    best_split  = 0
-
+    best_result, best_split = r1, 0
     lo, hi = 1, n
     while lo < hi - 1:
         mid = (lo + hi) // 2
         if verbose:
-            print(f"    Binary search {lo}–{hi}: trying {mid+1} quads ...",
+            print(f"    Z3 binary search {lo}–{hi}: trying {mid+1} quads ...",
                   end=' ', flush=True)
-        r = solve_palette(all_quads[:mid + 1], previous_palette)
+        r = _solve_palette_z3(all_quads[:mid + 1], prev_pal)
         if r is not None:
-            if verbose:
-                print("SAT")
-            best_result = r
-            best_split  = mid
+            if verbose: print("SAT")
+            best_result, best_split = r, mid
             lo = mid
         else:
-            if verbose:
-                print("UNSAT")
+            if verbose: print("UNSAT")
             hi = mid
 
     palette, matched = best_result
     if verbose:
-        print(f"    Satisfied {best_split + 1}/{n} unique quads; "
+        print(f"    Z3: satisfied {best_split + 1}/{n} quads; "
               f"{n - best_split - 1} best-effort")
 
-    # Best-effort: for each unsatisfied quad, find the closest achievable byte
-    besteffort = {}
-    for quad in all_quads[best_split + 1:]:
-        best_dist = float('inf')
-        best_bv   = 0
-        for bv in range(256):
-            dist = quad_rgb_distance(quad, lookup_cols(palette, bv))
-            if dist < best_dist:
-                best_dist = dist
-                best_bv   = bv
-        besteffort[quad] = best_bv
-
+    besteffort = _best_effort_numpy(palette, all_quads[best_split + 1:])
     return palette, matched, besteffort
 
 
@@ -459,7 +612,7 @@ def screen_offset(section: int, byte_in_section: int) -> int:
 
 def process_image(png_path: str, output_path: str,
                   dither: str = 'ordered', verbose: bool = True,
-                  preview_path: str = None):
+                  preview_path: str = None, solver: str = 'greedy'):
     """
     Load a PNG, resize to 320×256, run the palsearch algorithm for all 128
     sections, and write the output binary.
@@ -508,7 +661,7 @@ def process_image(png_path: str, output_path: str,
 
         # ── Solve ─────────────────────────────────────────────────────────────
         palette, matched, besteffort = find_palette_for_section(
-            sorted_quads, previous_palette, verbose=verbose)
+            sorted_quads, previous_palette, verbose=verbose, solver=solver)
 
         # ── Write screen bytes & preview ───────────────────────────────────────
         for idx, quad in enumerate(quads):
@@ -585,6 +738,7 @@ Examples:
     python palsearch.py photo.png -o frog.bin
     python palsearch.py photo.png -o frog.bin -d fs
     python palsearch.py photo.png -o frog.bin -p preview.png
+    python palsearch.py photo.png -o frog.bin -s z3
     python palsearch.py photo.png -o frog.bin -q
 
 The output binary is compatible with showimage.s for playback on BBC Master.
@@ -599,13 +753,17 @@ The output binary is compatible with showimage.s for playback on BBC Master.
                           'fs = Floyd-Steinberg'))
     ap.add_argument('-p', '--preview',
                     help='Write a preview PNG of the converted image')
+    ap.add_argument('-s', '--solver', choices=['greedy', 'z3'], default='greedy',
+                    help=('Palette solver: '
+                          'greedy = fast hill-climbing (default), '
+                          'z3 = SMT binary search (requires pip install z3-solver)'))
     ap.add_argument('-q', '--quiet', action='store_true',
                     help='Suppress per-section progress output')
     args = ap.parse_args()
 
     process_image(args.input, args.output,
                   dither=args.dither, verbose=not args.quiet,
-                  preview_path=args.preview)
+                  preview_path=args.preview, solver=args.solver)
 
 
 if __name__ == '__main__':
