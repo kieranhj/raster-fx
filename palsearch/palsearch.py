@@ -608,11 +608,58 @@ def screen_offset(section: int, byte_in_section: int) -> int:
     return row_start + (byte_in_section % 80) * 8 + (byte_in_section // 80)
 
 
+# ── Image resize / crop ───────────────────────────────────────────────────────
+
+def _fit_image(img: Image.Image, mode: str) -> Image.Image:
+    """
+    Resize and/or crop img to exactly SCREEN_W × SCREEN_H.
+
+    mode:
+      'fit'          — scale to fit inside 320×256, preserve aspect ratio,
+                       centre on a black canvas (letterbox / pillarbox).
+      'crop-left'    — scale so height == 256 (may make width > 320),
+                       then discard the left-hand excess.
+      'crop-right'   — same, discard the right-hand excess.
+      'crop-top'     — scale so width == 320 (may make height > 256),
+                       then discard the top excess.
+      'crop-bottom'  — same, discard the bottom excess.
+    """
+    src_w, src_h = img.size
+
+    if mode == 'fit':
+        scale  = min(SCREEN_W / src_w, SCREEN_H / src_h)
+        new_w  = round(src_w * scale)
+        new_h  = round(src_h * scale)
+        scaled = img.resize((new_w, new_h), Image.LANCZOS)
+        canvas = Image.new('RGB', (SCREEN_W, SCREEN_H), (0, 0, 0))
+        canvas.paste(scaled, ((SCREEN_W - new_w) // 2, (SCREEN_H - new_h) // 2))
+        return canvas
+
+    if mode in ('crop-left', 'crop-right'):
+        scale  = SCREEN_H / src_h
+        new_w  = round(src_w * scale)
+        scaled = img.resize((new_w, SCREEN_H), Image.LANCZOS)
+        excess = new_w - SCREEN_W
+        x0     = excess if mode == 'crop-left' else 0
+        return scaled.crop((x0, 0, x0 + SCREEN_W, SCREEN_H))
+
+    if mode in ('crop-top', 'crop-bottom'):
+        scale  = SCREEN_W / src_w
+        new_h  = round(src_h * scale)
+        scaled = img.resize((SCREEN_W, new_h), Image.LANCZOS)
+        excess = new_h - SCREEN_H
+        y0     = excess if mode == 'crop-top' else 0
+        return scaled.crop((0, y0, SCREEN_W, y0 + SCREEN_H))
+
+    raise ValueError(f"Unknown resize mode: {mode!r}")
+
+
 # ── Main pipeline ─────────────────────────────────────────────────────────────
 
 def process_image(png_path: str, output_path: str,
                   dither: str = 'ordered', verbose: bool = True,
-                  preview_path: str = None, solver: str = 'greedy'):
+                  preview_path: str = None, solver: str = 'greedy',
+                  resize: str = 'fit'):
     """
     Load a PNG, resize to 320×256, run the palsearch algorithm for all 128
     sections, and write the output binary.
@@ -625,12 +672,12 @@ def process_image(png_path: str, output_path: str,
     colours that will appear on the BBC (i.e. after palette solve and
     best-effort fallback, not the dithered input).
     """
-    # Load and resize
+    # Load and resize / crop to 320×256
     img = Image.open(png_path).convert('RGB')
     if img.size != (SCREEN_W, SCREEN_H):
         if verbose:
-            print(f"Resizing {img.size} → ({SCREEN_W}×{SCREEN_H})")
-        img = img.resize((SCREEN_W, SCREEN_H), Image.LANCZOS)
+            print(f"Resizing {img.size} → ({SCREEN_W}×{SCREEN_H})  [{resize}]")
+        img = _fit_image(img, resize)
     arr = np.array(img, dtype=np.uint8)
 
     output_palettes = bytearray(16 + CHANGE_PER_ROW * 128)  # 1168 bytes
@@ -753,6 +800,14 @@ The output binary is compatible with showimage.s for playback on BBC Master.
                           'fs = Floyd-Steinberg'))
     ap.add_argument('-p', '--preview',
                     help='Write a preview PNG of the converted image')
+    ap.add_argument('-r', '--resize',
+                    choices=['fit', 'crop-left', 'crop-right',
+                             'crop-top', 'crop-bottom'],
+                    default='fit',
+                    help=('How to fit the input to 320×256: '
+                          'fit = letterbox/pillarbox centred (default); '
+                          'crop-left/right = fill height, crop excess width; '
+                          'crop-top/bottom = fill width, crop excess height'))
     ap.add_argument('-s', '--solver', choices=['greedy', 'z3'], default='greedy',
                     help=('Palette solver: '
                           'greedy = fast hill-climbing (default), '
@@ -763,7 +818,8 @@ The output binary is compatible with showimage.s for playback on BBC Master.
 
     process_image(args.input, args.output,
                   dither=args.dither, verbose=not args.quiet,
-                  preview_path=args.preview, solver=args.solver)
+                  preview_path=args.preview, solver=args.solver,
+                  resize=args.resize)
 
 
 if __name__ == '__main__':
