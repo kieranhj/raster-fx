@@ -673,6 +673,37 @@ def _fit_image(img: Image.Image, mode: str) -> Image.Image:
     raise ValueError(f"Unknown resize mode: {mode!r}")
 
 
+# ── Section 0 palette initialisation ─────────────────────────────────────────
+
+def _initial_palette_from_image(arr: np.ndarray) -> list:
+    """
+    Seed an initial 16-slot palette from the image's dominant BBC colours.
+
+    Preprocesses every pixel (gamma + border clamp), quantises to the nearest
+    BBC colour (0–7), and counts occurrences.  The 8 BBC colours ranked by
+    frequency are then distributed across all 16 palette slots:
+
+        slots[i] = dominant_colours[i % 8]
+
+    This ensures every dominant colour appears in both even and odd slots,
+    giving the greedy solver a much better starting point than all-black.
+    """
+    counts = Counter()
+    for y in range(arr.shape[0]):
+        for x in range(arr.shape[1]):
+            pr, pg, pb = preprocess_pixel(
+                int(arr[y, x, 0]), int(arr[y, x, 1]), int(arr[y, x, 2]))
+            counts[closest_colour(pr, pg, pb)] += 1
+
+    # All 8 colours ranked by frequency; fill any absent colours at the end
+    ranked = [c for c, _ in counts.most_common()]
+    for c in range(8):
+        if c not in ranked:
+            ranked.append(c)
+
+    return [ranked[i % 8] for i in range(16)]
+
+
 # ── Main pipeline ─────────────────────────────────────────────────────────────
 
 def process_image(png_path: str, output_path: str,
@@ -702,7 +733,11 @@ def process_image(png_path: str, output_path: str,
     output_palettes = bytearray(16 + CHANGE_PER_ROW * 128)  # 1168 bytes
     screen_bytes    = bytearray(20480)
 
-    previous_palette = None
+    if verbose:
+        print("Computing initial palette from image dominant colours...")
+    previous_palette = _initial_palette_from_image(arr)
+    if verbose:
+        print(f"  Initial palette: {previous_palette}")
     fs_err = np.zeros((3, SCREEN_W), dtype=float)   # FS error diffusion state
 
     # Preview buffer: RGB pixels at native 320×256
