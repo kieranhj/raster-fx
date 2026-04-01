@@ -349,15 +349,18 @@ def dither_section_fs(img: np.ndarray, section: int, err: np.ndarray):
 
 # ── Greedy palette solver (Option A) ──────────────────────────────────────────
 
-def _greedy_palette(required_quads, previous_palette=None):
+def _greedy_palette(sorted_quads_with_counts, previous_palette=None):
     """
     Option A: hill-climbing greedy palette solver replacing Z3.
 
     At each of up to CHANGE_PER_ROW budget steps, evaluates every possible
     single-slot change (16 slots × 7 values = 112 candidates) and applies the
-    one that maximises the number of newly-covered required quads.  Uses
-    _SLOT_BYTES to compute score deltas incrementally (O(~16) affected bytes
-    per candidate) rather than recomputing from scratch.
+    one that maximises the frequency-weighted coverage of required quads.
+    Using frequency weights (not just distinct-quad count) matches Z3's
+    behaviour of prioritising the most common quads first.
+
+    sorted_quads_with_counts : list of (quad, count) sorted by count descending
+                               (as produced by Counter.most_common()).
 
     Returns (palette, matched_dict).  Never exceeds CHANGE_PER_ROW budget;
     unmatched quads fall through to best-effort.
@@ -367,7 +370,8 @@ def _greedy_palette(required_quads, previous_palette=None):
     has_budget = previous_palette is not None
     budget = CHANGE_PER_ROW if has_budget else 16
 
-    required_set = set(required_quads)
+    freq = {q: cnt for q, cnt in sorted_quads_with_counts}
+    required_set = set(freq)
     if not required_set:
         return palette, {}
 
@@ -379,9 +383,7 @@ def _greedy_palette(required_quads, previous_palette=None):
     changed: set = set()
 
     for _step in range(budget):
-        cur_score = sum(1 for q in required_set if achievable_cnt[q] > 0)
-
-        best_gain  = 0
+        best_gain  = 0.0
         best_slot  = None
         best_val   = None
 
@@ -410,12 +412,13 @@ def _greedy_palette(required_quads, previous_palette=None):
 
                 palette[slot] = old_slot_val
 
-                gain = 0
+                # Weight gain by quad frequency so common quads are prioritised
+                gain = 0.0
                 for q, d in delta.items():
                     if q in required_set:
                         was = achievable_cnt[q] > 0
                         now = achievable_cnt[q] + d > 0
-                        gain += (1 if now else 0) - (1 if was else 0)
+                        gain += freq[q] * ((1 if now else 0) - (1 if was else 0))
 
                 if gain > best_gain:
                     best_gain = gain
@@ -447,7 +450,7 @@ def _greedy_palette(required_quads, previous_palette=None):
 
     # Build matched dict
     matched = {}
-    for quad in required_quads:
+    for quad in required_set:
         bv = find_byte_for_quad(palette, quad)
         if bv is not None:
             matched[quad] = bv
@@ -541,7 +544,7 @@ def find_palette_for_section(sorted_quads, previous_palette,
             all_quads, previous_palette, verbose)
     else:
         # ── Option A: greedy hill-climbing solver ─────────────────────────────
-        palette, matched = _greedy_palette(all_quads, previous_palette)
+        palette, matched = _greedy_palette(sorted_quads, previous_palette)
         unmatched = [q for q in all_quads if q not in matched]
         if verbose:
             if unmatched:
