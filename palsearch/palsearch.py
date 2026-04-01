@@ -115,6 +115,27 @@ def quad_rgb_distance(q1, q2) -> float:
     return total
 
 
+# ── Fast quad achievability check (used by 2-step look-ahead) ────────────────
+
+def _quad_achievable(palette, c0, c1, c2, c3):
+    """
+    Return True if quad (c0,c1,c2,c3) is achievable with the given palette.
+
+    Uses the group structure that mirrors the Z3 constraint encoding:
+      group g (0–7) has odd slot g*2+1 and free slots g and g+8.
+    A quad is achievable iff:
+      ∃ group g1: palette[g1*2+1]=c2 AND (palette[g1]=c0 OR palette[g1+8]=c0)
+      ∃ group g2: palette[g2*2+1]=c3 AND (palette[g2]=c1 OR palette[g2+8]=c1)
+    O(8) — much faster than scanning all 256 byte values.
+    """
+    found1 = any(palette[g*2+1] == c2 and (palette[g] == c0 or palette[g+8] == c0)
+                 for g in range(8))
+    if not found1:
+        return False
+    return any(palette[g*2+1] == c3 and (palette[g] == c1 or palette[g+8] == c1)
+               for g in range(8))
+
+
 # ── Precomputed slot→bytes map (used by hill-climbing greedy) ─────────────────
 
 def _compute_slot_bytes():
@@ -349,19 +370,29 @@ def dither_section_fs(img: np.ndarray, section: int, err: np.ndarray):
 
 # ── Greedy palette solver (Option A) ──────────────────────────────────────────
 
-def _greedy_palette(sorted_quads_with_counts, previous_palette=None):
+_LOOK_AHEAD_K = 3       # top-K unmatched quads considered for 2-step look-ahead
+_LOOK_AHEAD_FACTOR = 1.0  # weight of look-ahead gain relative to direct gain
+
+
+def _greedy_palette(sorted_quads_with_counts, previous_palette=None,
+                    look_ahead=False):
     """
     Option A: hill-climbing greedy palette solver replacing Z3.
 
     At each of up to CHANGE_PER_ROW budget steps, evaluates every possible
     single-slot change (16 slots × 7 values = 112 candidates) and applies the
     one that maximises the frequency-weighted coverage of required quads.
-    Using frequency weights (not just distinct-quad count) matches Z3's
-    behaviour of prioritising the most common quads first.
 
-    sorted_quads_with_counts : list of (quad, count) sorted by count descending
-                               (as produced by Counter.most_common()).
+    Two-step look-ahead: for the top-K highest-frequency unmatched quads,
+    checks whether any follow-up single-slot change (given this step applied)
+    would make the quad achievable.  If so, credits the quad's frequency as a
+    look-ahead bonus.  This prevents the greedy from always choosing orange when
+    a two-change sequence (e.g. odd-slot→7 then free-slot→7) would unlock white.
 
+    Achievability is tested with _quad_achievable() in O(8) using the BBC ULA
+    group structure, so the look-ahead adds only modest overhead per section.
+
+    sorted_quads_with_counts : list of (quad, count) sorted by count descending.
     Returns (palette, matched_dict).  Never exceeds CHANGE_PER_ROW budget;
     unmatched quads fall through to best-effort.
     """
@@ -383,6 +414,22 @@ def _greedy_palette(sorted_quads_with_counts, previous_palette=None):
     changed: set = set()
 
     for _step in range(budget):
+        # Top-K unmatched quads for look-ahead (re-evaluated each step)
+        top_unmatched = sorted(
+            [(q, freq[q]) for q in required_set if achievable_cnt[q] == 0],
+            key=lambda x: -x[1]
+        )[:_LOOK_AHEAD_K]
+
+        # Precompute follow-up candidates per unmatched quad: any (slot, val)
+        # where val is one of the target colours for that quad.  The
+        # achievability check will filter out combinations that don't help.
+        quad_follow_ups: dict = {}
+        for q, _ in top_unmatched:
+            c0, c1, c2, c3 = q
+            targets = {c0, c1, c2, c3}
+            quad_follow_ups[q] = [(s, v) for s in range(16)
+                                  for v in targets if palette[s] != v]
+
         best_gain  = 0.0
         best_slot  = None
         best_val   = None
@@ -410,15 +457,45 @@ def _greedy_palette(sorted_quads_with_counts, previous_palette=None):
                         delta[old_q] = delta.get(old_q, 0) - 1
                         delta[new_q] = delta.get(new_q, 0) + 1
 
-                palette[slot] = old_slot_val
-
-                # Weight gain by quad frequency so common quads are prioritised
+                # Direct gain (frequency-weighted)
                 gain = 0.0
                 for q, d in delta.items():
                     if q in required_set:
                         was = achievable_cnt[q] > 0
                         now = achievable_cnt[q] + d > 0
                         gain += freq[q] * ((1 if now else 0) - (1 if was else 0))
+
+                # 2-step look-ahead: credit quads that a follow-up step could
+                # unlock given this step is applied first.
+                if look_ahead and top_unmatched:
+                    step1_is_new = slot not in changed and val != prev[slot]
+                    budget_after = budget - len(changed) - (1 if step1_is_new else 0)
+
+                    for q, fq in top_unmatched:
+                        # Skip quads already covered by this step
+                        if delta.get(q, 0) > 0:
+                            continue
+                        c0, c1, c2, c3 = q
+                        # Try each follow-up candidate
+                        for s2, v2 in quad_follow_ups[q]:
+                            if s2 == slot:
+                                continue
+                            if palette[s2] == v2:
+                                continue
+                            # Budget guard for the follow-up step
+                            if has_budget:
+                                if s2 not in changed and v2 != prev[s2]:
+                                    if budget_after <= 0:
+                                        continue
+                            old_v2 = palette[s2]
+                            palette[s2] = v2
+                            achievable = _quad_achievable(palette, c0, c1, c2, c3)
+                            palette[s2] = old_v2
+                            if achievable:
+                                gain += fq * _LOOK_AHEAD_FACTOR
+                                break  # one valid follow-up is enough
+
+                palette[slot] = old_slot_val
 
                 if gain > best_gain:
                     best_gain = gain
@@ -506,7 +583,7 @@ def _solve_palette_z3(required_quads, previous_palette=None):
 # ── Per-section palette search ────────────────────────────────────────────────
 
 def find_palette_for_section(sorted_quads, previous_palette,
-                              verbose=True, solver='greedy'):
+                              verbose=True, solver='greedy', look_ahead=False):
     """
     Find a palette for this section.
 
@@ -544,7 +621,8 @@ def find_palette_for_section(sorted_quads, previous_palette,
             all_quads, previous_palette, verbose)
     else:
         # ── Option A: greedy hill-climbing solver ─────────────────────────────
-        palette, matched = _greedy_palette(sorted_quads, previous_palette)
+        palette, matched = _greedy_palette(sorted_quads, previous_palette,
+                                           look_ahead=look_ahead)
         unmatched = [q for q in all_quads if q not in matched]
         if verbose:
             if unmatched:
@@ -709,7 +787,8 @@ def _initial_palette_from_image(arr: np.ndarray) -> list:
 def process_image(png_path: str, output_path: str,
                   dither: str = 'ordered', verbose: bool = True,
                   preview_path: str = None, solver: str = 'greedy',
-                  resize: str = 'fit', randomness: int = 64):
+                  resize: str = 'fit', randomness: int = 64,
+                  look_ahead: bool = False):
     """
     Load a PNG, resize to 320×256, run the palsearch algorithm for all 128
     sections, and write the output binary.
@@ -762,7 +841,8 @@ def process_image(png_path: str, output_path: str,
 
         # ── Solve ─────────────────────────────────────────────────────────────
         palette, matched, besteffort = find_palette_for_section(
-            sorted_quads, previous_palette, verbose=verbose, solver=solver)
+            sorted_quads, previous_palette, verbose=verbose, solver=solver,
+            look_ahead=look_ahead)
 
         # ── Write screen bytes & preview ───────────────────────────────────────
         for idx, quad in enumerate(quads):
@@ -871,6 +951,14 @@ The output binary is compatible with showimage.s for playback on BBC Master.
                           '(default 64, matching OCaml -random 64). '
                           'Higher values break up flat colour regions more. '
                           'Use 0 to disable.'))
+    ap.add_argument('--look-ahead', action='store_true', default=False,
+                    help=('Enable 2-step look-ahead in the greedy solver. '
+                          'For the top-3 highest-frequency unmatched quads, '
+                          'checks whether a follow-up slot change would make '
+                          'the quad achievable and credits that frequency as '
+                          'a bonus. Fixes colours that require two coordinated '
+                          'slot changes (e.g. white duck head). Slower but '
+                          'produces better results for such images.'))
     ap.add_argument('-q', '--quiet', action='store_true',
                     help='Suppress per-section progress output')
     args = ap.parse_args()
@@ -878,7 +966,8 @@ The output binary is compatible with showimage.s for playback on BBC Master.
     process_image(args.input, args.output,
                   dither=args.dither, verbose=not args.quiet,
                   preview_path=args.preview, solver=args.solver,
-                  resize=args.resize, randomness=args.randomness)
+                  resize=args.resize, randomness=args.randomness,
+                  look_ahead=args.look_ahead)
 
 
 if __name__ == '__main__':
