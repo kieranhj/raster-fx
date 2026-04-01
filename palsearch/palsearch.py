@@ -10,11 +10,15 @@ Usage:
 
 Output binary format (compatible with showimage.s):
     Bytes 0-15        : Initial palette (16 entries)
-    Bytes 16 to 1183  : Per-section deltas:
-                          output_palettes[16 + slot*128 + (section-1)]
-                          for slot in 0..CHANGE_PER_ROW-1
-                          for section in 1..127
-    Bytes 1184 onward : Screen data (20480 bytes, BBC non-linear interleaved layout)
+    Bytes 16-255      : Padding (zeros) — aligns stream table to a 256-byte boundary
+    Bytes 256+        : Per-section delta streams:
+                          output_palettes[256 + slot*num_sections + (section-1)]
+                          for slot in 0..changes_per_row-1
+                          for section in 1..num_sections
+    Bytes pal_size+   : Screen data (20480 bytes, BBC non-linear interleaved layout)
+
+    The 256-byte alignment ensures that LDA stream_base,X (X=0..num_sections-1)
+    never crosses a page boundary on the 6502, avoiding the +1 cycle penalty.
 
 Palette byte encoding: (palette_index << 4) | (bbc_colour ^ 7)
     palette_index : which of the 16 ULA palette entries to update
@@ -319,55 +323,71 @@ def dither_section_ordered(img: np.ndarray, section: int, randomness: int = 64,
     return quads
 
 
+_FS_DAMPEN = 0.875   # reduce diffused error to shorten worm length
+
+
 def dither_section_fs(img: np.ndarray, section: int, err: np.ndarray,
                       chunk_size: int = 2):
     """
-    Floyd-Steinberg dither for 2 rows.
+    Floyd-Steinberg dither with serpentine scanning and error dampening.
 
     err : shape (3, SCREEN_W) float array holding accumulated error for the
           current row.  Updated in-place; errors propagate across section
-          boundaries (matching OCaml where the error arrays persist across
-          calls to attempt()).
+          boundaries.
 
-    Returns list of 160 quads in screen order.
+    Serpentine scanning alternates row direction (L→R, R→L, …) using the
+    global scanline index so the direction is consistent across sections.
+    Error dampening (_FS_DAMPEN) reduces diffused error to shorten worm length.
+
+    Returns list of (chunk_size × BYTES_PER_ROW) quads in screen order.
     """
-    quads = []
+    quads_by_row = []
     for row in range(chunk_size):
         y = section * chunk_size + row
+        left_to_right = (y % 2 == 0)
+        xs = range(SCREEN_W) if left_to_right else range(SCREEN_W - 1, -1, -1)
+        pix_row = [0] * SCREEN_W
         next_err = np.zeros((3, SCREEN_W), dtype=float)
+        for x in xs:
+            raw_r, raw_g, raw_b = int(img[y, x, 0]), int(img[y, x, 1]), int(img[y, x, 2])
+            pr, pg, pb = preprocess_pixel(raw_r, raw_g, raw_b)
+            # Don't let dither error corrupt true-black border pixels
+            # (letterbox/pillarbox padding added by fit resize).
+            if raw_r == 0 and raw_g == 0 and raw_b == 0:
+                err[0, x] = err[1, x] = err[2, x] = 0.0
+            this_r = max(0, min(255, pr + int(err[0, x])))
+            this_g = max(0, min(255, pg + int(err[1, x])))
+            this_b = max(0, min(255, pb + int(err[2, x])))
+            col = closest_colour(this_r, this_g, this_b)
+            sel_r, sel_g, sel_b = col_to_rgb(col)
+            er = (this_r - sel_r) * _FS_DAMPEN
+            eg = (this_g - sel_g) * _FS_DAMPEN
+            eb = (this_b - sel_b) * _FS_DAMPEN
+            # Diffuse in scan direction (mirrored for R→L rows)
+            fwd = 1 if left_to_right else -1
+            xf = x + fwd          # forward neighbour (current row)
+            xfl = x - fwd         # back-diagonal neighbour (next row)
+            if 0 <= xf < SCREEN_W:
+                err[0, xf]      += er * 7/16
+                err[1, xf]      += eg * 7/16
+                err[2, xf]      += eb * 7/16
+                next_err[0, xf] += er * 1/16
+                next_err[1, xf] += eg * 1/16
+                next_err[2, xf] += eb * 1/16
+            if 0 <= xfl < SCREEN_W:
+                next_err[0, xfl] += er * 3/16
+                next_err[1, xfl] += eg * 3/16
+                next_err[2, xfl] += eb * 3/16
+            next_err[0, x] += er * 5/16
+            next_err[1, x] += eg * 5/16
+            next_err[2, x] += eb * 5/16
+            pix_row[x] = col
+        # Build quads in left-to-right screen order regardless of scan direction
         for bp in range(BYTES_PER_ROW):
-            pix = []
-            for p in range(4):
-                x = bp * 4 + p
-                pr, pg, pb = preprocess_pixel(
-                    int(img[y, x, 0]), int(img[y, x, 1]), int(img[y, x, 2]))
-                this_r = max(0, min(255, pr + int(err[0, x])))
-                this_g = max(0, min(255, pg + int(err[1, x])))
-                this_b = max(0, min(255, pb + int(err[2, x])))
-                col = closest_colour(this_r, this_g, this_b)
-                sel_r, sel_g, sel_b = col_to_rgb(col)
-                er = this_r - sel_r
-                eg = this_g - sel_g
-                eb = this_b - sel_b
-                if x < SCREEN_W - 1:
-                    err[0, x+1]      += er * 7/16
-                    err[1, x+1]      += eg * 7/16
-                    err[2, x+1]      += eb * 7/16
-                    next_err[0, x+1] += er * 1/16
-                    next_err[1, x+1] += eg * 1/16
-                    next_err[2, x+1] += eb * 1/16
-                if x > 0:
-                    next_err[0, x-1] += er * 3/16
-                    next_err[1, x-1] += eg * 3/16
-                    next_err[2, x-1] += eb * 3/16
-                next_err[0, x] += er * 5/16
-                next_err[1, x] += eg * 5/16
-                next_err[2, x] += eb * 5/16
-                pix.append(col)
-            quads.append(tuple(pix))
+            quads_by_row.append(tuple(pix_row[bp * 4 + p] for p in range(4)))
         # Propagate: next row's starting error comes from this row's diffused error
         err[:] = next_err
-    return quads
+    return quads_by_row
 
 
 # ── Greedy palette solver (Option A) ──────────────────────────────────────────
@@ -821,7 +841,7 @@ def process_image(png_path: str, output_path: str,
     best-effort fallback, not the dithered input).
     """
     num_sections = SCREEN_H // chunk_size
-    pal_size     = 16 + changes_per_row * num_sections
+    pal_size     = 256 + changes_per_row * num_sections
 
     # Load and resize / crop to 320×256
     img = Image.open(png_path).convert('RGB')
@@ -907,7 +927,7 @@ def process_image(png_path: str, output_path: str,
                         raise AssertionError(
                             f"Section {section}: more than {changes_per_row} "
                             "palette changes required — solver bug")
-                    output_palettes[16 + change_no * num_sections + (section - 1)] = \
+                    output_palettes[256 + change_no * num_sections + (section - 1)] = \
                         (i << 4) | (palette[i] ^ 7)
                     change_no += 1
                 else:

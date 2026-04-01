@@ -9,6 +9,11 @@ Accepts either:
 Palette byte encoding (matches palsearch.py):
     byte = (slot_index << 4) | (bbc_colour ^ 7)
 
+Binary layout:
+    Bytes 0-15        : Initial palette
+    Bytes 16-255      : Padding (page-alignment for 6502 LDA abs,X)
+    Bytes 256+        : Delta streams (256 + slot*num_sections + (section-1))
+
 Screen layout: non-linear interleaved — within each 640-byte block, 8 rows
 are interleaved byte-by-byte (BBC Mode 1 hardware layout).
 
@@ -38,6 +43,7 @@ SCREEN_SIZE    = 20480
 # Defaults (overridden by CLI)
 DEFAULT_CHUNK_SIZE      = 2
 DEFAULT_CHANGE_PER_ROW  = 9
+PAL_HEADER_SIZE         = 256   # initial 16-byte palette + 240 bytes padding for page alignment
 
 
 # ── BBC colour / palette helpers ───────────────────────────────────────────────
@@ -82,7 +88,7 @@ def reconstruct(pal_data: bytes, pic_data: bytes,
                 change_per_row: int = DEFAULT_CHANGE_PER_ROW) -> Image.Image:
     """Build a 320×256 RGB PIL image from palette and screen data."""
     num_sections = SCREEN_H // chunk_size
-    pal_size     = 16 + change_per_row * num_sections
+    pal_size     = PAL_HEADER_SIZE + change_per_row * num_sections
     assert len(pal_data) == pal_size,    f"Expected {pal_size} palette bytes, got {len(pal_data)}"
     assert len(pic_data) == SCREEN_SIZE, f"Expected {SCREEN_SIZE} screen bytes, got {len(pic_data)}"
 
@@ -98,7 +104,7 @@ def reconstruct(pal_data: bytes, pic_data: bytes,
         # Apply palette deltas for this section
         if section > 0:
             for slot in range(change_per_row):
-                b = pal_data[16 + slot * num_sections + (section - 1)]
+                b = pal_data[PAL_HEADER_SIZE + slot * num_sections + (section - 1)]
                 idx, colour = decode_palette_byte(b)
                 palette[idx] = colour
 
@@ -140,7 +146,7 @@ Examples:
                     help=f'Palette changes per section (default {DEFAULT_CHANGE_PER_ROW})')
     args = ap.parse_args()
 
-    pal_size = 16 + args.changes * (SCREEN_H // args.chunk_size)
+    pal_size = PAL_HEADER_SIZE + args.changes * (SCREEN_H // args.chunk_size)
 
     if len(args.files) == 1:
         path = args.files[0]

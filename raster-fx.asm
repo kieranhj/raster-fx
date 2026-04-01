@@ -2,6 +2,8 @@
 \ *	RASTER FX FRAMEWORK
 \ ******************************************************************
 
+CHUNK_SIZE=1
+
 \ ******************************************************************
 \ *	OS defines
 \ ******************************************************************
@@ -104,7 +106,7 @@ TimerValue = 32*64 - 2*64 - 2 - 22 - 9
 \\ XX us to fire the timer before the start of the scanline so first colour set on column -1
 \\ YY us for code that executes after timer interupt fires
 
-PALETTE_SIZE=16+128*9
+PALETTE_SIZE=256+256*9		; MAX (256-byte initial section for page-aligned stream access)
 PALETTE_ADDR=HI(screen_addr-PALETTE_SIZE)*&100
 
 \ ******************************************************************
@@ -502,28 +504,29 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 .loop
     ; <== 5c
 
+IF CHUNK_SIZE==2
     jsr cycles_wait_128             ; 128c
 
     ; <== 5c
     WAIT_CYCLES 7
     ; <== 12c
 
-    lda PALETTE_ADDR+16+2*128, X        ; 4c
+    lda PALETTE_ADDR+256+2*128, X       ; 4c
     sta load2+1                         ; 4c
-    lda PALETTE_ADDR+16+3*128, X        ; 4c
+    lda PALETTE_ADDR+256+3*128, X       ; 4c
     sta load3+1                         ; 4c
-    lda PALETTE_ADDR+16+4*128, X        ; 4c
+    lda PALETTE_ADDR+256+4*128, X       ; 4c
     sta load4+1                         ; 4c
-    lda PALETTE_ADDR+16+5*128, X        ; 4c
+    lda PALETTE_ADDR+256+5*128, X       ; 4c
     sta load5+1                         ; 4c
-    lda PALETTE_ADDR+16+6*128, X        ; 4c
+    lda PALETTE_ADDR+256+6*128, X       ; 4c
     sta load6+1                         ; 4c
-    lda PALETTE_ADDR+16+7*128, X        ; 4c
+    lda PALETTE_ADDR+256+7*128, X       ; 4c
     sta load7+1                         ; 4c
-    lda PALETTE_ADDR+16+8*128, X        ; 4c
+    lda PALETTE_ADDR+256+8*128, X       ; 4c
     sta load8+1                         ; 4c
-    lda PALETTE_ADDR+16+0*128, X        ; 4c
-    ldy PALETTE_ADDR+16+1*128, X        ; 4c
+    lda PALETTE_ADDR+256+0*128, X       ; 4c
+    ldy PALETTE_ADDR+256+1*128, X       ; 4c
   
     ; <== +16*4= 12+64c = 76c
 
@@ -560,6 +563,67 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 
     cpx #128                      ; 2c
     bne loop                        ; 3c
+
+ELSE
+    ; <== 5c
+    WAIT_CYCLES 7
+    ; <== 12c
+
+	; Streams at PALETTE_ADDR+256+N*256: LO=0, so LDA abs,X never crosses a page.
+
+    lda PALETTE_ADDR+256+2*256, X       ; 4c
+    sta load2+1                         ; 4c
+    lda PALETTE_ADDR+256+3*256, X       ; 4c
+    sta load3+1                         ; 4c
+    lda PALETTE_ADDR+256+4*256, X       ; 4c
+    sta load4+1                         ; 4c
+    lda PALETTE_ADDR+256+5*256, X       ; 4c
+    sta load5+1                         ; 4c
+    lda PALETTE_ADDR+256+6*256, X       ; 4c
+    sta load6+1                         ; 4c
+    lda PALETTE_ADDR+256+7*256, X       ; 4c
+    sta load7+1                         ; 4c
+    lda PALETTE_ADDR+256+8*256, X       ; 4c
+    sta load8+1                         ; 4c
+    lda PALETTE_ADDR+256+0*256, X       ; 4c
+    ldy PALETTE_ADDR+256+1*256, X       ; 4c
+  
+    ; <== +16*4= 12+64c = 76c
+
+    sta &FE21                       ; 4c
+    ; <== LAND THIS WRITE ON 80c
+    sty &FE21                       ; 4c
+    .load2
+    lda #0                          ; 2c
+    sta &FE21                       ; 4c
+    .load3
+    lda #0                          ; 2c
+    sta &FE21                       ; 4c
+    .load4
+    lda #0                          ; 2c
+    sta &FE21                       ; 4c
+    .load5
+    lda #0                          ; 2c
+    sta &FE21                       ; 4c
+    .load6
+    lda #0                          ; 2c
+    sta &FE21                       ; 4c
+    .load7
+    lda #0                          ; 2c
+    sta &FE21                       ; 4c
+    .load8
+    lda #0                          ; 2c
+    sta &FE21                       ; 4c
+
+    ; <== +46 = 126c
+
+    inx                             ; 2c
+
+    ; 128c = 0c
+
+    cpx #0                          ; 2c
+    bne loop                        ; 3c
+ENDIF
 
     RTS
 }
@@ -798,9 +862,9 @@ PRINT "------"
 ;PUTFILE "parrpal.bin", "PAL", &2B00
 ;PUTFILE "palsearch/duckpic.bin", "PIC", &3000
 ;PUTFILE "palsearch/duckpal.bin", "PAL", &2B00
-PUTFILE "palsearch/frogpic.bin", "PIC", &3000
-PUTFILE "palsearch/frogpal.bin", "PAL", &2B00
+;PUTFILE "palsearch/frogpic.bin", "PIC", &3000
+;PUTFILE "palsearch/frogpal.bin", "PAL", &2B00
 ;PUTFILE "palsearch/pyduckpic.bin", "PIC", &3000
 ;PUTFILE "palsearch/pyduckpal.bin", "PAL", &2B00
-;PUTFILE "testpic.bin", "PIC", &3000
-;PUTFILE "testpal.bin", "PAL", &2B00
+PUTFILE "testpic.bin", "PIC", &3000
+PUTFILE "testpal.bin", "PAL", &2B00
