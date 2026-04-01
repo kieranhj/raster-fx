@@ -30,14 +30,14 @@ except ImportError:
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 
-CHUNKSIZE      = 2     # scanlines per section
-NUM_SECTIONS   = 128
 SCREEN_W       = 320
 SCREEN_H       = 256
 BYTES_PER_ROW  = 80
-CHANGE_PER_ROW = 9
-PAL_SIZE       = 16 + CHANGE_PER_ROW * 128   # 1168
 SCREEN_SIZE    = 20480
+
+# Defaults (overridden by CLI)
+DEFAULT_CHUNK_SIZE      = 2
+DEFAULT_CHANGE_PER_ROW  = 9
 
 
 # ── BBC colour / palette helpers ───────────────────────────────────────────────
@@ -68,17 +68,22 @@ def decode_palette_byte(b: int):
     return b >> 4, (b & 0xF) ^ 7
 
 
-def screen_offset(section: int, byte_in_section: int) -> int:
+def screen_offset(section: int, byte_in_section: int, chunk_size: int = DEFAULT_CHUNK_SIZE) -> int:
     """Byte offset in the 20480-byte screen buffer (matches palsearch.py)."""
-    row_start = (section // 4) * 640 + (section % 4) * 2
+    spb = 8 // chunk_size
+    row_start = (section // spb) * 640 + (section % spb) * chunk_size
     return row_start + (byte_in_section % BYTES_PER_ROW) * 8 + (byte_in_section // BYTES_PER_ROW)
 
 
 # ── Main reconstruction ────────────────────────────────────────────────────────
 
-def reconstruct(pal_data: bytes, pic_data: bytes) -> Image.Image:
+def reconstruct(pal_data: bytes, pic_data: bytes,
+                chunk_size: int = DEFAULT_CHUNK_SIZE,
+                change_per_row: int = DEFAULT_CHANGE_PER_ROW) -> Image.Image:
     """Build a 320×256 RGB PIL image from palette and screen data."""
-    assert len(pal_data) == PAL_SIZE,    f"Expected {PAL_SIZE} palette bytes, got {len(pal_data)}"
+    num_sections = SCREEN_H // chunk_size
+    pal_size     = 16 + change_per_row * num_sections
+    assert len(pal_data) == pal_size,    f"Expected {pal_size} palette bytes, got {len(pal_data)}"
     assert len(pic_data) == SCREEN_SIZE, f"Expected {SCREEN_SIZE} screen bytes, got {len(pic_data)}"
 
     # Decode initial palette (bytes 0–15)
@@ -89,20 +94,20 @@ def reconstruct(pal_data: bytes, pic_data: bytes) -> Image.Image:
 
     out = np.zeros((SCREEN_H, SCREEN_W, 3), dtype=np.uint8)
 
-    for section in range(NUM_SECTIONS):
+    for section in range(num_sections):
         # Apply palette deltas for this section
         if section > 0:
-            for slot in range(CHANGE_PER_ROW):
-                b = pal_data[16 + slot * 128 + (section - 1)]
+            for slot in range(change_per_row):
+                b = pal_data[16 + slot * num_sections + (section - 1)]
                 idx, colour = decode_palette_byte(b)
                 palette[idx] = colour
 
-        # Render 2 rows of this section
-        for row in range(CHUNKSIZE):
-            y = section * CHUNKSIZE + row
+        # Render chunk_size rows of this section
+        for row in range(chunk_size):
+            y = section * chunk_size + row
             for bp in range(BYTES_PER_ROW):
                 byte_in_section = row * BYTES_PER_ROW + bp
-                off = screen_offset(section, byte_in_section)
+                off = screen_offset(section, byte_in_section, chunk_size)
                 screen_byte = pic_data[off]
                 quad = lookup_cols(palette, screen_byte)
                 x = bp * 4
@@ -125,19 +130,25 @@ Examples:
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('files', nargs='+',
-                    help='Combined .bin file (21648 bytes), '
-                         'or pal.bin + pic.bin (1168 + 20480 bytes)')
+                    help='Combined .bin file, or pal.bin + pic.bin')
     ap.add_argument('-o', '--output',
                     help='Output PNG path (default: input name with .png extension)')
+    ap.add_argument('--chunk-size', type=int, choices=[1, 2],
+                    default=DEFAULT_CHUNK_SIZE, metavar='N',
+                    help=f'Scanlines per section (default {DEFAULT_CHUNK_SIZE})')
+    ap.add_argument('--changes', type=int, default=DEFAULT_CHANGE_PER_ROW, metavar='N',
+                    help=f'Palette changes per section (default {DEFAULT_CHANGE_PER_ROW})')
     args = ap.parse_args()
+
+    pal_size = 16 + args.changes * (SCREEN_H // args.chunk_size)
 
     if len(args.files) == 1:
         path = args.files[0]
         data = open(path, 'rb').read()
-        if len(data) != PAL_SIZE + SCREEN_SIZE:
-            ap.error(f"{path}: expected {PAL_SIZE + SCREEN_SIZE} bytes, got {len(data)}")
-        pal_data = data[:PAL_SIZE]
-        pic_data = data[PAL_SIZE:]
+        if len(data) != pal_size + SCREEN_SIZE:
+            ap.error(f"{path}: expected {pal_size + SCREEN_SIZE} bytes, got {len(data)}")
+        pal_data = data[:pal_size]
+        pic_data = data[pal_size:]
         default_out = os.path.splitext(path)[0] + '.png'
 
     elif len(args.files) == 2:
@@ -151,7 +162,8 @@ Examples:
 
     out_path = args.output or default_out
 
-    img = reconstruct(pal_data, pic_data)
+    img = reconstruct(pal_data, pic_data,
+                      chunk_size=args.chunk_size, change_per_row=args.changes)
     img.save(out_path)
     print(f"Wrote {out_path}  ({img.width}×{img.height})")
 

@@ -276,7 +276,8 @@ def preprocess_pixel(r: int, g: int, b: int):
 
 # ── Dithering ─────────────────────────────────────────────────────────────────
 
-def dither_section_ordered(img: np.ndarray, section: int, randomness: int = 64):
+def dither_section_ordered(img: np.ndarray, section: int, randomness: int = 64,
+                           chunk_size: int = 2):
     """
     Colour-aware ordered dither for 2 rows of section using the mixes table.
 
@@ -299,8 +300,8 @@ def dither_section_ordered(img: np.ndarray, section: int, randomness: int = 64):
     b_rand = (randomness * 18) // 256
 
     quads = []
-    for row in range(CHUNKSIZE):
-        y = section * CHUNKSIZE + row
+    for row in range(chunk_size):
+        y = section * chunk_size + row
         for bp in range(BYTES_PER_ROW):
             pix = []
             for p in range(4):
@@ -318,7 +319,8 @@ def dither_section_ordered(img: np.ndarray, section: int, randomness: int = 64):
     return quads
 
 
-def dither_section_fs(img: np.ndarray, section: int, err: np.ndarray):
+def dither_section_fs(img: np.ndarray, section: int, err: np.ndarray,
+                      chunk_size: int = 2):
     """
     Floyd-Steinberg dither for 2 rows.
 
@@ -330,8 +332,8 @@ def dither_section_fs(img: np.ndarray, section: int, err: np.ndarray):
     Returns list of 160 quads in screen order.
     """
     quads = []
-    for row in range(CHUNKSIZE):
-        y = section * CHUNKSIZE + row
+    for row in range(chunk_size):
+        y = section * chunk_size + row
         next_err = np.zeros((3, SCREEN_W), dtype=float)
         for bp in range(BYTES_PER_ROW):
             pix = []
@@ -375,7 +377,7 @@ _LOOK_AHEAD_FACTOR = 1.0  # weight of look-ahead gain relative to direct gain
 
 
 def _greedy_palette(sorted_quads_with_counts, previous_palette=None,
-                    look_ahead=False):
+                    look_ahead=False, changes_per_row=CHANGE_PER_ROW):
     """
     Option A: hill-climbing greedy palette solver replacing Z3.
 
@@ -399,7 +401,7 @@ def _greedy_palette(sorted_quads_with_counts, previous_palette=None,
     prev = list(previous_palette) if previous_palette else [0] * 16
     palette = list(prev)
     has_budget = previous_palette is not None
-    budget = CHANGE_PER_ROW if has_budget else 16
+    budget = changes_per_row if has_budget else 16
 
     freq = {q: cnt for q, cnt in sorted_quads_with_counts}
     required_set = set(freq)
@@ -551,7 +553,8 @@ def _add_quad_constraint(solver, pal, quad):
     solver.add(z3.Or(*alts_13))
 
 
-def _solve_palette_z3(required_quads, previous_palette=None):
+def _solve_palette_z3(required_quads, previous_palette=None,
+                      changes_per_row=CHANGE_PER_ROW):
     """
     Find a 16-entry BBC palette satisfying all required_quads using Z3.
 
@@ -567,7 +570,7 @@ def _solve_palette_z3(required_quads, previous_palette=None):
     if previous_palette is not None:
         same = [z3.If(pal[i] == int(previous_palette[i]),
                       z3.IntVal(1), z3.IntVal(0)) for i in range(16)]
-        s.add(z3.Sum(same) >= 16 - CHANGE_PER_ROW)
+        s.add(z3.Sum(same) >= 16 - changes_per_row)
     if s.check() != z3.sat:
         return None
     model   = s.model()
@@ -583,7 +586,8 @@ def _solve_palette_z3(required_quads, previous_palette=None):
 # ── Per-section palette search ────────────────────────────────────────────────
 
 def find_palette_for_section(sorted_quads, previous_palette,
-                              verbose=True, solver='greedy', look_ahead=False):
+                              verbose=True, solver='greedy', look_ahead=False,
+                              changes_per_row=CHANGE_PER_ROW):
     """
     Find a palette for this section.
 
@@ -618,11 +622,13 @@ def find_palette_for_section(sorted_quads, previous_palette,
 
     if solver == 'z3':
         palette, matched, besteffort = _find_palette_z3(
-            all_quads, previous_palette, verbose)
+            all_quads, previous_palette, verbose,
+            changes_per_row=changes_per_row)
     else:
         # ── Option A: greedy hill-climbing solver ─────────────────────────────
         palette, matched = _greedy_palette(sorted_quads, previous_palette,
-                                           look_ahead=look_ahead)
+                                           look_ahead=look_ahead,
+                                           changes_per_row=changes_per_row)
         unmatched = [q for q in all_quads if q not in matched]
         if verbose:
             if unmatched:
@@ -636,7 +642,8 @@ def find_palette_for_section(sorted_quads, previous_palette,
     return palette, matched, besteffort
 
 
-def _find_palette_z3(all_quads, previous_palette, verbose):
+def _find_palette_z3(all_quads, previous_palette, verbose,
+                     changes_per_row=CHANGE_PER_ROW):
     """Z3 binary-search solver path (mirrors the original OCaml approach)."""
     if not _Z3_AVAILABLE:
         raise RuntimeError("z3-solver is not installed.  "
@@ -644,7 +651,8 @@ def _find_palette_z3(all_quads, previous_palette, verbose):
     n = len(all_quads)
 
     # Try satisfying everything first
-    result = _solve_palette_z3(all_quads, previous_palette)
+    result = _solve_palette_z3(all_quads, previous_palette,
+                               changes_per_row=changes_per_row)
     if result:
         palette, matched = result
         if verbose:
@@ -653,9 +661,11 @@ def _find_palette_z3(all_quads, previous_palette, verbose):
 
     # Binary search for maximum satisfiable prefix
     prev_pal = previous_palette
-    r1 = _solve_palette_z3(all_quads[:1], prev_pal)
+    r1 = _solve_palette_z3(all_quads[:1], prev_pal,
+                           changes_per_row=changes_per_row)
     if r1 is None:
-        r1 = _solve_palette_z3(all_quads[:1], None)
+        r1 = _solve_palette_z3(all_quads[:1], None,
+                               changes_per_row=changes_per_row)
         if r1 is None:
             raise RuntimeError("Single-quad Z3 solve failed even without continuity")
         if verbose:
@@ -669,7 +679,8 @@ def _find_palette_z3(all_quads, previous_palette, verbose):
         if verbose:
             print(f"    Z3 binary search {lo}–{hi}: trying {mid+1} quads ...",
                   end=' ', flush=True)
-        r = _solve_palette_z3(all_quads[:mid + 1], prev_pal)
+        r = _solve_palette_z3(all_quads[:mid + 1], prev_pal,
+                              changes_per_row=changes_per_row)
         if r is not None:
             if verbose: print("SAT")
             best_result, best_split = r, mid
@@ -689,19 +700,21 @@ def _find_palette_z3(all_quads, previous_palette, verbose):
 
 # ── Screen byte layout ────────────────────────────────────────────────────────
 
-def screen_offset(section: int, byte_in_section: int) -> int:
+def screen_offset(section: int, byte_in_section: int, chunk_size: int = 2) -> int:
     """
     Byte offset into the 20480-byte screen buffer for a given section and
-    per-section byte index (0..159).
+    per-section byte index.
 
-    Matches OCaml:
-        row_start = (section / 4) * 640 + (section mod 4) * 2
-        offset    = row_start + (idx mod 80) * 8 + (idx / 80)
+    BBC non-linear interleaved layout: each 640-byte block holds 8 rows
+    interleaved byte-by-byte.  chunk_size rows form one section; there are
+    8 // chunk_size sections per 640-byte block.
 
-    This produces the BBC non-linear interleaved layout: within each 640-byte
-    block, 8 rows are interleaved byte-by-byte (each row's bytes are 8 apart).
+        spb       = 8 // chunk_size
+        row_start = (section // spb) * 640 + (section % spb) * chunk_size
+        offset    = row_start + (idx % 80) * 8 + (idx // 80)
     """
-    row_start = (section // 4) * 640 + (section % 4) * 2
+    spb = 8 // chunk_size
+    row_start = (section // spb) * 640 + (section % spb) * chunk_size
     return row_start + (byte_in_section % 80) * 8 + (byte_in_section // 80)
 
 
@@ -788,19 +801,28 @@ def process_image(png_path: str, output_path: str,
                   dither: str = 'ordered', verbose: bool = True,
                   preview_path: str = None, solver: str = 'greedy',
                   resize: str = 'fit', randomness: int = 64,
-                  look_ahead: bool = False):
+                  look_ahead: bool = False, chunk_size: int = 2,
+                  changes_per_row: int = CHANGE_PER_ROW):
     """
-    Load a PNG, resize to 320×256, run the palsearch algorithm for all 128
-    sections, and write the output binary.
+    Load a PNG, resize to 320×256, run the palsearch algorithm, and write
+    the output binary.
+
+    chunk_size     : scanlines per section (1 or 2; default 2)
+    changes_per_row: max palette slot changes between sections (default 9)
 
     Output layout:
-        Bytes 0–1167  : palette data (16-byte initial + 9*128 delta bytes)
-        Bytes 1168+   : 20480 bytes of BBC screen data
+        Bytes 0–(pal_size-1) : palette data
+                               16-byte initial + changes_per_row * num_sections
+                               delta bytes
+        Bytes pal_size+      : 20480 bytes of BBC screen data
 
     If preview_path is given, also write a 320×256 PNG showing the actual
     colours that will appear on the BBC (i.e. after palette solve and
     best-effort fallback, not the dithered input).
     """
+    num_sections = SCREEN_H // chunk_size
+    pal_size     = 16 + changes_per_row * num_sections
+
     # Load and resize / crop to 320×256
     img = Image.open(png_path).convert('RGB')
     if img.size != (SCREEN_W, SCREEN_H):
@@ -809,7 +831,7 @@ def process_image(png_path: str, output_path: str,
         img = _fit_image(img, resize)
     arr = np.array(img, dtype=np.uint8)
 
-    output_palettes = bytearray(16 + CHANGE_PER_ROW * 128)  # 1168 bytes
+    output_palettes = bytearray(pal_size)
     screen_bytes    = bytearray(20480)
 
     if verbose:
@@ -822,31 +844,33 @@ def process_image(png_path: str, output_path: str,
     # Preview buffer: RGB pixels at native 320×256
     preview_arr = np.zeros((SCREEN_H, SCREEN_W, 3), dtype=np.uint8) if preview_path else None
 
-    for section in range(NUM_SECTIONS):
+    for section in range(num_sections):
         if verbose:
-            print(f"\nSection {section}/{NUM_SECTIONS - 1}:")
+            print(f"\nSection {section}/{num_sections - 1}:")
             sys.stdout.flush()
 
         # ── Dither ────────────────────────────────────────────────────────────
         if dither == 'ordered':
-            quads = dither_section_ordered(arr, section, randomness=randomness)
+            quads = dither_section_ordered(arr, section, randomness=randomness,
+                                           chunk_size=chunk_size)
         else:
-            quads = dither_section_fs(arr, section, fs_err)
+            quads = dither_section_fs(arr, section, fs_err,
+                                      chunk_size=chunk_size)
 
         counts      = Counter(quads)
         sorted_quads = sorted(counts.items(), key=lambda x: -x[1])
 
         if verbose:
-            print(f"  {len(sorted_quads)} unique quads from 160 bytes")
+            print(f"  {len(sorted_quads)} unique quads from {chunk_size * BYTES_PER_ROW} bytes")
 
         # ── Solve ─────────────────────────────────────────────────────────────
         palette, matched, besteffort = find_palette_for_section(
             sorted_quads, previous_palette, verbose=verbose, solver=solver,
-            look_ahead=look_ahead)
+            look_ahead=look_ahead, changes_per_row=changes_per_row)
 
         # ── Write screen bytes & preview ───────────────────────────────────────
         for idx, quad in enumerate(quads):
-            off = screen_offset(section, idx)
+            off = screen_offset(section, idx, chunk_size=chunk_size)
             if off < 20480:
                 bv = matched.get(quad, besteffort.get(quad, 0))
                 screen_bytes[off] = bv
@@ -857,7 +881,7 @@ def process_image(png_path: str, output_path: str,
                                           matched.get(quad, besteffort.get(quad, 0)))
                 row_in_section = idx // BYTES_PER_ROW
                 bp             = idx  % BYTES_PER_ROW
-                y = section * CHUNKSIZE + row_in_section
+                y = section * chunk_size + row_in_section
                 for p, col in enumerate(actual_quad):
                     x = bp * 4 + p
                     preview_arr[y, x] = col_to_rgb(col)
@@ -869,21 +893,21 @@ def process_image(png_path: str, output_path: str,
                 output_palettes[i] = (i << 4) | (palette[i] ^ 7)
         else:
             # Delta from previous: write only changed (or forced-change) entries.
-            # Matches OCaml: once same_no >= (16 - change_per_row) the rest are
+            # Matches OCaml: once same_no >= (16 - changes_per_row) the rest are
             # forced into the change list even if they didn't actually change.
             same_no   = 0
             change_no = 0
             for i in range(16):
                 entry_changed = (palette[i] != previous_palette[i])
-                force_change  = (same_no >= 16 - CHANGE_PER_ROW)
+                force_change  = (same_no >= 16 - changes_per_row)
                 if force_change or entry_changed:
                     if verbose and entry_changed:
                         print(f"  Entry {i}: {previous_palette[i]} → {palette[i]}")
-                    if change_no >= CHANGE_PER_ROW:
+                    if change_no >= changes_per_row:
                         raise AssertionError(
-                            f"Section {section}: more than {CHANGE_PER_ROW} "
+                            f"Section {section}: more than {changes_per_row} "
                             "palette changes required — solver bug")
-                    output_palettes[16 + change_no * 128 + (section - 1)] = \
+                    output_palettes[16 + change_no * num_sections + (section - 1)] = \
                         (i << 4) | (palette[i] ^ 7)
                     change_no += 1
                 else:
@@ -959,6 +983,13 @@ The output binary is compatible with showimage.s for playback on BBC Master.
                           'a bonus. Fixes colours that require two coordinated '
                           'slot changes (e.g. white duck head). Slower but '
                           'produces better results for such images.'))
+    ap.add_argument('--chunk-size', type=int, choices=[1, 2], default=2,
+                    metavar='N',
+                    help=('Scanlines per section (1 or 2; default 2). '
+                          'Use 1 for per-scanline palette changes when the '
+                          'stable raster loop has sufficient cycles.'))
+    ap.add_argument('--changes', type=int, default=CHANGE_PER_ROW, metavar='N',
+                    help=f'Max palette slot changes per section (default {CHANGE_PER_ROW})')
     ap.add_argument('-q', '--quiet', action='store_true',
                     help='Suppress per-section progress output')
     args = ap.parse_args()
@@ -967,7 +998,9 @@ The output binary is compatible with showimage.s for playback on BBC Master.
                   dither=args.dither, verbose=not args.quiet,
                   preview_path=args.preview, solver=args.solver,
                   resize=args.resize, randomness=args.randomness,
-                  look_ahead=args.look_ahead)
+                  look_ahead=args.look_ahead,
+                  chunk_size=args.chunk_size,
+                  changes_per_row=args.changes)
 
 
 if __name__ == '__main__':
