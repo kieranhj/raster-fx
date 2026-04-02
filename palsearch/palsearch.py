@@ -1284,7 +1284,11 @@ def process_image(png_path: str, output_path: str,
                   redither: bool = False, vertical_dither: bool = False,
                   restarts: int = 1, mixno: int = 0, sharpen: float = 0.0,
                   iterate: int = 1, auto_threshold: float = _AUTO_DITHER_THRESHOLD,
-                  beam: int = 1, anneal: int = 0, smooth: float = 0.0):
+                  beam: int = 1, anneal: int = 0, smooth: float = 0.0,
+                  saturation: float = 1.0, autolevel: bool = False,
+                  contrast: float = 1.0, brightness: float = 1.0,
+                  input_gamma: float = 1.0, hue: float = 0.0,
+                  denoise: bool = False, posterise: int = 0):
     """
     Load a PNG, resize to 320×256, run the palsearch algorithm, and write
     the output binary.
@@ -1312,6 +1316,14 @@ def process_image(png_path: str, output_path: str,
                       Typical values: 100-500. Overrides beam/restarts.
     smooth          : Option 10 — per-new-slot-change cost (pixel-frequency units,
                       0=off). Discourages gratuitous slot changes to reduce
+    saturation      : Prep 1 — colour saturation multiplier (1.0=none, >1 boost).
+    autolevel       : Prep 2 — stretch per-channel histogram to 0-255.
+    contrast        : Prep 3 — contrast multiplier (1.0=none, >1 increase).
+    brightness      : Prep 4 — brightness multiplier (1.0=none, >1 brighter).
+    input_gamma     : Prep 5 — gamma applied to image pixels (1.0=none, >1 brighter).
+    hue             : Prep 6 — hue rotation in degrees (-180 to 180).
+    denoise         : Prep 7 — apply median filter to reduce noise.
+    posterise       : Prep 8 — reduce each channel to N bits (0=off, 1-7 bits).
                       inter-section banding. Values of 5-30 are typical.
 
     Output layout:
@@ -1337,9 +1349,94 @@ def process_image(png_path: str, output_path: str,
             print(f"Resizing {img.size} -> ({SCREEN_W}x{SCREEN_H})  [{resize}]")
         img = _fit_image(img, resize)
 
+    # ── Image preprocessing pipeline ──────────────────────────────────────────
+    from PIL import ImageEnhance, ImageOps, ImageFilter
+
+    # Prep 2: auto-levels (per-channel histogram stretch to 0-255)
+    if autolevel:
+        img = ImageOps.autocontrast(img)
+        if verbose:
+            print("Applied auto-levels")
+
+    # Prep 5: input gamma (applied on top of internal INV_GAMMA scoring)
+    if input_gamma != 1.0:
+        exp = 1.0 / input_gamma
+        lut = [int(min(255, max(0, (i / 255.0) ** exp * 255.0 + 0.5)))
+               for i in range(256)]
+        img = img.point(lut * 3)   # R, G, B each get the same curve
+        if verbose:
+            print(f"Applied input gamma {input_gamma:.2f}")
+
+    # Prep 3: contrast
+    if contrast != 1.0:
+        img = ImageEnhance.Contrast(img).enhance(contrast)
+        if verbose:
+            print(f"Applied contrast {contrast:.2f}")
+
+    # Prep 4: brightness
+    if brightness != 1.0:
+        img = ImageEnhance.Brightness(img).enhance(brightness)
+        if verbose:
+            print(f"Applied brightness {brightness:.2f}")
+
+    # Prep 1: saturation (most impactful — do after levels/contrast/brightness)
+    if saturation != 1.0:
+        img = ImageEnhance.Color(img).enhance(saturation)
+        if verbose:
+            print(f"Applied saturation {saturation:.2f}")
+
+    # Prep 6: hue rotation via numpy RGB→HSV→RGB
+    if hue != 0.0:
+        h_shift = (hue % 360.0) / 360.0
+        rgba = np.array(img, dtype=np.float32) / 255.0
+        r, g, b = rgba[:, :, 0], rgba[:, :, 1], rgba[:, :, 2]
+        cmax  = np.maximum(np.maximum(r, g), b)
+        cmin  = np.minimum(np.minimum(r, g), b)
+        delta = cmax - cmin
+        # Hue (0-1)
+        hh = np.zeros_like(r)
+        mask = delta > 0
+        mr = mask & (cmax == r)
+        mg = mask & (cmax == g)
+        mb = mask & (cmax == b)
+        hh[mr] = ((g[mr] - b[mr]) / delta[mr]) % 6.0
+        hh[mg] = ((b[mg] - r[mg]) / delta[mg]) + 2.0
+        hh[mb] = ((r[mb] - g[mb]) / delta[mb]) + 4.0
+        hh = (hh / 6.0 + h_shift) % 1.0
+        ss = np.where(cmax > 0, delta / np.where(cmax > 0, cmax, 1.0), 0.0)
+        vv = cmax
+        # HSV → RGB
+        hh6  = hh * 6.0
+        hi   = np.floor(hh6).astype(int) % 6
+        ff   = hh6 - np.floor(hh6)
+        p    = vv * (1.0 - ss)
+        q    = vv * (1.0 - ss * ff)
+        t    = vv * (1.0 - ss * (1.0 - ff))
+        out  = np.zeros_like(rgba)
+        for ch, (r0, g0, b0) in enumerate([(vv, t, p), (q, vv, p), (p, vv, t),
+                                             (p, q, vv), (t, p, vv), (vv, p, q)]):
+            mask2 = hi == ch
+            out[:, :, 0][mask2] = r0[mask2]
+            out[:, :, 1][mask2] = g0[mask2]
+            out[:, :, 2][mask2] = b0[mask2]
+        img = Image.fromarray((out * 255.0).clip(0, 255).astype(np.uint8), 'RGB')
+        if verbose:
+            print(f"Applied hue rotation {hue:.1f} deg")
+
+    # Prep 7: denoise (median filter)
+    if denoise:
+        img = img.filter(ImageFilter.MedianFilter(size=3))
+        if verbose:
+            print("Applied denoise (median filter)")
+
+    # Prep 8: posterise
+    if posterise > 0:
+        img = ImageOps.posterize(img, posterise)
+        if verbose:
+            print(f"Applied posterise ({posterise} bits)")
+
     # Option 8: pre-sharpen before dithering
     if sharpen > 0:
-        from PIL import ImageFilter
         img = img.filter(ImageFilter.UnsharpMask(
             radius=1.5, percent=int(sharpen * 150), threshold=3))
         if verbose:
@@ -1604,6 +1701,42 @@ The output binary is compatible with showimage.s for playback on BBC Master.
                           'dithering (default 0 = off). Applies an unsharp '
                           'mask; 0.5 is mild, 1.0 is strong. Recovers '
                           'perceived detail lost during low-res dithering.'))
+
+    # ── Image preprocessing ────────────────────────────────────────────────────
+    ap.add_argument('--saturation', type=float, default=1.0, metavar='F',
+                    help=('Prep 1: colour saturation multiplier (default 1.0 = none). '
+                          'Values > 1 push colours toward BBC colour corners, '
+                          'reducing dither noise. 1.3-1.8 suits most photos.'))
+    ap.add_argument('--autolevel', action='store_true', default=False,
+                    help=('Prep 2: stretch per-channel histogram to full 0-255 '
+                          'range before dithering. Maximises utilisation of the '
+                          '8 BBC colours. Recommended for washed-out images.'))
+    ap.add_argument('--contrast', type=float, default=1.0, metavar='F',
+                    help=('Prep 3: contrast multiplier (default 1.0 = none). '
+                          'Values > 1 push midtones toward black/white, '
+                          'reducing quantisation error. Apply after --autolevel.'))
+    ap.add_argument('--brightness', type=float, default=1.0, metavar='F',
+                    help=('Prep 4: brightness multiplier (default 1.0 = none). '
+                          'Values > 1 brighten, < 1 darken. Useful for '
+                          'systematically under- or overexposed images.'))
+    ap.add_argument('--input-gamma', type=float, default=1.0, metavar='F',
+                    help=('Prep 5: gamma curve applied to image pixels before '
+                          'scoring (default 1.0 = none). Values > 1 brighten '
+                          'midtones; < 1 darken them. Separate from the '
+                          'internal INV_GAMMA=1.7 scoring curve.'))
+    ap.add_argument('--hue', type=float, default=0.0, metavar='DEG',
+                    help=('Prep 6: hue rotation in degrees (default 0 = none). '
+                          'Shifts all hues by DEG; useful when a dominant hue '
+                          'falls between BBC primaries (e.g. orange → red).'))
+    ap.add_argument('--denoise', action='store_true', default=False,
+                    help=('Prep 7: apply a 3x3 median filter to reduce noise '
+                          'before dithering. Prevents source noise from being '
+                          'encoded into the dither pattern.'))
+    ap.add_argument('--posterise', type=int, default=0, metavar='N',
+                    help=('Prep 8: reduce each channel to N bits (1-7; '
+                          'default 0 = off). Quantises colours to N-bit steps, '
+                          'creating a flat-colour graphic-art look. '
+                          'Higher N = more colours retained.'))
     ap.add_argument('--smooth', type=float, default=0.0, metavar='F',
                     help=('Option 10: per-new-slot-change cost in pixel-frequency '
                           'units (default 0 = off). Subtracted from the gain when '
@@ -1657,7 +1790,15 @@ The output binary is compatible with showimage.s for playback on BBC Master.
                   auto_threshold=args.auto_threshold,
                   beam=args.beam,
                   anneal=args.anneal,
-                  smooth=args.smooth)
+                  smooth=args.smooth,
+                  saturation=args.saturation,
+                  autolevel=args.autolevel,
+                  contrast=args.contrast,
+                  brightness=args.brightness,
+                  input_gamma=args.input_gamma,
+                  hue=args.hue,
+                  denoise=args.denoise,
+                  posterise=args.posterise)
 
 
 if __name__ == '__main__':

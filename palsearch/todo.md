@@ -142,6 +142,92 @@ blend.
 
 ---
 
+## Image preprocessing
+
+BBC Mode 1 has 8 colours at the corners of the RGB cube (each channel 0 or
+255). Pixels that lie closer to those corners require less dithering to
+reproduce — so preprocessing that moves pixels toward the corners directly
+improves output quality.  Options are ordered by expected impact.
+
+---
+
+### ~~Prep 1 — Saturation boost~~ ✓ DONE  `--saturation F`
+
+**Value: Very High.**  Unsaturated pixels (pastels, skin tones, greys) are far
+from all 8 BBC colour corners, producing large quantisation errors and noisy
+dithering.  Boosting saturation pushes pixels toward the corners and reduces
+dither noise.  Most photographic images benefit from F=1.3–1.8.
+
+Implemented via `ImageEnhance.Color(img).enhance(F)`.
+
+---
+
+### ~~Prep 2 — Auto-levels~~ ✓ DONE  `--autolevel`
+
+**Value: High.**  Many photos don't use the full 0–255 range.  Per-channel
+histogram stretch maps the darkest pixel to 0 and the lightest to 255,
+maximising utilisation of the 8 BBC colours and preventing washed-out results.
+
+Implemented via `ImageOps.autocontrast(img)`.
+
+---
+
+### ~~Prep 3 — Contrast adjustment~~ ✓ DONE  `--contrast F`
+
+**Value: High.**  A contrast boost (F > 1) pushes midtones toward the light or
+dark extremes — again moving pixels closer to the BBC colour corners.  Pairs
+well with auto-levels; apply after.
+
+Implemented via `ImageEnhance.Contrast(img).enhance(F)`.
+
+---
+
+### ~~Prep 4 — Brightness / exposure~~ ✓ DONE  `--brightness F`
+
+**Value: Medium.**  Simple multiplicative brightness adjustment.  Useful for
+systematically underexposed or overexposed inputs.
+
+Implemented via `ImageEnhance.Brightness(img).enhance(F)`.
+
+---
+
+### ~~Prep 5 — Input gamma~~ ✓ DONE  `--input-gamma F`
+
+**Value: Medium.**  Exposes an additional gamma step on the image pixels before
+scoring. F > 1 brightens midtones; F < 1 darkens them. Separate from the
+internal INV_GAMMA=1.7 scoring curve.
+
+Implemented via `img.point(lut)` with a 256-entry curve.
+
+---
+
+### ~~Prep 6 — Hue rotation~~ ✓ DONE  `--hue DEG`
+
+**Value: Medium.**  Rotates all hues by DEG degrees.  Useful when a dominant
+hue falls between BBC primaries (e.g. orange → red/yellow).
+
+Implemented via vectorised numpy RGB→HSV→RGB conversion.
+
+---
+
+### ~~Prep 7 — Denoise~~ ✓ DONE  `--denoise`
+
+**Value: Low-Medium.**  Prevents source noise from being encoded into the dither
+pattern.
+
+Implemented via `ImageFilter.MedianFilter(size=3)`.
+
+---
+
+### ~~Prep 8 — Posterise~~ ✓ DONE  `--posterise N`
+
+**Value: Low.**  Reduces each channel to N bits (1–7).  Stylistic option for
+a flat, graphic-art look.
+
+Implemented via `ImageOps.posterize(img, N)`.
+
+---
+
 ## Known bugs
 
 ### ~~Bug 1 — `--look-ahead` causes spurious colour bands~~ ✓ FIXED
