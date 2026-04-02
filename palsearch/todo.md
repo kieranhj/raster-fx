@@ -21,15 +21,14 @@ real previous palette (not the perturbed state).
 
 ---
 
-## Option 2 — Simulated annealing
+### ~~Option 2 — Simulated annealing~~ ✓ DONE
 
-Replace the strict "only accept improvements" rule with a temperature schedule
-that occasionally accepts downhill moves early on, cooling to greedy behaviour
-by the end of the budget.
+~~Replace the strict "only accept improvements" rule with a temperature schedule.~~
 
-- **Cost:** Same asymptotic cost as greedy (one pass per budget step)
-- **Effort:** Medium — add temperature schedule, acceptance probability
-- **Benefit:** Can escape local optima without running the solver multiple times
+Implemented as `--anneal N` (default 0 = off). `_anneal_palette` runs N SA steps
+with exponential cooling from `t_start × total_freq` to `t_end × total_freq`.
+Accepts downhill moves with probability `exp(gain / T)`. Budget is enforced as a
+hard constraint. Typical values: 100-500 steps.
 
 ---
 
@@ -104,17 +103,15 @@ sections below use ordered dither.
 
 ---
 
-### Option 10 — Section boundary smoothing
+### ~~Option 10 — Section boundary smoothing~~ ✓ DONE
 
-Each 2-row section is solved independently, which can produce visible
-horizontal banding where the palette changes sharply. Constraining adjacent
-sections' palettes to share more slots (beyond the current 9-change limit)
-would smooth transitions.
+~~Each section is solved independently, producing banding where the palette
+changes sharply between sections.~~
 
-- **Cost:** Increases solver constraint complexity slightly
-- **Effort:** Medium — add a "shared slots" soft constraint to the greedy
-  scoring that penalises palette divergence between neighbouring sections
-- **Benefit:** Reduces horizontal banding artifacts at section boundaries
+Implemented as `--smooth F` (default 0 = off). Subtracts `F` (pixel-frequency
+units) from the greedy gain whenever a new slot change is considered. This
+raises the bar for gratuitous changes, promoting palette continuity between
+sections. Values of 5–30 are typical.
 
 ---
 

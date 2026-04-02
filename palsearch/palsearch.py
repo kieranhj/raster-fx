@@ -512,7 +512,7 @@ _LOOK_AHEAD_FACTOR = 1.0  # weight of look-ahead gain relative to direct gain
 
 def _greedy_palette(sorted_quads_with_counts, previous_palette=None,
                     look_ahead=False, changes_per_row=CHANGE_PER_ROW,
-                    init_palette=None):
+                    init_palette=None, smooth_penalty=0.0):
     """
     Option A: hill-climbing greedy palette solver replacing Z3.
 
@@ -522,6 +522,10 @@ def _greedy_palette(sorted_quads_with_counts, previous_palette=None,
 
     previous_palette : the previous section's palette — defines the budget
                        reference (changes are counted from this).
+    smooth_penalty   : Option 10 — cost subtracted from gain per new slot change
+                       (in pixel-frequency units).  A positive value discourages
+                       gratuitous changes that cause inter-section banding.
+                       Values of 5-30 are typical; 0 = off (default).
     init_palette     : optional override for the starting state of the palette
                        before hill-climbing begins.  Slots that already differ
                        from previous_palette consume part of the budget.  Used
@@ -612,6 +616,13 @@ def _greedy_palette(sorted_quads_with_counts, previous_palette=None,
                         was = achievable_cnt[q] > 0
                         now = achievable_cnt[q] + d > 0
                         gain += freq[q] * ((1 if now else 0) - (1 if was else 0))
+
+                # Option 10: boundary smoothing — subtract a small cost for
+                # each NEW slot change (one not already in `changed`).
+                # This discourages gratuitous changes that cause section banding.
+                if smooth_penalty > 0 and has_budget:
+                    if slot not in changed and val != prev[slot]:
+                        gain -= smooth_penalty
 
                 # 2-step look-ahead: credit quads that a follow-up step could
                 # unlock given this step is applied first.  Only activate when
@@ -788,6 +799,120 @@ def _beam_palette(sorted_quads_with_counts, previous_palette=None,
     return best_palette, matched
 
 
+# ── Simulated annealing palette solver (Option 2) ─────────────────────────────
+
+def _anneal_palette(sorted_quads_with_counts, previous_palette=None,
+                    changes_per_row=CHANGE_PER_ROW,
+                    anneal_steps=200, t_start=2.0, t_end=0.05):
+    """
+    Option 2: simulated annealing palette solver.
+
+    Unlike the greedy which accepts only improvements, SA occasionally accepts
+    downhill moves early in the schedule.  This lets it escape local optima
+    that the greedy cannot escape within the budget.
+
+    anneal_steps : total SA steps (budget guard still applies to hard changes)
+    t_start      : initial temperature (fraction of total frequency)
+    t_end        : final temperature
+
+    Temperature is scaled by total pixel frequency so the acceptance probability
+    is image-independent.  The budget is enforced as a hard constraint: a
+    candidate that would exceed `changes_per_row` changes from previous_palette
+    is never accepted.
+
+    Returns (palette, matched_dict).
+    """
+    import math
+
+    prev = list(previous_palette) if previous_palette else [0] * 16
+    has_budget = previous_palette is not None
+    budget = changes_per_row if has_budget else 16
+
+    freq = {q: cnt for q, cnt in sorted_quads_with_counts}
+    required_set = set(freq)
+    if not required_set:
+        return list(prev), {}
+
+    total_freq = sum(freq.values())
+    T0 = t_start * total_freq
+    T1 = t_end * total_freq
+
+    palette = list(prev)
+    quads = [lookup_cols(palette, b) for b in range(256)]
+    achievable_cnt = Counter(quads)
+    changed: set = set()
+
+    def current_score():
+        return sum(freq[q] for q in required_set if achievable_cnt[q] > 0)
+
+    best_palette = list(palette)
+    best_score   = current_score()
+    score        = best_score
+
+    for step in range(anneal_steps):
+        T = T0 * (T1 / T0) ** (step / max(1, anneal_steps - 1))
+
+        # Pick a random candidate
+        slot = random.randint(0, 15)
+        val  = random.randint(0, 6)
+        if val >= palette[slot]:
+            val += 1   # skip current value, ensuring val != palette[slot]
+
+        # Budget guard
+        if has_budget and slot not in changed and val != prev[slot]:
+            if len(changed) >= budget:
+                continue
+
+        # Evaluate delta
+        old_val = palette[slot]
+        palette[slot] = val
+        delta: dict = {}
+        for b in _SLOT_BYTES[slot]:
+            old_q = quads[b]
+            new_q = lookup_cols(palette, b)
+            if old_q != new_q:
+                delta[old_q] = delta.get(old_q, 0) - 1
+                delta[new_q] = delta.get(new_q, 0) + 1
+
+        gain = 0.0
+        for q, d in delta.items():
+            if q in required_set:
+                was = achievable_cnt[q] > 0
+                now = achievable_cnt[q] + d > 0
+                gain += freq[q] * ((1 if now else 0) - (1 if was else 0))
+
+        # Accept?
+        if gain >= 0 or (T > 0 and random.random() < math.exp(gain / T)):
+            # Apply
+            for b in _SLOT_BYTES[slot]:
+                old_q = quads[b]
+                new_q = lookup_cols(palette, b)
+                if old_q != new_q:
+                    achievable_cnt[old_q] -= 1
+                    achievable_cnt[new_q]  += 1
+                    quads[b] = new_q
+            if has_budget:
+                if slot not in changed and val != prev[slot]:
+                    changed.add(slot)
+                elif slot in changed and val == prev[slot]:
+                    changed.discard(slot)
+            score += gain
+            if score > best_score:
+                best_score   = score
+                best_palette = list(palette)
+        else:
+            # Revert
+            palette[slot] = old_val
+
+    matched = {}
+    for quad in required_set:
+        bv = find_byte_for_quad(best_palette, quad)
+        if bv is not None:
+            matched[quad] = bv
+
+    return best_palette, matched
+
+
 # ── Z3 palette solver (legacy, used when --solver z3) ─────────────────────────
 
 def _add_quad_constraint(solver, pal, quad):
@@ -839,7 +964,7 @@ def _solve_palette_z3(required_quads, previous_palette=None,
 def find_palette_for_section(sorted_quads, previous_palette,
                               verbose=True, solver='greedy', look_ahead=False,
                               changes_per_row=CHANGE_PER_ROW, restarts=1,
-                              beam=1):
+                              beam=1, anneal=0, smooth_penalty=0.0):
     """
     Find a palette for this section.
 
@@ -850,6 +975,10 @@ def find_palette_for_section(sorted_quads, previous_palette,
                copy of previous_palette; the best coverage wins.
     beam     : Option 3 beam width (1 = greedy, 5-10 = beam search). When > 1,
                uses _beam_palette instead of _greedy_palette. Ignores restarts.
+    anneal        : Option 2 SA step count (0 = off). When > 0, uses _anneal_palette.
+                    Typical values: 100-500. Ignores restarts and beam.
+    smooth_penalty: Option 10 — per-new-slot-change cost in pixel-frequency units.
+                    Passed to _greedy_palette; values 5-30 reduce banding.
 
     Both paths share Option C (early exit when palette is already sufficient)
     and Option B (numpy-vectorised best-effort for unmatched quads).
@@ -881,6 +1010,19 @@ def find_palette_for_section(sorted_quads, previous_palette,
         palette, matched, besteffort = _find_palette_z3(
             all_quads, previous_palette, verbose,
             changes_per_row=changes_per_row)
+    elif anneal > 0:
+        # ── Option 2: simulated annealing ─────────────────────────────────────
+        palette, matched = _anneal_palette(sorted_quads, previous_palette,
+                                            changes_per_row=changes_per_row,
+                                            anneal_steps=anneal)
+        unmatched = [q for q in all_quads if q not in matched]
+        if verbose:
+            if unmatched:
+                print(f"    Anneal({anneal}): {n - len(unmatched)}/{n} quads satisfied; "
+                      f"{len(unmatched)} best-effort")
+            else:
+                print(f"    All {n} unique quads satisfied by anneal({anneal})")
+        besteffort = _best_effort_numpy(palette, unmatched)
     elif beam > 1:
         # ── Option 3: beam search ─────────────────────────────────────────────
         palette, matched = _beam_palette(sorted_quads, previous_palette,
@@ -913,7 +1055,8 @@ def find_palette_for_section(sorted_quads, previous_palette,
             p, m = _greedy_palette(sorted_quads, previous_palette,
                                    look_ahead=look_ahead,
                                    changes_per_row=changes_per_row,
-                                   init_palette=start_pal if attempt > 0 else None)
+                                   init_palette=start_pal if attempt > 0 else None,
+                                   smooth_penalty=smooth_penalty)
             score = sum(freq.get(q, 0) for q in m)
             if score > best_score:
                 best_score = score
@@ -1141,7 +1284,7 @@ def process_image(png_path: str, output_path: str,
                   redither: bool = False, vertical_dither: bool = False,
                   restarts: int = 1, mixno: int = 0, sharpen: float = 0.0,
                   iterate: int = 1, auto_threshold: float = _AUTO_DITHER_THRESHOLD,
-                  beam: int = 1):
+                  beam: int = 1, anneal: int = 0, smooth: float = 0.0):
     """
     Load a PNG, resize to 320×256, run the palsearch algorithm, and write
     the output binary.
@@ -1164,6 +1307,12 @@ def process_image(png_path: str, output_path: str,
     beam            : Option 3 — beam search width for palette solver (1=greedy,
                       5-10=beam search). Keeps top-k palette states at each
                       budget step; much less likely to commit to a bad choice.
+    anneal          : Option 2 — simulated annealing step count (0=off).
+                      Accepts occasional downhill moves to escape local optima.
+                      Typical values: 100-500. Overrides beam/restarts.
+    smooth          : Option 10 — per-new-slot-change cost (pixel-frequency units,
+                      0=off). Discourages gratuitous slot changes to reduce
+                      inter-section banding. Values of 5-30 are typical.
 
     Output layout:
         Bytes 0–(pal_size-1) : palette data
@@ -1247,7 +1396,8 @@ def process_image(png_path: str, output_path: str,
             palette_a, _, _ = find_palette_for_section(
                 joint_quads, previous_palette, verbose=verbose,
                 solver=solver, look_ahead=look_ahead,
-                changes_per_row=changes_per_row, restarts=restarts, beam=beam)
+                changes_per_row=changes_per_row, restarts=restarts,
+                beam=beam, anneal=anneal, smooth_penalty=smooth)
 
             # ── Solve palette_b for s1, starting from palette_a ───────────────
             if has_s1:
@@ -1255,7 +1405,8 @@ def process_image(png_path: str, output_path: str,
                 palette_b, _, _ = find_palette_for_section(
                     sorted_q1, palette_a, verbose=verbose,
                     solver=solver, look_ahead=look_ahead,
-                    changes_per_row=changes_per_row, restarts=restarts, beam=beam)
+                    changes_per_row=changes_per_row, restarts=restarts,
+                    beam=beam, anneal=anneal, smooth_penalty=smooth)
             else:
                 palette_b = palette_a
 
@@ -1322,7 +1473,8 @@ def process_image(png_path: str, output_path: str,
                 palette, matched, besteffort = find_palette_for_section(
                     sorted_quads, previous_palette, verbose=verbose,
                     solver=solver, look_ahead=look_ahead,
-                    changes_per_row=changes_per_row, restarts=restarts, beam=beam)
+                    changes_per_row=changes_per_row, restarts=restarts,
+                    beam=beam, anneal=anneal, smooth_penalty=smooth)
 
                 # ── Convergence check ──────────────────────────────────────────
                 if iter_palette is not None and palette == iter_palette:
@@ -1452,6 +1604,20 @@ The output binary is compatible with showimage.s for playback on BBC Master.
                           'dithering (default 0 = off). Applies an unsharp '
                           'mask; 0.5 is mild, 1.0 is strong. Recovers '
                           'perceived detail lost during low-res dithering.'))
+    ap.add_argument('--smooth', type=float, default=0.0, metavar='F',
+                    help=('Option 10: per-new-slot-change cost in pixel-frequency '
+                          'units (default 0 = off). Subtracted from the gain when '
+                          'the greedy considers changing a slot that has not been '
+                          'changed yet this section. Discourages gratuitous slot '
+                          'changes and reduces inter-section palette banding. '
+                          'Values of 5-30 are typical; start at 10.'))
+    ap.add_argument('--anneal', type=int, default=0, metavar='N',
+                    help=('Option 2: simulated annealing step count (default 0 = off). '
+                          'Replaces the greedy with SA: occasionally accepts '
+                          'downhill moves to escape local optima, cooling to '
+                          'greedy-like behaviour at the end. '
+                          'Typical values: 100 (fast) to 500 (quality). '
+                          'Overrides --beam and --restarts.'))
     ap.add_argument('--beam', type=int, default=1, metavar='N',
                     help=('Option 3: beam search width for the palette solver '
                           '(default 1 = greedy). Keeps the top N palette states '
@@ -1489,7 +1655,9 @@ The output binary is compatible with showimage.s for playback on BBC Master.
                   sharpen=args.sharpen,
                   iterate=args.iterate,
                   auto_threshold=args.auto_threshold,
-                  beam=args.beam)
+                  beam=args.beam,
+                  anneal=args.anneal,
+                  smooth=args.smooth)
 
 
 if __name__ == '__main__':
