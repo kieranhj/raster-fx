@@ -190,6 +190,99 @@ def _best_effort_numpy(palette, unmatched_quads):
     return besteffort
 
 
+def _all_bytes_rgb(palette):
+    """
+    Return (all_quads, all_rgb) for a palette.
+
+    all_quads : (256, 4) int32  — BBC colour index per byte × pixel
+    all_rgb   : (256, 4, 3) float32 — RGB values
+    """
+    all_quads = np.array([lookup_cols(palette, v) for v in range(256)], dtype=np.int32)
+    return all_quads, _BBC_RGB_NP[all_quads]
+
+
+# ── Option 4: palette-aware re-dithering ──────────────────────────────────────
+
+def _redither_bytes(arr: np.ndarray, section: int, palette: list,
+                    chunk_size: int = 2) -> list:
+    """
+    Option 4: palette-aware re-dither.
+
+    For each byte position in a section, finds the byte value 0-255 that
+    minimises the perceptual error between the actual palette colours it would
+    display and the preprocessed source pixels — using only the colours that
+    ARE in the solved palette.  No best-effort fallback is possible because
+    every byte value is evaluated directly.
+
+    Returns a flat list of byte values in section order
+    (row 0 bp 0..79, row 1 bp 0..79, …).
+    """
+    _, all_rgb = _all_bytes_rgb(palette)   # (256, 4, 3)
+
+    result = []
+    for row in range(chunk_size):
+        y = section * chunk_size + row
+        for bp in range(BYTES_PER_ROW):
+            target = np.empty((4, 3), dtype=np.float32)
+            for p in range(4):
+                x = bp * 4 + p
+                pr, pg, pb = preprocess_pixel(
+                    int(arr[y, x, 0]), int(arr[y, x, 1]), int(arr[y, x, 2]))
+                target[p] = (pr, pg, pb)
+            diffs  = np.abs(all_rgb - target[np.newaxis, :, :])          # (256,4,3)
+            scores = (diffs * _PERC_WEIGHTS).sum(axis=(1, 2))             # (256,)
+            result.append(int(np.argmin(scores)))
+    return result
+
+
+# ── Option 12: vertical dithering ─────────────────────────────────────────────
+
+def _vertical_dither_pair(arr: np.ndarray, section_even: int,
+                          palette_a: list, palette_b: list) -> tuple:
+    """
+    Option 12: vertical dither for a pair of adjacent per-scanline sections.
+
+    Requires chunk_size=1.  Given palette_a for section_even and palette_b for
+    section_even+1 (differing by ≤9 changes), finds a SINGLE byte value for
+    each horizontal byte position that minimises the combined perceptual error
+    across BOTH rows simultaneously.
+
+    Using the same byte on both rows is the key to vertical blending: slot s
+    displays palette_a[s] on row 2k and palette_b[s] on row 2k+1.  Where
+    palette_a[s] ≠ palette_b[s], the viewer perceives the average of the two
+    colours, roughly doubling the effective colour depth.
+
+    Returns (bytes_r0, bytes_r1) — two flat lists of BYTES_PER_ROW byte values.
+    Both lists contain identical values (the same byte used on both rows).
+    """
+    r0 = section_even
+    r1 = section_even + 1
+
+    _, all_rgb_a = _all_bytes_rgb(palette_a)   # (256, 4, 3)
+    _, all_rgb_b = _all_bytes_rgb(palette_b)   # (256, 4, 3)
+
+    bytes_out = []
+    for bp in range(BYTES_PER_ROW):
+        target_r0 = np.empty((4, 3), dtype=np.float32)
+        target_r1 = np.empty((4, 3), dtype=np.float32)
+        for p in range(4):
+            x = bp * 4 + p
+            pr, pg, pb = preprocess_pixel(
+                int(arr[r0, x, 0]), int(arr[r0, x, 1]), int(arr[r0, x, 2]))
+            target_r0[p] = (pr, pg, pb)
+            pr, pg, pb = preprocess_pixel(
+                int(arr[r1, x, 0]), int(arr[r1, x, 1]), int(arr[r1, x, 2]))
+            target_r1[p] = (pr, pg, pb)
+
+        # Score each byte v: combined error for r0 (palette_a) + r1 (palette_b)
+        diffs_a = np.abs(all_rgb_a - target_r0[np.newaxis, :, :])   # (256,4,3)
+        diffs_b = np.abs(all_rgb_b - target_r1[np.newaxis, :, :])   # (256,4,3)
+        scores  = ((diffs_a + diffs_b) * _PERC_WEIGHTS).sum(axis=(1, 2))  # (256,)
+        bytes_out.append(int(np.argmin(scores)))
+
+    return bytes_out, bytes_out   # same bytes for both rows
+
+
 # ── Mixes table (matches OCaml mixes()) ──────────────────────────────────────
 
 def _rgb01(col):
@@ -281,9 +374,9 @@ def preprocess_pixel(r: int, g: int, b: int):
 # ── Dithering ─────────────────────────────────────────────────────────────────
 
 def dither_section_ordered(img: np.ndarray, section: int, randomness: int = 64,
-                           chunk_size: int = 2):
+                           chunk_size: int = 2, mixno: int = 0):
     """
-    Colour-aware ordered dither for 2 rows of section using the mixes table.
+    Colour-aware ordered dither for chunk_size rows of section using the mixes table.
 
     Matches the OCaml default 'ordered' mode (ordered_dither_2, mixno=0).
     Each pixel is mapped to a 5-level RGB bucket; a 4-BBC-colour combination
@@ -296,7 +389,12 @@ def dither_section_ordered(img: np.ndarray, section: int, randomness: int = 64,
     (R×54/256, G×183/256, B×18/256), then added to the preprocessed colour.
     Set to 0 to disable.
 
-    Returns a list of 160 quads in screen order:
+    mixno (0–N): selects which entry from the mixes table to use.  Higher
+    values prefer higher-contrast dither combinations (e.g. black+white rather
+    than adjacent mid-tones).  Clamped to the number of entries available for
+    each bucket.  Default 0 matches the OCaml default.
+
+    Returns a list of (chunk_size × BYTES_PER_ROW) quads in screen order:
     [row0_byte0, …, row0_byte79, row1_byte0, …, row1_byte79].
     """
     r_rand = (randomness * 54) // 256
@@ -317,7 +415,7 @@ def dither_section_ordered(img: np.ndarray, section: int, randomness: int = 64,
                     pr = max(0, min(255, pr + (rnd * r_rand) // 256))
                     pg = max(0, min(255, pg + (rnd * g_rand) // 256))
                     pb = max(0, min(255, pb + (rnd * b_rand) // 256))
-                col = ordered_dither_2(x, y, pr, pg, pb)
+                col = ordered_dither_2(x, y, pr, pg, pb, mixno=mixno)
                 pix.append(col)
             quads.append(tuple(pix))
     return quads
@@ -390,6 +488,22 @@ def dither_section_fs(img: np.ndarray, section: int, err: np.ndarray,
     return quads_by_row
 
 
+# ── Option 9: adaptive dither variance helper ─────────────────────────────────
+
+_AUTO_DITHER_THRESHOLD = 600.0   # per-pixel variance threshold for auto dither
+                                 # sections above this use FS; below use ordered
+
+
+def _section_variance(arr: np.ndarray, section: int, chunk_size: int) -> float:
+    """Mean per-pixel luminance variance for the source rows of this section."""
+    r0 = section * chunk_size
+    r1 = min(r0 + chunk_size, arr.shape[0])
+    patch = arr[r0:r1].astype(np.float32)
+    # Perceptual luminance: 0.299R + 0.587G + 0.114B
+    lum = patch[:, :, 0] * 0.299 + patch[:, :, 1] * 0.587 + patch[:, :, 2] * 0.114
+    return float(np.var(lum))
+
+
 # ── Greedy palette solver (Option A) ──────────────────────────────────────────
 
 _LOOK_AHEAD_K = 3       # top-K unmatched quads considered for 2-step look-ahead
@@ -397,7 +511,8 @@ _LOOK_AHEAD_FACTOR = 1.0  # weight of look-ahead gain relative to direct gain
 
 
 def _greedy_palette(sorted_quads_with_counts, previous_palette=None,
-                    look_ahead=False, changes_per_row=CHANGE_PER_ROW):
+                    look_ahead=False, changes_per_row=CHANGE_PER_ROW,
+                    init_palette=None):
     """
     Option A: hill-climbing greedy palette solver replacing Z3.
 
@@ -405,21 +520,28 @@ def _greedy_palette(sorted_quads_with_counts, previous_palette=None,
     single-slot change (16 slots × 7 values = 112 candidates) and applies the
     one that maximises the frequency-weighted coverage of required quads.
 
+    previous_palette : the previous section's palette — defines the budget
+                       reference (changes are counted from this).
+    init_palette     : optional override for the starting state of the palette
+                       before hill-climbing begins.  Slots that already differ
+                       from previous_palette consume part of the budget.  Used
+                       by random-restart to explore different local optima
+                       without violating the inter-section change limit.
+
     Two-step look-ahead: for the top-K highest-frequency unmatched quads,
     checks whether any follow-up single-slot change (given this step applied)
     would make the quad achievable.  If so, credits the quad's frequency as a
-    look-ahead bonus.  This prevents the greedy from always choosing orange when
-    a two-change sequence (e.g. odd-slot→7 then free-slot→7) would unlock white.
-
-    Achievability is tested with _quad_achievable() in O(8) using the BBC ULA
-    group structure, so the look-ahead adds only modest overhead per section.
+    look-ahead bonus — but only when direct gain is already zero (Bug 1 fix).
 
     sorted_quads_with_counts : list of (quad, count) sorted by count descending.
     Returns (palette, matched_dict).  Never exceeds CHANGE_PER_ROW budget;
     unmatched quads fall through to best-effort.
     """
     prev = list(previous_palette) if previous_palette else [0] * 16
-    palette = list(prev)
+    if init_palette is not None:
+        palette = list(init_palette)
+    else:
+        palette = list(prev)
     has_budget = previous_palette is not None
     budget = changes_per_row if has_budget else 16
 
@@ -432,8 +554,12 @@ def _greedy_palette(sorted_quads_with_counts, previous_palette=None,
     quads = [lookup_cols(palette, b) for b in range(256)]
     achievable_cnt = Counter(quads)   # quad → number of bytes producing it
 
-    # Slots already changed from prev (for budget tracking)
-    changed: set = set()
+    # Slots already changed from prev (for budget tracking).
+    # If init_palette was supplied, slots that differ from prev already consume budget.
+    if init_palette is not None and has_budget:
+        changed: set = {i for i in range(16) if palette[i] != prev[i]}
+    else:
+        changed: set = set()
 
     for _step in range(budget):
         # Top-K unmatched quads for look-ahead (re-evaluated each step)
@@ -488,8 +614,10 @@ def _greedy_palette(sorted_quads_with_counts, previous_palette=None,
                         gain += freq[q] * ((1 if now else 0) - (1 if was else 0))
 
                 # 2-step look-ahead: credit quads that a follow-up step could
-                # unlock given this step is applied first.
-                if look_ahead and top_unmatched:
+                # unlock given this step is applied first.  Only activate when
+                # direct gain is zero — prevents a speculative step 1 choice
+                # from overriding a genuinely useful direct gain (Bug 1 fix).
+                if look_ahead and top_unmatched and gain == 0:
                     step1_is_new = slot not in changed and val != prev[slot]
                     budget_after = budget - len(changed) - (1 if step1_is_new else 0)
 
@@ -557,6 +685,109 @@ def _greedy_palette(sorted_quads_with_counts, previous_palette=None,
     return palette, matched
 
 
+# ── Beam search palette solver (Option 3) ─────────────────────────────────────
+
+def _beam_palette(sorted_quads_with_counts, previous_palette=None,
+                  changes_per_row=CHANGE_PER_ROW, beam_width=5):
+    """
+    Option 3: beam search palette solver.
+
+    Keeps the top `beam_width` palette states at each budget step rather than
+    committing to one.  Each step expands every beam state with all 112
+    single-slot candidates; the top-k unique resulting states (by
+    frequency-weighted coverage score) are retained.  Guarantees at least as
+    good a result as greedy (beam_width=1 == greedy without look-ahead).
+
+    previous_palette : budget reference — changes counted from this.
+    Returns (palette, matched_dict).
+    """
+    prev = list(previous_palette) if previous_palette else [0] * 16
+    has_budget = previous_palette is not None
+    budget = changes_per_row if has_budget else 16
+
+    freq = {q: cnt for q, cnt in sorted_quads_with_counts}
+    required_set = set(freq)
+    if not required_set:
+        return list(prev), {}
+
+    def _score(cnt):
+        return sum(freq[q] for q in required_set if cnt[q] > 0)
+
+    def _make_state(pal, changed=None):
+        qs  = [lookup_cols(pal, b) for b in range(256)]
+        cnt = Counter(qs)
+        ch  = set(changed) if changed else set()
+        return dict(palette=list(pal), quads=qs, cnt=cnt,
+                    changed=ch, score=_score(cnt))
+
+    # Initial beam: just the starting palette
+    start = list(prev)
+    beam = [_make_state(start)]
+
+    for _step in range(budget):
+        candidates = []
+        for state in beam:
+            pal     = state['palette']
+            ch      = state['changed']
+            qs      = state['quads']
+            cnt     = state['cnt']
+            for slot in range(16):
+                for val in range(8):
+                    if val == pal[slot]:
+                        continue
+                    # Budget guard
+                    if has_budget and slot not in ch and val != prev[slot]:
+                        if len(ch) >= budget:
+                            continue
+                    # Compute new state incrementally
+                    new_pal = list(pal)
+                    new_pal[slot] = val
+                    new_ch = set(ch)
+                    if slot not in ch and val != prev[slot]:
+                        new_ch.add(slot)
+                    elif slot in ch and val == prev[slot]:
+                        new_ch.discard(slot)
+                    new_qs  = list(qs)
+                    new_cnt = Counter(cnt)
+                    for b in _SLOT_BYTES[slot]:
+                        old_q = new_qs[b]
+                        nq    = lookup_cols(new_pal, b)
+                        if old_q != nq:
+                            new_cnt[old_q] -= 1
+                            new_cnt[nq]    += 1
+                            new_qs[b]       = nq
+                    sc = _score(new_cnt)
+                    if sc > state['score']:   # only keep improvements
+                        candidates.append(dict(palette=new_pal, quads=new_qs,
+                                               cnt=new_cnt, changed=new_ch,
+                                               score=sc))
+
+        if not candidates:
+            break   # no improvement possible
+
+        # Merge current beam + candidates, deduplicate by palette, keep top-k
+        candidates.sort(key=lambda s: -s['score'])
+        seen: set = set()
+        new_beam = []
+        for s in candidates + beam:
+            key = tuple(s['palette'])
+            if key not in seen:
+                seen.add(key)
+                new_beam.append(s)
+                if len(new_beam) >= beam_width:
+                    break
+        beam = new_beam
+
+    best_palette = beam[0]['palette']
+    matched = {}
+    for quad in required_set:
+        bv = find_byte_for_quad(best_palette, quad)
+        if bv is not None:
+            matched[quad] = bv
+
+    return best_palette, matched
+
+
 # ── Z3 palette solver (legacy, used when --solver z3) ─────────────────────────
 
 def _add_quad_constraint(solver, pal, quad):
@@ -607,12 +838,18 @@ def _solve_palette_z3(required_quads, previous_palette=None,
 
 def find_palette_for_section(sorted_quads, previous_palette,
                               verbose=True, solver='greedy', look_ahead=False,
-                              changes_per_row=CHANGE_PER_ROW):
+                              changes_per_row=CHANGE_PER_ROW, restarts=1,
+                              beam=1):
     """
     Find a palette for this section.
 
-    solver : 'greedy' (default) — hill-climbing greedy with numpy best-effort
-             'z3'               — Z3 SMT binary search (requires z3-solver)
+    solver   : 'greedy' (default) — hill-climbing greedy with numpy best-effort
+               'z3'               — Z3 SMT binary search (requires z3-solver)
+    restarts : number of random-restart attempts for the greedy solver (Option 1).
+               Each attempt beyond the first starts from a randomly-perturbed
+               copy of previous_palette; the best coverage wins.
+    beam     : Option 3 beam width (1 = greedy, 5-10 = beam search). When > 1,
+               uses _beam_palette instead of _greedy_palette. Ignores restarts.
 
     Both paths share Option C (early exit when palette is already sufficient)
     and Option B (numpy-vectorised best-effort for unmatched quads).
@@ -644,18 +881,53 @@ def find_palette_for_section(sorted_quads, previous_palette,
         palette, matched, besteffort = _find_palette_z3(
             all_quads, previous_palette, verbose,
             changes_per_row=changes_per_row)
-    else:
-        # ── Option A: greedy hill-climbing solver ─────────────────────────────
-        palette, matched = _greedy_palette(sorted_quads, previous_palette,
-                                           look_ahead=look_ahead,
-                                           changes_per_row=changes_per_row)
+    elif beam > 1:
+        # ── Option 3: beam search ─────────────────────────────────────────────
+        palette, matched = _beam_palette(sorted_quads, previous_palette,
+                                         changes_per_row=changes_per_row,
+                                         beam_width=beam)
         unmatched = [q for q in all_quads if q not in matched]
         if verbose:
             if unmatched:
-                print(f"    Greedy: {n - len(unmatched)}/{n} quads satisfied; "
+                print(f"    Beam({beam}): {n - len(unmatched)}/{n} quads satisfied; "
                       f"{len(unmatched)} best-effort")
             else:
-                print(f"    All {n} unique quads satisfied by greedy")
+                print(f"    All {n} unique quads satisfied by beam({beam})")
+        besteffort = _best_effort_numpy(palette, unmatched)
+    else:
+        # ── Option A + Option 1: greedy with random restarts ──────────────────
+        freq = {q: c for q, c in sorted_quads}
+        best_palette, best_matched = None, {}
+        best_score = -1
+
+        for attempt in range(max(1, restarts)):
+            if attempt == 0:
+                start_pal = previous_palette
+            else:
+                # Perturb: randomly change 1..changes_per_row slots
+                start_pal = list(previous_palette) if previous_palette else [0] * 16
+                n_perturb = random.randint(1, max(1, changes_per_row // 2))
+                for _ in range(n_perturb):
+                    start_pal[random.randint(0, 15)] = random.randint(0, 7)
+
+            p, m = _greedy_palette(sorted_quads, previous_palette,
+                                   look_ahead=look_ahead,
+                                   changes_per_row=changes_per_row,
+                                   init_palette=start_pal if attempt > 0 else None)
+            score = sum(freq.get(q, 0) for q in m)
+            if score > best_score:
+                best_score = score
+                best_palette, best_matched = p, m
+
+        palette, matched = best_palette, best_matched
+        unmatched = [q for q in all_quads if q not in matched]
+        if verbose:
+            suffix = f" (best of {restarts} restarts)" if restarts > 1 else ""
+            if unmatched:
+                print(f"    Greedy: {n - len(unmatched)}/{n} quads satisfied; "
+                      f"{len(unmatched)} best-effort{suffix}")
+            else:
+                print(f"    All {n} unique quads satisfied by greedy{suffix}")
         # ── Option B: numpy-vectorised best-effort ────────────────────────────
         besteffort = _best_effort_numpy(palette, unmatched)
 
@@ -817,29 +1089,95 @@ def _initial_palette_from_image(arr: np.ndarray) -> list:
 
 # ── Main pipeline ─────────────────────────────────────────────────────────────
 
+def _write_palette_delta(output_palettes, section, palette, previous_palette,
+                         changes_per_row, num_sections, verbose):
+    """Write one section's palette delta into the output_palettes bytearray."""
+    if section == 0:
+        for i in range(16):
+            output_palettes[i] = (i << 4) | (palette[i] ^ 7)
+    else:
+        same_no   = 0
+        change_no = 0
+        for i in range(16):
+            entry_changed = (palette[i] != previous_palette[i])
+            force_change  = (same_no >= 16 - changes_per_row)
+            if force_change or entry_changed:
+                if verbose and entry_changed:
+                    print(f"  Entry {i}: {previous_palette[i]} → {palette[i]}")
+                if change_no >= changes_per_row:
+                    raise AssertionError(
+                        f"Section {section}: more than {changes_per_row} "
+                        "palette changes required — solver bug")
+                output_palettes[256 + change_no * num_sections + (section - 1)] = \
+                    (i << 4) | (palette[i] ^ 7)
+                change_no += 1
+            else:
+                same_no += 1
+
+
+def _write_screen_section(screen_bytes, section, byte_list, chunk_size,
+                          palette, preview_arr):
+    """Write a flat list of byte values (one per byte-position in section)
+    into screen_bytes and optionally into preview_arr."""
+    for idx, bv in enumerate(byte_list):
+        off = screen_offset(section, idx, chunk_size=chunk_size)
+        if off < 20480:
+            screen_bytes[off] = bv
+        if preview_arr is not None:
+            actual_quad = lookup_cols(palette, bv)
+            row_in_section = idx // BYTES_PER_ROW
+            bp             = idx  % BYTES_PER_ROW
+            y = section * chunk_size + row_in_section
+            for p, col in enumerate(actual_quad):
+                preview_arr[y, bp * 4 + p] = col_to_rgb(col)
+
+
 def process_image(png_path: str, output_path: str,
                   dither: str = 'ordered', verbose: bool = True,
                   preview_path: str = None, solver: str = 'greedy',
                   resize: str = 'fit', randomness: int = 64,
                   look_ahead: bool = False, chunk_size: int = 2,
-                  changes_per_row: int = CHANGE_PER_ROW):
+                  changes_per_row: int = CHANGE_PER_ROW,
+                  redither: bool = False, vertical_dither: bool = False,
+                  restarts: int = 1, mixno: int = 0, sharpen: float = 0.0,
+                  iterate: int = 1, auto_threshold: float = _AUTO_DITHER_THRESHOLD,
+                  beam: int = 1):
     """
     Load a PNG, resize to 320×256, run the palsearch algorithm, and write
     the output binary.
 
-    chunk_size     : scanlines per section (1 or 2; default 2)
-    changes_per_row: max palette slot changes between sections (default 9)
+    chunk_size      : scanlines per section (1 or 2; default 2)
+    changes_per_row : max palette slot changes between sections (default 9)
+    redither        : Option 4 — after palette solve, re-dither using only
+                      the solved palette's actual colours (eliminates fallback)
+    vertical_dither : Option 12 — pair adjacent rows; use the same byte on
+                      both to create vertical colour-blend effect (chunk_size=1)
+    restarts        : Option 1 — random-restart count for greedy solver
+    mixno           : Option 7 — mixes table entry index (0 = lowest contrast)
+    sharpen         : Option 8 — unsharp-mask strength (0 = off, 1.0 = strong)
+    iterate         : Option 5 — dither→solve iterations per section (1=single
+                      pass, 2-3 typical convergence). Each pass >1 re-dithers
+                      using only the solved palette, then re-solves. Stops
+                      early when the palette is unchanged between passes.
+    auto_threshold  : Option 9 — per-pixel luminance variance threshold used
+                      when dither='auto' to choose ordered vs FS per section.
+    beam            : Option 3 — beam search width for palette solver (1=greedy,
+                      5-10=beam search). Keeps top-k palette states at each
+                      budget step; much less likely to commit to a bad choice.
 
     Output layout:
         Bytes 0–(pal_size-1) : palette data
-                               16-byte initial + changes_per_row * num_sections
-                               delta bytes
+                               256-byte initial section (16 used + 240 padding)
+                               + changes_per_row × num_sections delta bytes
         Bytes pal_size+      : 20480 bytes of BBC screen data
 
     If preview_path is given, also write a 320×256 PNG showing the actual
     colours that will appear on the BBC (i.e. after palette solve and
     best-effort fallback, not the dithered input).
     """
+    if vertical_dither and chunk_size != 1:
+        raise ValueError("--vertical-dither requires --chunk-size 1")
+
     num_sections = SCREEN_H // chunk_size
     pal_size     = 256 + changes_per_row * num_sections
 
@@ -847,8 +1185,17 @@ def process_image(png_path: str, output_path: str,
     img = Image.open(png_path).convert('RGB')
     if img.size != (SCREEN_W, SCREEN_H):
         if verbose:
-            print(f"Resizing {img.size} → ({SCREEN_W}×{SCREEN_H})  [{resize}]")
+            print(f"Resizing {img.size} -> ({SCREEN_W}x{SCREEN_H})  [{resize}]")
         img = _fit_image(img, resize)
+
+    # Option 8: pre-sharpen before dithering
+    if sharpen > 0:
+        from PIL import ImageFilter
+        img = img.filter(ImageFilter.UnsharpMask(
+            radius=1.5, percent=int(sharpen * 150), threshold=3))
+        if verbose:
+            print(f"Applied pre-sharpening (strength {sharpen:.2f})")
+
     arr = np.array(img, dtype=np.uint8)
 
     output_palettes = bytearray(pal_size)
@@ -864,76 +1211,141 @@ def process_image(png_path: str, output_path: str,
     # Preview buffer: RGB pixels at native 320×256
     preview_arr = np.zeros((SCREEN_H, SCREEN_W, 3), dtype=np.uint8) if preview_path else None
 
-    for section in range(num_sections):
-        if verbose:
-            print(f"\nSection {section}/{num_sections - 1}:")
-            sys.stdout.flush()
+    # ── Vertical dither mode: process section pairs jointly ───────────────────
+    if vertical_dither:
+        for pair in range(0, num_sections, 2):
+            s0 = pair
+            s1 = pair + 1
+            has_s1 = s1 < num_sections
 
-        # ── Dither ────────────────────────────────────────────────────────────
-        if dither == 'ordered':
-            quads = dither_section_ordered(arr, section, randomness=randomness,
-                                           chunk_size=chunk_size)
-        else:
-            quads = dither_section_fs(arr, section, fs_err,
-                                      chunk_size=chunk_size)
+            if verbose:
+                print(f"\nPair {pair//2}/{num_sections//2 - 1}  "
+                      f"(sections {s0}–{s1 if has_s1 else s0}):")
+                sys.stdout.flush()
 
-        counts      = Counter(quads)
-        sorted_quads = sorted(counts.items(), key=lambda x: -x[1])
+            # ── Initial dither for both rows ──────────────────────────────────
+            if dither == 'ordered':
+                quads_0 = dither_section_ordered(arr, s0, randomness=randomness,
+                                                 chunk_size=1, mixno=mixno)
+                quads_1 = dither_section_ordered(arr, s1, randomness=randomness,
+                                                 chunk_size=1, mixno=mixno) if has_s1 else []
+            else:
+                quads_0 = dither_section_fs(arr, s0, fs_err, chunk_size=1)
+                quads_1 = dither_section_fs(arr, s1, fs_err, chunk_size=1) if has_s1 else []
 
-        if verbose:
-            print(f"  {len(sorted_quads)} unique quads from {chunk_size * BYTES_PER_ROW} bytes")
+            # ── Joint palette solve for s0 using combined quads ───────────────
+            # Merge quads from both rows: encourages palette_a to serve both.
+            if has_s1:
+                combined_counts = Counter(quads_0) + Counter(quads_1)
+                joint_quads = sorted(combined_counts.items(), key=lambda x: -x[1])
+            else:
+                joint_quads = sorted(Counter(quads_0).items(), key=lambda x: -x[1])
 
-        # ── Solve ─────────────────────────────────────────────────────────────
-        palette, matched, besteffort = find_palette_for_section(
-            sorted_quads, previous_palette, verbose=verbose, solver=solver,
-            look_ahead=look_ahead, changes_per_row=changes_per_row)
+            if verbose:
+                print(f"  Joint: {len(joint_quads)} unique quads")
 
-        # ── Write screen bytes & preview ───────────────────────────────────────
-        for idx, quad in enumerate(quads):
-            off = screen_offset(section, idx, chunk_size=chunk_size)
-            if off < 20480:
-                bv = matched.get(quad, besteffort.get(quad, 0))
-                screen_bytes[off] = bv
+            palette_a, _, _ = find_palette_for_section(
+                joint_quads, previous_palette, verbose=verbose,
+                solver=solver, look_ahead=look_ahead,
+                changes_per_row=changes_per_row, restarts=restarts, beam=beam)
 
-            if preview_arr is not None:
-                # Reconstruct the four pixel colours actually stored
-                actual_quad = lookup_cols(palette,
-                                          matched.get(quad, besteffort.get(quad, 0)))
-                row_in_section = idx // BYTES_PER_ROW
-                bp             = idx  % BYTES_PER_ROW
-                y = section * chunk_size + row_in_section
-                for p, col in enumerate(actual_quad):
-                    x = bp * 4 + p
-                    preview_arr[y, x] = col_to_rgb(col)
+            # ── Solve palette_b for s1, starting from palette_a ───────────────
+            if has_s1:
+                sorted_q1 = sorted(Counter(quads_1).items(), key=lambda x: -x[1])
+                palette_b, _, _ = find_palette_for_section(
+                    sorted_q1, palette_a, verbose=verbose,
+                    solver=solver, look_ahead=look_ahead,
+                    changes_per_row=changes_per_row, restarts=restarts, beam=beam)
+            else:
+                palette_b = palette_a
 
-        # ── Write palette data ─────────────────────────────────────────────────
-        if section == 0:
-            # Initial palette: one byte per entry
-            for i in range(16):
-                output_palettes[i] = (i << 4) | (palette[i] ^ 7)
-        else:
-            # Delta from previous: write only changed (or forced-change) entries.
-            # Matches OCaml: once same_no >= (16 - changes_per_row) the rest are
-            # forced into the change list even if they didn't actually change.
-            same_no   = 0
-            change_no = 0
-            for i in range(16):
-                entry_changed = (palette[i] != previous_palette[i])
-                force_change  = (same_no >= 16 - changes_per_row)
-                if force_change or entry_changed:
-                    if verbose and entry_changed:
-                        print(f"  Entry {i}: {previous_palette[i]} → {palette[i]}")
-                    if change_no >= changes_per_row:
-                        raise AssertionError(
-                            f"Section {section}: more than {changes_per_row} "
-                            "palette changes required — solver bug")
-                    output_palettes[256 + change_no * num_sections + (section - 1)] = \
-                        (i << 4) | (palette[i] ^ 7)
-                    change_no += 1
+            # ── Vertical-aware byte selection ─────────────────────────────────
+            bytes_r0, bytes_r1 = _vertical_dither_pair(arr, s0, palette_a, palette_b)
+
+            # ── Write screen bytes and palette deltas ─────────────────────────
+            _write_screen_section(screen_bytes, s0, bytes_r0, 1, palette_a, preview_arr)
+            _write_palette_delta(output_palettes, s0, palette_a, previous_palette,
+                                 changes_per_row, num_sections, verbose)
+
+            if has_s1:
+                _write_screen_section(screen_bytes, s1, bytes_r1, 1, palette_b, preview_arr)
+                _write_palette_delta(output_palettes, s1, palette_b, palette_a,
+                                     changes_per_row, num_sections, verbose)
+                previous_palette = list(palette_b)
+            else:
+                previous_palette = list(palette_a)
+
+    # ── Standard mode: process sections sequentially ──────────────────────────
+    else:
+        for section in range(num_sections):
+            if verbose:
+                print(f"\nSection {section}/{num_sections - 1}:")
+                sys.stdout.flush()
+
+            # ── Option 9: adaptive dither mode selection ───────────────────────
+            if dither == 'auto':
+                var = _section_variance(arr, section, chunk_size)
+                section_dither = 'fs' if var > auto_threshold else 'ordered'
+                if verbose:
+                    print(f"  Variance {var:.0f} → {section_dither}")
+            else:
+                section_dither = dither
+
+            # ── Option 5: iterative dither→solve feedback loop ─────────────────
+            iter_palette = None
+            quads        = None
+            for itr in range(max(1, iterate)):
+                if itr == 0:
+                    # First pass: dither from source image
+                    if section_dither == 'ordered':
+                        quads = dither_section_ordered(arr, section,
+                                                       randomness=randomness,
+                                                       chunk_size=chunk_size,
+                                                       mixno=mixno)
+                    else:
+                        quads = dither_section_fs(arr, section, fs_err,
+                                                  chunk_size=chunk_size)
                 else:
-                    same_no += 1
+                    # Subsequent passes: re-dither constrained to current palette
+                    prev_bytes = _redither_bytes(arr, section, iter_palette,
+                                                 chunk_size)
+                    quads = [lookup_cols(iter_palette, b) for b in prev_bytes]
 
-        previous_palette = list(palette)
+                counts       = Counter(quads)
+                sorted_quads = sorted(counts.items(), key=lambda x: -x[1])
+
+                if verbose and itr == 0:
+                    print(f"  {len(sorted_quads)} unique quads from "
+                          f"{chunk_size * BYTES_PER_ROW} bytes")
+
+                # ── Solve ──────────────────────────────────────────────────────
+                palette, matched, besteffort = find_palette_for_section(
+                    sorted_quads, previous_palette, verbose=verbose,
+                    solver=solver, look_ahead=look_ahead,
+                    changes_per_row=changes_per_row, restarts=restarts, beam=beam)
+
+                # ── Convergence check ──────────────────────────────────────────
+                if iter_palette is not None and palette == iter_palette:
+                    if verbose:
+                        print(f"    Converged at iteration {itr + 1}")
+                    break
+                iter_palette = list(palette)
+
+            # ── Write screen bytes ─────────────────────────────────────────────
+            if redither or iterate > 1:
+                # Option 4/5: palette-constrained byte selection
+                byte_list = _redither_bytes(arr, section, palette, chunk_size)
+            else:
+                byte_list = [matched.get(quad, besteffort.get(quad, 0))
+                             for quad in quads]
+            _write_screen_section(screen_bytes, section, byte_list,
+                                  chunk_size, palette, preview_arr)
+
+            # ── Write palette data ─────────────────────────────────────────────
+            _write_palette_delta(output_palettes, section, palette, previous_palette,
+                                 changes_per_row, num_sections, verbose)
+
+            previous_palette = list(palette)
 
     # ── Write output file ──────────────────────────────────────────────────────
     with open(output_path, 'wb') as f:
@@ -972,10 +1384,13 @@ The output binary is compatible with showimage.s for playback on BBC Master.
                     help='Input PNG file (auto-resized to 320×256)')
     ap.add_argument('-o', '--output', default='output.bin',
                     help='Output binary file (default: output.bin)')
-    ap.add_argument('-d', '--dither', choices=['ordered', 'fs'], default='ordered',
+    ap.add_argument('-d', '--dither', choices=['ordered', 'fs', 'auto'],
+                    default='ordered',
                     help=('Dithering method: '
-                          'ordered = Bayer 2×2 (default), '
-                          'fs = Floyd-Steinberg'))
+                          'ordered = Bayer 2x2 (default), '
+                          'fs = Floyd-Steinberg, '
+                          'auto = Option 9: ordered for low-variance sections, '
+                          'FS for high-detail/edge sections'))
     ap.add_argument('-p', '--preview',
                     help='Write a preview PNG of the converted image')
     ap.add_argument('-r', '--resize',
@@ -997,12 +1412,10 @@ The output binary is compatible with showimage.s for playback on BBC Master.
                           'Use 0 to disable.'))
     ap.add_argument('--look-ahead', action='store_true', default=False,
                     help=('Enable 2-step look-ahead in the greedy solver. '
-                          'For the top-3 highest-frequency unmatched quads, '
-                          'checks whether a follow-up slot change would make '
-                          'the quad achievable and credits that frequency as '
-                          'a bonus. Fixes colours that require two coordinated '
-                          'slot changes (e.g. white duck head). Slower but '
-                          'produces better results for such images.'))
+                          'Only activates when direct gain is zero, so it '
+                          'breaks ties towards setups that enable a follow-up '
+                          'change (e.g. white requiring two coordinated slots). '
+                          'Slower but helps images with hard-to-reach colours.'))
     ap.add_argument('--chunk-size', type=int, choices=[1, 2], default=2,
                     metavar='N',
                     help=('Scanlines per section (1 or 2; default 2). '
@@ -1010,6 +1423,54 @@ The output binary is compatible with showimage.s for playback on BBC Master.
                           'stable raster loop has sufficient cycles.'))
     ap.add_argument('--changes', type=int, default=CHANGE_PER_ROW, metavar='N',
                     help=f'Max palette slot changes per section (default {CHANGE_PER_ROW})')
+    ap.add_argument('--redither', action='store_true', default=False,
+                    help=('Option 4: after palette solve, re-dither each section '
+                          'using only the colours in the solved palette. Finds '
+                          'the best byte per position directly, eliminating '
+                          'best-effort fallback entirely.'))
+    ap.add_argument('--vertical-dither', action='store_true', default=False,
+                    help=('Option 12: pair adjacent scanlines for joint palette '
+                          'optimisation and vertical colour blending. Requires '
+                          '--chunk-size 1. Uses the same byte on both rows of '
+                          'each pair, so that palette slot alternations between '
+                          'rows are perceived as blended intermediate colours, '
+                          'roughly doubling the effective colour depth.'))
+    ap.add_argument('--restarts', type=int, default=1, metavar='N',
+                    help=('Option 1: number of greedy random-restart attempts '
+                          'per section (default 1 = no restarts). Each extra '
+                          'attempt starts from a randomly-perturbed copy of '
+                          'the previous palette; the best result wins. '
+                          'Values of 5–20 trade runtime for quality.'))
+    ap.add_argument('--mixno', type=int, default=0, metavar='N',
+                    help=('Option 7: mixes table entry index for ordered dither '
+                          '(default 0 = lowest contrast / smoothest). Higher '
+                          'values select higher-contrast dither combinations '
+                          '(e.g. black+white rather than adjacent mid-tones). '
+                          'Useful for images with strong highlights or shadows.'))
+    ap.add_argument('--sharpen', type=float, default=0.0, metavar='F',
+                    help=('Option 8: pre-sharpen the input image before '
+                          'dithering (default 0 = off). Applies an unsharp '
+                          'mask; 0.5 is mild, 1.0 is strong. Recovers '
+                          'perceived detail lost during low-res dithering.'))
+    ap.add_argument('--beam', type=int, default=1, metavar='N',
+                    help=('Option 3: beam search width for the palette solver '
+                          '(default 1 = greedy). Keeps the top N palette states '
+                          'at each budget step instead of committing to one. '
+                          'Values of 5-10 give substantially better coverage '
+                          'at N× the solver cost per section.'))
+    ap.add_argument('--iterate', type=int, default=1, metavar='N',
+                    help=('Option 5: dither-solve iteration count per section '
+                          '(default 1 = single pass). Each pass beyond the first '
+                          're-dithers using only the solved palette, then re-solves. '
+                          'Stops early when the palette converges. '
+                          'Requires no extra flags but pairs well with --redither. '
+                          '2-3 passes is typical.'))
+    ap.add_argument('--auto-threshold', type=float,
+                    default=_AUTO_DITHER_THRESHOLD, metavar='F',
+                    help=('Option 9: luminance variance threshold for --dither auto '
+                          f'(default {_AUTO_DITHER_THRESHOLD}). Sections with '
+                          'per-pixel variance above this use Floyd-Steinberg; '
+                          'sections below use ordered dither.'))
     ap.add_argument('-q', '--quiet', action='store_true',
                     help='Suppress per-section progress output')
     args = ap.parse_args()
@@ -1020,7 +1481,15 @@ The output binary is compatible with showimage.s for playback on BBC Master.
                   resize=args.resize, randomness=args.randomness,
                   look_ahead=args.look_ahead,
                   chunk_size=args.chunk_size,
-                  changes_per_row=args.changes)
+                  changes_per_row=args.changes,
+                  redither=args.redither,
+                  vertical_dither=args.vertical_dither,
+                  restarts=args.restarts,
+                  mixno=args.mixno,
+                  sharpen=args.sharpen,
+                  iterate=args.iterate,
+                  auto_threshold=args.auto_threshold,
+                  beam=args.beam)
 
 
 if __name__ == '__main__':

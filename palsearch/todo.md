@@ -8,15 +8,16 @@ configuration inherited from the previous section. These options address that.
 
 ---
 
-## Option 1 — Random restarts
+### ~~Option 1 — Random restarts~~ ✓ DONE
 
-Run the greedy k times (e.g. 10–20) for each section, each time starting from
+~~Run the greedy k times (e.g. 10–20) for each section, each time starting from
 a randomly-perturbed copy of the previous palette. Keep the result with the
-highest frequency-weighted coverage score.
+highest frequency-weighted coverage score.~~
 
-- **Cost:** k× runtime per section (still seconds total at k=10–20)
-- **Effort:** Low — wrap `_greedy_palette` in a loop, compare scores
-- **Benefit:** Escapes local optima that depend on a bad starting point
+Implemented as `--restarts N` (default 1). Each restart beyond the first
+starts from a randomly-perturbed copy of `previous_palette`; the run with the
+highest frequency-weighted coverage wins. Budget is always counted against the
+real previous palette (not the perturbed state).
 
 ---
 
@@ -32,47 +33,37 @@ by the end of the budget.
 
 ---
 
-## Option 3 — Beam search
+### ~~Option 3 — Beam search~~ ✓ DONE
 
-Keep the top-k palettes at each budget step rather than committing to one.
-At each step, expand every candidate in the beam with all 112 single-slot
-changes, score them all, and retain the top-k.
+~~Keep the top-k palettes at each budget step rather than committing to one.~~
 
-- **Cost:** k× per step (k=5–10 is practical)
-- **Effort:** Medium — refactor `_greedy_palette` to maintain a list of states
-- **Benefit:** Much less likely to commit to a globally bad choice early;
-  closer to optimal without full enumeration
+Implemented as `--beam N` (default 1 = greedy). `_beam_palette` expands all
+beam states with all 112 single-slot candidates each step, retaining the top-N
+unique states by frequency-weighted coverage score. Values of 5–10 give
+substantially better coverage at N× the solver cost per section.
 
 ---
 
 ## Overall image quality
 
-### Option 4 — Palette-aware re-dithering (highest impact)
+### ~~Option 4 — Palette-aware re-dithering~~ ✓ DONE
 
-Currently the dither runs first assuming all 8 BBC colours are available, then
-the palette solver runs on the result. Pixels that can't be matched fall
-through to best-effort (nearest byte). Instead, after solving the palette,
-re-run the dither for that section using only the colours actually present in
-the solved palette. This eliminates best-effort fallback and produces dither
-patterns tuned to what the hardware can actually display.
+~~Currently the dither runs first assuming all 8 BBC colours are available, then
+the palette solver runs on the result.~~
 
-- **Cost:** ~2× dither time per section (small compared to solver)
-- **Effort:** Medium — pass the solved palette back into a palette-constrained
-  dither function; replace `ordered_dither_2` lookup with palette-filtered mixes
-- **Benefit:** Eliminates best-effort fallback; biggest single quality win
+Implemented as `--redither`. After solving the palette for each section,
+`_redither_bytes` scores all 256 byte values against the preprocessed source
+pixels and picks the best — eliminating best-effort fallback.
 
 ---
 
-### Option 5 — Iterative feedback loop
+### ~~Option 5 — Iterative feedback loop~~ ✓ DONE
 
-Extend option 4 by iterating: dither → solve → re-dither with actual palette →
-re-solve → repeat until stable. Usually converges in 2–3 passes.
+~~Extend option 4 by iterating: dither → solve → re-dither → re-solve.~~
 
-- **Cost:** 2–3× total pipeline time per section
-- **Effort:** Low once option 4 is done — wrap section processing in a loop
-  with a convergence check (palette unchanged between passes)
-- **Benefit:** Further improves on option 4 for sections where the palette
-  changes significantly between passes
+Implemented as `--iterate N` (default 1). Each pass beyond the first re-dithers
+using only the solved palette (via `_redither_bytes`), then re-solves. Stops
+early when the palette is unchanged between passes. Pairs well with `--redither`.
 
 ---
 
@@ -80,48 +71,36 @@ re-solve → repeat until stable. Usually converges in 2–3 passes.
 
 ~~The greedy starts from all-black for section 0, which is a poor baseline for
 the 127 sections that inherit from it. Seed the initial palette instead from
-the image's global dominant colours (histogram of the top 8 most-common BBC
-colour approximations across the whole image, or k-means on the preprocessed
-pixel values).~~
+the image's global dominant colours.~~
 
 ---
 
-### Option 7 — Expose `mixno`
+### ~~Option 7 — Expose `mixno`~~ ✓ DONE
 
-The OCaml script has a `-mixno` flag that selects higher-contrast dither mix
-combinations (e.g. black+white alongside mid-tones rather than only adjacent
-colours). Currently hardcoded to 0 in Python.
+~~The OCaml script has a `-mixno` flag that selects higher-contrast dither mix
+combinations.~~
 
-- **Cost:** None at runtime
-- **Effort:** Trivial — add `--mixno` CLI flag, thread through to
-  `ordered_dither_2` / `dither_section_ordered`
-- **Benefit:** Lets you trade smoothness for contrast; useful for images with
-  strong highlights or shadows
+Implemented as `--mixno N` (default 0). Controls which mix combination set is
+used in the ordered dither.
 
 ---
 
-### Option 8 — Pre-sharpening
+### ~~Option 8 — Pre-sharpening~~ ✓ DONE
 
-Dithered images on low-resolution displays look softer than the source.
-A mild unsharp mask before conversion can recover perceived detail, especially
-with ordered dither which tends to blur edges.
+~~Dithered images on low-resolution displays look softer than the source.~~
 
-- **Cost:** Negligible
-- **Effort:** Trivial — apply `ImageFilter.UnsharpMask` (or similar) to the
-  input image before converting to numpy array; add `--sharpen` flag
-- **Benefit:** Improved perceived sharpness, especially on edges
+Implemented as `--sharpen F` (default 0.0). Applies `ImageFilter.UnsharpMask`
+to the input image before conversion.
 
 ---
 
-### Option 9 — Adaptive dither mode per section
+### ~~Option 9 — Adaptive dither mode per section~~ ✓ DONE
 
-Use ordered dither for smooth/gradient sections and FS for high-detail/edge
-sections. The section's pixel variance is cheap to compute.
+~~Use ordered dither for smooth sections and FS for high-detail/edge sections.~~
 
-- **Cost:** Negligible
-- **Effort:** Low — compute per-section variance, switch dither mode above a
-  threshold; add `--dither auto` mode alongside existing `ordered`/`fs`
-- **Benefit:** Best of both dither modes without manual tuning per image
+Implemented as `--dither auto`. Computes perceptual luminance variance for each
+section; sections above `--auto-threshold` (default 600) use Floyd-Steinberg,
+sections below use ordered dither.
 
 ---
 
@@ -141,72 +120,38 @@ would smooth transitions.
 
 ## Per-scanline palette changes (stable raster hardware)
 
-The stable raster implementation provides enough cycles to change 9 palette
-entries on every scanline, not just every 2. The current CHUNKSIZE=2 design
-was a hardware concession that can now be removed.
-
 ### ~~Option 11 — Switch to per-scanline sections (CHUNKSIZE=1)~~ ✓ DONE
 
 ~~Halve CHUNKSIZE from 2 to 1 so each palette is optimised for a single row
-instead of a pair. Sections increase from 128 to 256; each section's palette
-no longer compromises between two rows with potentially different colour
-content.~~
+instead of a pair.~~
 
 Implemented as `--chunk-size` (1 or 2, default 2) and `--changes` (default 9)
 CLI options in both `palsearch.py` and `showbin.py`. Data size at chunk-size=1:
-22816 bytes (16 + 9×256 palette + 20480 screen).
+23040 bytes (256 + 9×256 palette + 20480 screen).
 
 ---
 
-### Option 12 — Vertical dithering
+### ~~Option 12 — Vertical dithering~~ ✓ DONE
 
-With per-scanline palettes in place, deliberately alternate a palette slot
-between two colours on adjacent scanlines. A pixel using that slot appears as
-colour A on row N and colour B on row N+1 — perceived as a blend of A and B at
-normal viewing distance. Combined with the existing horizontal Bayer dither
-(4 pixels wide), this creates a 4×2 dither cell and roughly doubles the number
-of representable colours.
+~~With per-scanline palettes in place, deliberately alternate a palette slot
+between two colours on adjacent scanlines.~~
 
-To exploit this fully, palsearch would process scanline pairs jointly: given
-two adjacent rows, find palette assignments for each that together cover
-colours neither can represent alone, and choose screen bytes for both rows with
-that alternation in mind.
-
-- **Cost:** Roughly 2× solver complexity per pair (joint optimisation over two
-  rows simultaneously)
-- **Effort:** High — new joint section solver; the mixes table and dither
-  function need extending to consider vertical colour pairs; requires option 11
-- **Benefit:** Approximately doubles the effective colour depth; the largest
-  possible quality improvement given the hardware constraints
+Implemented as `--vertical-dither` (requires `--chunk-size 1`). Processes
+scanline pairs jointly: `_vertical_dither_pair` scores all 256 byte values
+against both rows simultaneously, choosing the byte that minimises combined
+perceptual error. The same byte value is written to both rows; the independent
+per-row palettes produce different colours, which the viewer perceives as a
+blend.
 
 ---
 
 ## Known bugs
 
-### Bug 1 — `--look-ahead` causes spurious colour bands (e.g. magenta at top)
+### ~~Bug 1 — `--look-ahead` causes spurious colour bands~~ ✓ FIXED
 
-The look-ahead credits a step 1 choice with the full frequency of a quad that
-a follow-up step 2 *could* cover — treating future gain as certain.  But the
-greedy evaluates step 2 independently and may choose something with higher
-direct gain instead.  Step 1 then leaves an unusual colour (e.g. magenta) in
-a palette slot for no benefit, and the best-effort fallback maps surrounding
-unmatched quads to that colour.
+~~The look-ahead credits a step 1 choice with the full frequency of a quad that
+a follow-up step 2 *could* cover — treating future gain as certain.~~
 
-The white head fix works because white quads are dominant enough that step 2
-naturally wins the next step too.  For sections where the anticipated quad is
-not dominant enough, step 2 goes elsewhere and step 1's choice is wasted.
-
-**Fix options (in order of simplicity):**
-
-1. **Reduce `_LOOK_AHEAD_FACTOR`** (e.g. 0.3–0.5) — makes look-ahead a
-   tiebreaker rather than an override.  Prevents zero-direct-gain step 1
-   choices from being selected purely on speculative future gain.
-
-2. **Only look ahead when step 1 has zero direct gain** — if step 1 already
-   covers something useful, don't add speculative bonus on top.  Limits
-   look-ahead to the exact case it was designed for.
-
-3. **Commit to both steps as a pair** — when a 2-step combo is chosen, apply
-   both changes immediately and consume 2 budget slots.  Guarantees step 2
-   follows, eliminating over-optimism entirely.  Requires restructuring the
-   greedy loop to support variable-size steps.
+Fixed with option 2: look-ahead bonus only activates when direct gain == 0.
+This prevents a speculative step-1 choice from overriding a genuinely useful
+direct gain.
