@@ -226,26 +226,33 @@ def build_ui() -> gr.Blocks:
             "palette solver and download the `.bin`."
         )
 
-        # ── Three image previews ───────────────────────────────────────────────
+        # ── Image previews ─────────────────────────────────────────────────────
+        # Left column: source images side-by-side (smaller, natural height).
+        # Right column: BBC output — larger, the main result.
+        # buttons=["fullscreen","download"] is set explicitly on output images
+        # because Gradio 6.x only shows overlay buttons when they are named.
         with gr.Row():
-            with gr.Column(scale=1, min_width=340):
-                gr.Markdown("### 1 · Input")
-                input_img = gr.Image(
-                    label="Upload source image",
-                    type="numpy", image_mode="RGB",
-                    height=256)
-            with gr.Column(scale=1, min_width=340):
-                gr.Markdown("### 2 · Preprocessed (320×256, live)")
-                prep_img = gr.Image(
-                    label="After preprocessing",
-                    type="pil", interactive=False,
-                    height=256)
-            with gr.Column(scale=1, min_width=340):
+            with gr.Column(scale=5):
+                with gr.Row():
+                    with gr.Column():
+                        gr.Markdown("### 1 · Input")
+                        input_img = gr.Image(
+                            label="Upload source image",
+                            type="numpy", image_mode="RGB",
+                            buttons=["fullscreen", "download"])
+                    with gr.Column():
+                        gr.Markdown("### 2 · Preprocessed (320×256, live)")
+                        prep_img = gr.Image(
+                            label="Updates on every Preprocessing control change",
+                            type="pil",
+                            buttons=["fullscreen", "download"])
+            with gr.Column(scale=6):
                 gr.Markdown("### 3 · Converted (BBC Mode 1)")
                 conv_img = gr.Image(
-                    label="BBC output",
-                    type="pil", interactive=False,
-                    height=256)
+                    label="Click Convert to generate",
+                    type="pil",
+                    buttons=["fullscreen", "download"],
+                    height=512)
 
         # ── Convert button + status + download ────────────────────────────────
         with gr.Row():
