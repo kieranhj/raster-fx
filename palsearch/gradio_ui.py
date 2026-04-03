@@ -140,8 +140,6 @@ def _convert(img_np,
              dither, randomness, mixno, chunk_size, auto_threshold,
              # Solver
              solver, changes, look_ahead, restarts, beam, anneal, smooth,
-             # Output
-             redither, vertical_dither, iterate,
              progress=gr.Progress(track_tqdm=False)):
 
     if img_np is None:
@@ -149,9 +147,6 @@ def _convert(img_np,
 
     chunk_size = int(chunk_size)
 
-    if vertical_dither and chunk_size != 1:
-        return None, None, (
-            "Error: Vertical dithering requires Chunk size = 1 (set on the Dithering tab).")
 
     # Save input image to a temp PNG
     input_tmp = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
@@ -165,33 +160,31 @@ def _convert(img_np,
         progress(0, desc="Running palette solver…")
         process_image(
             input_tmp.name, bin_path,
-            dither         = dither,
-            verbose        = False,
-            preview_path   = preview_path,
-            solver         = solver,
-            resize         = resize,
-            randomness     = int(randomness),
-            look_ahead     = look_ahead,
-            chunk_size     = chunk_size,
-            changes_per_row= int(changes),
-            redither       = redither,
-            vertical_dither= vertical_dither,
-            restarts       = int(restarts),
-            mixno          = int(mixno),
-            sharpen        = float(sharpen),
-            iterate        = int(iterate),
-            auto_threshold = float(auto_threshold),
-            beam           = int(beam),
-            anneal         = int(anneal),
-            smooth         = float(smooth),
-            saturation     = float(saturation),
-            autolevel      = autolevel,
-            contrast       = float(contrast),
-            brightness     = float(brightness),
-            input_gamma    = float(input_gamma),
-            hue            = float(hue),
-            denoise        = denoise,
-            posterise      = int(posterise),
+            dither            = dither,
+            verbose           = False,
+            preview_path      = preview_path,
+            solver            = solver,
+            resize            = resize,
+            randomness        = int(randomness),
+            look_ahead        = look_ahead,
+            chunk_size        = chunk_size,
+            changes_per_row   = int(changes),
+            restarts          = int(restarts),
+            mixno             = int(mixno),
+            sharpen           = float(sharpen),
+            auto_threshold    = float(auto_threshold),
+            beam              = int(beam),
+            anneal            = int(anneal),
+            smooth            = float(smooth),
+            saturation        = float(saturation),
+            autolevel         = autolevel,
+            contrast          = float(contrast),
+            brightness        = float(brightness),
+            input_gamma       = float(input_gamma),
+            hue               = float(hue),
+            denoise           = denoise,
+            posterise         = int(posterise),
+            progress_callback = lambda v: progress(v, desc=f"Solving… {v*100:.0f}%"),
         )
         progress(1.0, desc="Done!")
 
@@ -470,38 +463,6 @@ def build_ui() -> gr.Blocks:
                                  "banding at section boundaries. Values 5–30 are typical.")
 
             # ── Tab 4 — Output Options ─────────────────────────────────────────
-            with gr.Tab("Output Options"):
-                gr.Markdown(
-                    "Post-solve improvements to how screen bytes are assigned. "
-                    "All options are off by default for maximum speed.")
-
-                with gr.Row():
-                    with gr.Column():
-                        redither = gr.Checkbox(
-                            value=False, label="Re-dither after solve (Option 4)",
-                            info="After the palette is solved, re-assign every screen byte "
-                                 "by scoring all 256 possible values against the preprocessed "
-                                 "source pixels and picking the closest match. Eliminates "
-                                 "best-effort fallback entirely — the biggest single quality "
-                                 "win when enabled together with Feedback iterations.")
-
-                        iterate = gr.Slider(
-                            1, 5, value=1, step=1,
-                            label="Feedback iterations",
-                            info="Run the dither → solve pipeline N times per section. "
-                                 "Each pass beyond the first re-dithers using only the colours "
-                                 "in the solved palette, then re-solves. Stops early when the "
-                                 "palette is unchanged. 2–3 passes is typical. "
-                                 "Works best with Re-dither enabled.")
-
-                        vertical_dither = gr.Checkbox(
-                            value=False,
-                            label="Vertical dithering (requires Chunk size = 1)",
-                            info="Process scanline pairs jointly. Each pair uses the same "
-                                 "screen byte on both rows but independent per-row palettes. "
-                                 "The viewer perceives the average of the two palette "
-                                 "colours — roughly doubling the effective colour depth. "
-                                 "Requires Chunk size = 1 on the Dithering tab.")
 
         # ── Event wiring ──────────────────────────────────────────────────────
 
@@ -529,8 +490,6 @@ def build_ui() -> gr.Blocks:
             dither, randomness, mixno, chunk_size, auto_threshold,
             # solver
             solver, changes, look_ahead, restarts, beam, anneal, smooth,
-            # output
-            redither, vertical_dither, iterate,
         ]
 
         convert_btn.click(
