@@ -25,3 +25,4 @@ compile.txt
 run.bat
 *.pyc
 .vscode/tasks.json
+.claude/settings.local.json
