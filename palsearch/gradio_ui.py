@@ -196,6 +196,9 @@ def _convert(img_np,
         progress(1.0, desc="Done!")
 
         preview_img = Image.open(preview_path).copy()
+        preview_img = preview_img.resize(
+            (preview_img.width * 3, preview_img.height * 3),
+            Image.NEAREST)
         bin_size    = os.path.getsize(bin_path)
         sections    = SCREEN_H // chunk_size
         msg = (f"Done.  {bin_size} bytes  "
@@ -251,8 +254,7 @@ def build_ui() -> gr.Blocks:
                 conv_img = gr.Image(
                     label="Click Convert to generate",
                     type="pil",
-                    buttons=["fullscreen", "download"],
-                    height=512)
+                    buttons=["fullscreen", "download"])
 
         # ── Convert button + status + download ────────────────────────────────
         with gr.Row():
