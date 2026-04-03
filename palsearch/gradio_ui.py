@@ -20,7 +20,6 @@ import os
 import sys
 import tempfile
 import traceback
-import webbrowser
 import zipfile
 
 import numpy as np
@@ -204,10 +203,20 @@ def _convert(img_np,
         sections    = SCREEN_H // chunk_size
         msg = (f"Done.  {bin_size} bytes  "
                f"({256 + int(changes) * sections} palette + 20480 screen).")
-        return preview_img, bin_path, msg
+
+        # Build SSD + emulator link if the template exists and chunk_size=2
+        ssd_path = None
+        emu_html = ""
+        if chunk_size == 2 and os.path.exists(_SSD_TEMPLATE):
+            try:
+                ssd_path, emu_html, _ = _build_ssd(bin_path)
+            except Exception:
+                pass   # SSD build is best-effort
+
+        return preview_img, bin_path, ssd_path, emu_html, msg
 
     except Exception as exc:
-        return None, None, f"Error: {exc}\n\n{traceback.format_exc()}"
+        return None, None, None, "", f"Error: {exc}\n\n{traceback.format_exc()}"
 
     finally:
         for p in (input_tmp.name, preview_path):
@@ -251,23 +260,11 @@ def _patch_ssd(template_path, pal_data, pic_data):
     return bytes(ssd)
 
 
-def _build_and_run(bin_file, chunk_size):
-    """Patch PIC+PAL into the SSD template and open the jsbeeb emulator."""
-    if bin_file is None:
-        return None, "No .bin file — run Convert first."
-
-    if int(chunk_size) != 2:
-        return None, "Error: Run on BBC Micro requires Chunk size = 2 (the 6502 code is built for chunk_size=2)."
-
+def _build_ssd(bin_file):
+    """Patch PIC+PAL into the SSD template and return an emulator link."""
     bin_data = open(bin_file, 'rb').read()
-    if len(bin_data) <= 20480:
-        return None, f"Error: .bin too small ({len(bin_data)} bytes)."
-
     pal_data = bin_data[:len(bin_data) - 20480]
     pic_data = bin_data[len(bin_data) - 20480:]
-
-    if not os.path.exists(_SSD_TEMPLATE):
-        return None, f"Error: SSD template not found at {_SSD_TEMPLATE}"
 
     ssd_data = _patch_ssd(_SSD_TEMPLATE, pal_data, pic_data)
 
@@ -276,24 +273,22 @@ def _build_and_run(bin_file, chunk_size):
     ssd_tmp.write(ssd_data)
     ssd_tmp.close()
 
-    # Open the online emulator with the SSD embedded as base64 in the URL.
+    # Build emulator URL with the SSD embedded as base64 in the hash fragment.
     # jsbeeb's data: handler expects a ZIP containing an .ssd file.
-    # The URL is too long for Windows os.startfile(), so write a tiny HTML
-    # redirect and open that instead.
     zip_buf = io.BytesIO()
     with zipfile.ZipFile(zip_buf, 'w', zipfile.ZIP_DEFLATED) as zf:
         zf.writestr('raster-fx.ssd', ssd_data)
     b64 = base64.b64encode(zip_buf.getvalue()).decode('ascii')
     emu_url = f"https://bbc.xania.org/#autoboot&model=master&disc1=data:{b64}"
 
-    redirect_html = tempfile.NamedTemporaryFile(
-        suffix='.html', delete=False, mode='w', encoding='utf-8')
-    redirect_html.write(
-        f'<html><body><script>window.location={emu_url!r};</script></body></html>')
-    redirect_html.close()
-    webbrowser.open(redirect_html.name)
+    link_html = (
+        f'<a href="{emu_url}" target="_blank" '
+        f'style="display:inline-block;width:100%;padding:10px;'
+        f'background:#2563eb;color:white;border-radius:8px;'
+        f'text-decoration:none;font-weight:bold;text-align:center">'
+        f'▶ Run on BBC Micro</a>')
 
-    return ssd_tmp.name, f"Built SSD ({len(ssd_data)} bytes). Emulator opened."
+    return ssd_tmp.name, link_html, f"Built SSD ({len(ssd_data)} bytes)."
 
 
 # ── Gradio UI layout ───────────────────────────────────────────────────────────
@@ -335,16 +330,13 @@ def build_ui() -> gr.Blocks:
                     label="Click Convert to generate",
                     type="pil",
                     buttons=["fullscreen", "download"])
-
-        # ── Convert button + status + download ────────────────────────────────
-        with gr.Row():
-            convert_btn = gr.Button("Convert", variant="primary", scale=2)
-            run_btn     = gr.Button("Run on BBC Micro", variant="secondary", scale=2)
-            status_box  = gr.Textbox(label="Status", interactive=False,
-                                     scale=4, show_label=True)
-        with gr.Row():
-            dl_file     = gr.File(label="Download .bin", scale=1)
-            dl_ssd      = gr.File(label="Download .ssd", scale=1)
+                convert_btn = gr.Button("Convert", variant="primary")
+                emu_link    = gr.HTML()
+                status_box  = gr.Textbox(label="Status", interactive=False,
+                                         show_label=False)
+                with gr.Row():
+                    dl_file = gr.File(label="Download .bin", scale=1)
+                    dl_ssd  = gr.File(label="Download .ssd", scale=1)
 
         # ── Parameter tabs ─────────────────────────────────────────────────────
         with gr.Tabs():
@@ -587,13 +579,7 @@ def build_ui() -> gr.Blocks:
         convert_btn.click(
             fn=_convert,
             inputs=_conv_controls,
-            outputs=[conv_img, dl_file, status_box],
-        )
-
-        run_btn.click(
-            fn=_build_and_run,
-            inputs=[dl_file, chunk_size],
-            outputs=[dl_ssd, status_box],
+            outputs=[conv_img, dl_file, dl_ssd, emu_link, status_box],
         )
 
     return demo
