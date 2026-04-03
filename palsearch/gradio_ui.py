@@ -576,10 +576,17 @@ def build_ui() -> gr.Blocks:
             solver, changes, look_ahead, restarts, beam, anneal, smooth,
         ]
 
+        emu_state = gr.State("")
+
         convert_btn.click(
             fn=_convert,
             inputs=_conv_controls,
-            outputs=[conv_img, dl_file, dl_ssd, emu_link, status_box],
+            outputs=[conv_img, dl_file, dl_ssd, emu_state, status_box],
+        ).then(
+            fn=lambda html: html,
+            inputs=[emu_state],
+            outputs=[emu_link],
+            show_progress="hidden",
         )
 
     return demo
