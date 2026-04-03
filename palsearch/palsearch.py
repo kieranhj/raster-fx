@@ -1401,11 +1401,14 @@ def process_image(png_path: str, output_path: str,
         if verbose:
             print("Applied denoise (median filter)")
 
-    # Prep 8: posterise
+    # Prep 8: posterise (quantise to N bits then rescale to full 0-255 range)
     if posterise > 0:
-        img = ImageOps.posterize(img, posterise)
+        levels = (1 << posterise) - 1   # e.g. bits=1 → 1, bits=2 → 3
+        lut = [int(((v >> (8 - posterise)) * 255 / levels) + 0.5)
+               for v in range(256)]
+        img = img.point(lut * 3)
         if verbose:
-            print(f"Applied posterise ({posterise} bits)")
+            print(f"Applied posterise ({posterise} bits, {levels + 1} levels)")
 
     # Option 8: pre-sharpen before dithering
     if sharpen > 0:

@@ -14,10 +14,15 @@ Requires:
     pip install gradio Pillow numpy
 """
 
+import base64
+import io
 import os
+import subprocess
 import sys
 import tempfile
 import traceback
+import webbrowser
+import zipfile
 
 import numpy as np
 
@@ -118,9 +123,13 @@ def _apply_preprocessing(img_np, resize,
     if denoise:
         img = img.filter(ImageFilter.MedianFilter(size=3))
 
-    # Prep 8 — Posterise
+    # Prep 8 — Posterise (quantise to N bits then rescale to full 0-255)
     if posterise > 0:
-        img = ImageOps.posterize(img, int(posterise))
+        bits = int(posterise)
+        levels = (1 << bits) - 1
+        lut = [int(((v >> (8 - bits)) * 255 / levels) + 0.5)
+               for v in range(256)]
+        img = img.point(lut * 3)
 
     # Option 8 — Sharpen (last, so sharpening is on the final pixel values)
     if sharpen > 0:
@@ -209,6 +218,62 @@ def _convert(img_np,
                 pass
 
 
+# ── Build SSD and launch emulator ─────────────────────────────────────────────
+
+_REPO_ROOT = os.path.dirname(_here)   # parent of palsearch/
+
+
+def _build_and_run(bin_file):
+    """Split a palsearch .bin into PAL+PIC, assemble the SSD, open the emulator."""
+    if bin_file is None:
+        return None, "No .bin file — run Convert first."
+
+    bin_data = open(bin_file, 'rb').read()
+    if len(bin_data) <= 20480:
+        return None, f"Error: .bin too small ({len(bin_data)} bytes)."
+
+    pal_size = len(bin_data) - 20480
+    pal_data = bin_data[:pal_size]
+    pic_data = bin_data[pal_size:]
+
+    # Write PAL / PIC where raster-fx.asm expects them
+    with open(os.path.join(_REPO_ROOT, 'testpal.bin'), 'wb') as f:
+        f.write(pal_data)
+    with open(os.path.join(_REPO_ROOT, 'testpic.bin'), 'wb') as f:
+        f.write(pic_data)
+
+    # Assemble the SSD
+    beebasm = os.path.join(_REPO_ROOT, 'bin', 'beebasm.exe')
+    ssd_path = os.path.join(_REPO_ROOT, 'raster-fx.ssd')
+    result = subprocess.run(
+        [beebasm, '-i', 'raster-fx.asm', '-do', ssd_path,
+         '-boot', 'MyFX', '-v'],
+        cwd=_REPO_ROOT, capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        return None, f"beebasm failed:\n{result.stderr}"
+
+    # Open the online emulator with the SSD embedded as base64 in the URL.
+    # jsbeeb's data: handler expects a ZIP containing an .ssd file.
+    # The URL is too long for Windows os.startfile(), so write a tiny HTML
+    # redirect and open that instead.
+    ssd_data = open(ssd_path, 'rb').read()
+    zip_buf = io.BytesIO()
+    with zipfile.ZipFile(zip_buf, 'w', zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr('raster-fx.ssd', ssd_data)
+    b64 = base64.b64encode(zip_buf.getvalue()).decode('ascii')
+    emu_url = f"https://bbc.xania.org/#autoboot&model=master&disc1=data:{b64}"
+
+    redirect_html = tempfile.NamedTemporaryFile(
+        suffix='.html', delete=False, mode='w', encoding='utf-8')
+    redirect_html.write(
+        f'<html><body><script>window.location={emu_url!r};</script></body></html>')
+    redirect_html.close()
+    webbrowser.open(redirect_html.name)
+
+    return ssd_path, f"Built raster-fx.ssd ({len(ssd_data)} bytes). Emulator opened."
+
+
 # ── Gradio UI layout ───────────────────────────────────────────────────────────
 
 def build_ui() -> gr.Blocks:
@@ -252,9 +317,12 @@ def build_ui() -> gr.Blocks:
         # ── Convert button + status + download ────────────────────────────────
         with gr.Row():
             convert_btn = gr.Button("Convert", variant="primary", scale=2)
+            run_btn     = gr.Button("Run on BBC Micro", variant="secondary", scale=2)
             status_box  = gr.Textbox(label="Status", interactive=False,
                                      scale=4, show_label=True)
+        with gr.Row():
             dl_file     = gr.File(label="Download .bin", scale=1)
+            dl_ssd      = gr.File(label="Download .ssd", scale=1)
 
         # ── Parameter tabs ─────────────────────────────────────────────────────
         with gr.Tabs():
@@ -498,6 +566,12 @@ def build_ui() -> gr.Blocks:
             fn=_convert,
             inputs=_conv_controls,
             outputs=[conv_img, dl_file, status_box],
+        )
+
+        run_btn.click(
+            fn=_build_and_run,
+            inputs=[dl_file],
+            outputs=[dl_ssd, status_box],
         )
 
     return demo
