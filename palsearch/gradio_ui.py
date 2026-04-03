@@ -17,7 +17,6 @@ Requires:
 import base64
 import io
 import os
-import subprocess
 import sys
 import tempfile
 import traceback
@@ -221,43 +220,66 @@ def _convert(img_np,
 # ── Build SSD and launch emulator ─────────────────────────────────────────────
 
 _REPO_ROOT = os.path.dirname(_here)   # parent of palsearch/
+_SSD_TEMPLATE = os.path.join(_REPO_ROOT, 'raster-fx.ssd')
 
 
-def _build_and_run(bin_file):
-    """Split a palsearch .bin into PAL+PIC, assemble the SSD, open the emulator."""
+def _patch_ssd(template_path, pal_data, pic_data):
+    """Patch PAL and PIC file data in a pre-built DFS .ssd image.
+
+    Parses the DFS catalog (sectors 0-1) to find the PIC and PAL entries,
+    then overwrites their data at the correct sector offsets and updates
+    the file lengths in the catalog.  No beebasm needed.
+    """
+    ssd = bytearray(open(template_path, 'rb').read())
+    num_files = ssd[0x105] // 8
+
+    for i in range(num_files):
+        name = ssd[0x008 + i*8 : 0x008 + i*8 + 7].decode('ascii').rstrip()
+        off = 0x108 + i * 8
+        mixed     = ssd[off + 6]
+        start_sec = ((mixed & 0x03) << 8) | ssd[off + 7]
+        byte_off  = start_sec * 256
+
+        if name == 'PAL':
+            ssd[off + 4] = len(pal_data) & 0xFF
+            ssd[off + 5] = (len(pal_data) >> 8) & 0xFF
+            ssd[off + 6] = (mixed & 0xCF) | (((len(pal_data) >> 16) & 0x03) << 4)
+            ssd[byte_off:byte_off + len(pal_data)] = pal_data
+        elif name == 'PIC':
+            ssd[byte_off:byte_off + len(pic_data)] = pic_data
+
+    return bytes(ssd)
+
+
+def _build_and_run(bin_file, chunk_size):
+    """Patch PIC+PAL into the SSD template and open the jsbeeb emulator."""
     if bin_file is None:
         return None, "No .bin file — run Convert first."
+
+    if int(chunk_size) != 2:
+        return None, "Error: Run on BBC Micro requires Chunk size = 2 (the 6502 code is built for chunk_size=2)."
 
     bin_data = open(bin_file, 'rb').read()
     if len(bin_data) <= 20480:
         return None, f"Error: .bin too small ({len(bin_data)} bytes)."
 
-    pal_size = len(bin_data) - 20480
-    pal_data = bin_data[:pal_size]
-    pic_data = bin_data[pal_size:]
+    pal_data = bin_data[:len(bin_data) - 20480]
+    pic_data = bin_data[len(bin_data) - 20480:]
 
-    # Write PAL / PIC where raster-fx.asm expects them
-    with open(os.path.join(_REPO_ROOT, 'testpal.bin'), 'wb') as f:
-        f.write(pal_data)
-    with open(os.path.join(_REPO_ROOT, 'testpic.bin'), 'wb') as f:
-        f.write(pic_data)
+    if not os.path.exists(_SSD_TEMPLATE):
+        return None, f"Error: SSD template not found at {_SSD_TEMPLATE}"
 
-    # Assemble the SSD
-    beebasm = os.path.join(_REPO_ROOT, 'bin', 'beebasm.exe')
-    ssd_path = os.path.join(_REPO_ROOT, 'raster-fx.ssd')
-    result = subprocess.run(
-        [beebasm, '-i', 'raster-fx.asm', '-do', ssd_path,
-         '-boot', 'MyFX', '-v'],
-        cwd=_REPO_ROOT, capture_output=True, text=True,
-    )
-    if result.returncode != 0:
-        return None, f"beebasm failed:\n{result.stderr}"
+    ssd_data = _patch_ssd(_SSD_TEMPLATE, pal_data, pic_data)
+
+    # Save patched SSD for download
+    ssd_tmp = tempfile.NamedTemporaryFile(suffix='.ssd', delete=False)
+    ssd_tmp.write(ssd_data)
+    ssd_tmp.close()
 
     # Open the online emulator with the SSD embedded as base64 in the URL.
     # jsbeeb's data: handler expects a ZIP containing an .ssd file.
     # The URL is too long for Windows os.startfile(), so write a tiny HTML
     # redirect and open that instead.
-    ssd_data = open(ssd_path, 'rb').read()
     zip_buf = io.BytesIO()
     with zipfile.ZipFile(zip_buf, 'w', zipfile.ZIP_DEFLATED) as zf:
         zf.writestr('raster-fx.ssd', ssd_data)
@@ -271,7 +293,7 @@ def _build_and_run(bin_file):
     redirect_html.close()
     webbrowser.open(redirect_html.name)
 
-    return ssd_path, f"Built raster-fx.ssd ({len(ssd_data)} bytes). Emulator opened."
+    return ssd_tmp.name, f"Built SSD ({len(ssd_data)} bytes). Emulator opened."
 
 
 # ── Gradio UI layout ───────────────────────────────────────────────────────────
@@ -570,7 +592,7 @@ def build_ui() -> gr.Blocks:
 
         run_btn.click(
             fn=_build_and_run,
-            inputs=[dl_file],
+            inputs=[dl_file, chunk_size],
             outputs=[dl_ssd, status_box],
         )
 
