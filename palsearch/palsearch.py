@@ -34,6 +34,7 @@ Dependencies:
     pip install Pillow numpy
 """
 
+import os
 import sys
 import argparse
 import random
@@ -280,6 +281,39 @@ def ordered_dither_2(x: int, y: int, r: int, g: int, b: int, mixno: int = 0) -> 
     return col_list[_DITHER2_POS[(y & 1) * 2 + (x & 1)]]
 
 
+# ── Blue-noise dither ─────────────────────────────────────────────────────────
+
+_BN_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bluenoise.png')
+try:
+    _bn_img   = Image.open(_BN_PATH).convert('L')
+    _BLUE_NOISE = np.array(_bn_img, dtype=np.uint8)
+    _BN_H, _BN_W = _BLUE_NOISE.shape
+except Exception:
+    _BLUE_NOISE = None
+    _BN_H = _BN_W = 1
+
+
+def blue_noise_dither_2(x: int, y: int, r: int, g: int, b: int,
+                        mixno: int = 0) -> int:
+    """
+    Colour-aware blue-noise dither.
+
+    Identical to ordered_dither_2 but replaces the 2×2 Bayer matrix with the
+    bundled 128×128 blue-noise texture.  The 0-255 threshold is split into
+    four equal bands (>>6 gives 0-3) selecting from the descending-intensity
+    colour list.  Produces less regular patterns than Bayer, which reduces
+    visible grid artefacts on smooth gradients.
+    """
+    r5  = r // 52
+    g5  = g // 52
+    b5  = b // 52
+    idx = b5 * 25 + g5 * 5 + r5
+    bucket = _MIXES_TABLE[idx]
+    _, col_list = bucket[min(mixno, len(bucket) - 1)]
+    threshold = int(_BLUE_NOISE[y % _BN_H, x % _BN_W])
+    return col_list[threshold >> 6]   # 0-63→0, 64-127→1, 128-191→2, 192-255→3
+
+
 # ── Image preprocessing ───────────────────────────────────────────────────────
 
 def preprocess_pixel(r: int, g: int, b: int):
@@ -338,6 +372,32 @@ def dither_section_ordered(img: np.ndarray, section: int, randomness: int = 64,
                     pg = max(0, min(255, pg + (rnd * g_rand) // 256))
                     pb = max(0, min(255, pb + (rnd * b_rand) // 256))
                 col = ordered_dither_2(x, y, pr, pg, pb, mixno=mixno)
+                pix.append(col)
+            quads.append(tuple(pix))
+    return quads
+
+
+def dither_section_bn(img: np.ndarray, section: int,
+                      chunk_size: int = 2, mixno: int = 0):
+    """
+    Blue-noise ordered dither for chunk_size rows of section.
+
+    Like dither_section_ordered but uses blue_noise_dither_2 instead of
+    the Bayer matrix.  No randomness parameter — the noise texture already
+    provides good spatial distribution.
+
+    Returns a list of (chunk_size × BYTES_PER_ROW) quads in screen order.
+    """
+    quads = []
+    for row in range(chunk_size):
+        y = section * chunk_size + row
+        for bp in range(BYTES_PER_ROW):
+            pix = []
+            for p in range(4):
+                x = bp * 4 + p
+                pr, pg, pb = preprocess_pixel(
+                    int(img[y, x, 0]), int(img[y, x, 1]), int(img[y, x, 2]))
+                col = blue_noise_dither_2(x, y, pr, pg, pb, mixno=mixno)
                 pix.append(col)
             quads.append(tuple(pix))
     return quads
@@ -1390,6 +1450,10 @@ def process_image(png_path: str, output_path: str,
                                            randomness=randomness,
                                            chunk_size=chunk_size,
                                            mixno=mixno)
+        elif section_dither == 'bn':
+            quads = dither_section_bn(arr, section,
+                                      chunk_size=chunk_size,
+                                      mixno=mixno)
         else:
             quads = dither_section_fs(arr, section, fs_err,
                                       chunk_size=chunk_size)
@@ -1460,11 +1524,12 @@ The output binary is compatible with showimage.s for playback on BBC Master.
                     help='Input PNG file (auto-resized to 320×256)')
     ap.add_argument('-o', '--output', default='output.bin',
                     help='Output binary file (default: output.bin)')
-    ap.add_argument('-d', '--dither', choices=['ordered', 'fs', 'auto'],
+    ap.add_argument('-d', '--dither', choices=['ordered', 'fs', 'bn', 'auto'],
                     default='ordered',
                     help=('Dithering method: '
                           'ordered = Bayer 2x2 (default), '
                           'fs = Floyd-Steinberg, '
+                          'bn = blue-noise ordered dither (128x128 texture), '
                           'auto = Option 9: ordered for low-variance sections, '
                           'FS for high-detail/edge sections'))
     ap.add_argument('-p', '--preview',

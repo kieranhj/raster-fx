@@ -353,13 +353,15 @@ def build_ui() -> gr.Blocks:
                 with gr.Row():
                     with gr.Column():
                         dither = gr.Radio(
-                            choices=["ordered", "fs", "auto"],
+                            choices=["ordered", "fs", "bn", "auto"],
                             value="ordered",
                             label="Dither method",
                             info="ordered — Bayer 2×2 matrix; smooth gradients, fast, "
                                  "visible pattern on flat regions.  "
                                  "fs — Floyd-Steinberg error diffusion; more detail but can "
                                  "produce noise on edges.  "
+                                 "bn — blue-noise ordered dither; smoother than Bayer, "
+                                 "no visible grid pattern.  "
                                  "auto — picks per section based on variance (see threshold).")
 
                         randomness = gr.Slider(
