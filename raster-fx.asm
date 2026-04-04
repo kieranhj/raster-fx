@@ -2,6 +2,7 @@
 \ *	RASTER FX FRAMEWORK
 \ ******************************************************************
 
+_MASTER_ONLY = 0
 CHUNK_SIZE=2
 
 \ ******************************************************************
@@ -48,8 +49,12 @@ IF n < 0
 ELIF n=0
 	; do nothing
 ELIF n=1
+	IF _MASTER_ONLY
 	EQUB $33
 	PRINT "1 cycle NOP is Master only and not emulated by b-em."
+	ELSE
+	ERROR "Requires a 1 cycle NOP which is not available."
+	ENDIF
 ELIF (n AND 1) = 0
 	FOR i,1,n/2,1
 	NOP
@@ -173,15 +178,15 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #1
 	JSR oswrch
 
-	\\ Turn off cursor
-
-	LDA #10: STA &FE00
-	LDA #32: STA &FE01
+	\\ Turn off cursor and interlace.
+	JSR fx_kill_function
 
 	;lda #2:sta &fe00
 	;lda #95:sta &fe01
 
 	\\ Initialise system modules here!
+	.call_init
+	JSR fx_init_function
 
 	\ ******************************************************************
 	\ *	DEMO START - from here on out there are no interrupts enabled!!
@@ -239,9 +244,6 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	LDA #HI(FramePeriod):STA &FE47
 
 	\\ Initialise FX modules here
-
-	.call_init
-	JSR fx_init_function
 
 	\\ We don't know how long the init took so resync to timer 1
 
@@ -380,7 +382,12 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
 	DEX					; 2c
 	BEQ done			; 2/3c
 
+	IF _MASTER_ONLY
 	WAIT_CYCLES 121
+	ELSE
+	WAIT_CYCLES 114
+	WAIT_CYCLES 7
+	ENDIF
 
 	JMP loop			; 3c
 
