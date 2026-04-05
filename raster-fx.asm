@@ -2,8 +2,9 @@
 \ *	RASTER FX FRAMEWORK
 \ ******************************************************************
 
-_MASTER_ONLY = 0
-CHUNK_SIZE=2
+_MASTER_ONLY 		= 0
+CHUNK_SIZE			= 2
+CHANGES_PER_CHUNK	= 4
 
 \ ******************************************************************
 \ *	OS defines
@@ -504,19 +505,20 @@ GUARD screen_addr			; ensure code size doesn't hit start of screen memory
     \\ Wait for hblank.
     \\ Write 9 palette entries.
 
-    WAIT_CYCLES 5
+    WAIT_CYCLES 3
 
     \\ Row loop.
     ldx #0                          ; 2c
 .loop
-    ; <== 7c
+    ; <== 5c
 
+IF CHANGES_PER_CHUNK==9
 IF CHUNK_SIZE==2
     jsr cycles_wait_128             ; 128c
 
-    ; <== 7c
+    ; <== 5c
     WAIT_CYCLES 7
-    ; <== 14c
+    ; <== 12c
 
     lda PALETTE_ADDR+256+2*128, X       ; 4c
     sta load2+1                         ; 4c
@@ -535,10 +537,10 @@ IF CHUNK_SIZE==2
     lda PALETTE_ADDR+256+0*128, X       ; 4c
     ldy PALETTE_ADDR+256+1*128, X       ; 4c
   
-    ; <== +16*4= 14+64c = 78c
+    ; <== +16*4= 12+64c = 76c
 
     sta &FE21                       ; 4c
-    ; <== LAND THIS WRITE ON 82c
+    ; <== LAND THIS WRITE ON 80c
     sty &FE21                       ; 4c
     .load2
     lda #0                          ; 2c
@@ -562,19 +564,19 @@ IF CHUNK_SIZE==2
     lda #0                          ; 2c
     sta &FE21                       ; 4c
 
-    ; <== +46 = 128c
+    ; <== +46 = 126c
 
     inx                             ; 2c
 
-    ; 130c = 2c
+    ; 128c = 0c
 
     cpx #128                      ; 2c
     bne loop                        ; 3c
 
 ELSE
-    ; <== 7c
+    ; <== 5c
     WAIT_CYCLES 7
-    ; <== 14c
+    ; <== 12c
 
 	; Streams at PALETTE_ADDR+256+N*256: LO=0, so LDA abs,X never crosses a page.
 
@@ -595,10 +597,10 @@ ELSE
     lda PALETTE_ADDR+256+0*256, X       ; 4c
     ldy PALETTE_ADDR+256+1*256, X       ; 4c
   
-    ; <== +16*4= 14+64c = 78c
+    ; <== +16*4= 12+64c = 76c
 
     sta &FE21                       ; 4c
-    ; <== LAND THIS WRITE ON 82c
+    ; <== LAND THIS WRITE ON 80c
     sty &FE21                       ; 4c
     .load2
     lda #0                          ; 2c
@@ -622,13 +624,41 @@ ELSE
     lda #0                          ; 2c
     sta &FE21                       ; 4c
 
-    ; <== +46 = 128c
+    ; <== +46 = 126c
 
     inx                             ; 2c
 
-    ; 130c = 2c
+    ; 128c = 0c
 
     cpx #0                          ; 2c
+    bne loop                        ; 3c
+ENDIF
+ELSE
+	IF CHANGES_PER_CHUNK<>4
+		ERROR "Expected CHANGES_PER_CHUNK=4 OR 9."
+	ENDIF
+    jsr cycles_wait_128             ; 128c
+
+    ; <== 5c
+    WAIT_CYCLES 89
+    ; <== 94c
+
+    lda PALETTE_ADDR+256+0*128, X       ; 4c
+    sta &FE21                       	; 4c
+    lda PALETTE_ADDR+256+1*128, X       ; 4c
+    sta &FE21                       	; 4c
+    lda PALETTE_ADDR+256+2*128, X       ; 4c
+    sta &FE21                       	; 4c
+    lda PALETTE_ADDR+256+3*128, X       ; 4c
+    sta &FE21                       	; 4c
+
+    ; <== +8*4c = +32c = 126c
+
+    inx                             ; 2c
+
+    ; 128c = 0c
+
+    cpx #128                      ; 2c
     bne loop                        ; 3c
 ENDIF
 
