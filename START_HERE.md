@@ -26,7 +26,7 @@ screens). Effects playground / demo parts, 2017-2021.
 - `run.bat` copies the .ssd into `..\jsbeeb-kieranhj\discs` and opens runme.url
   (http://localhost:8000/...model=Master); `jsbeeb.bat` starts that server with
   `python -mSimpleHTTPServer` (Python 2, gone) from the **old path**
-  `C:\Users\khcon\OneDrive\BEEB\Repos\jsbeeb-kieranhj` (now D:\beeb\mine\jsbeeb-kieranhj).
+  `D:\beeb\mine\jsbeeb-kieranhj` (now D:\beeb\mine\jsbeeb-kieranhj).
 
 ## Local changes
 - No tracked changes; untracked folders as above. No stashes.
