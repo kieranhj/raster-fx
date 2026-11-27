@@ -16,17 +16,14 @@ screens). Effects playground / demo parts, 2017-2021.
 - `raster-fx.asm` the framework/top level; `examples/` the effects; `lib/` support code
 - `screens/`, `pics/`, `*.png`, `*.bin` logo and screen data (BitShifters logos in modes 0/1/2, doom.bin ...)
 - `basic/`, `circle.bas`, `mangle.bas` BASIC helpers
-- `make.bat` build; `run.bat` / `jsbeeb.bat` / `runme.url` run it in jsbeeb
+- `make.bat` build; `jsbeeb.bat` / `runme.url` are leftovers of a local-jsbeeb setup
 - Untracked: `palsearch/` (only `__pycache__` now; the work is on wip/palsearch), `__pycache__/`, `.vscode/`
 
 ## Build and run
 - `make`: runs `make.bat` via the wrapper Makefile (added 2026-11-22): `..\..\Bin\beebasm.exe`
   assembles `raster-fx.asm` -> `raster-fx.ssd` (gitignored), log in compile.txt. **Works**
   (checked 2026-11-22, on width-spans-mode1).
-- `run.bat` copies the .ssd into `..\jsbeeb-kieranhj\discs` and opens runme.url
-  (http://localhost:8000/...model=Master); `jsbeeb.bat` starts that server with
-  `python -mSimpleHTTPServer` (Python 2, gone) from the **old path**
-  `D:\beeb\mine\jsbeeb-kieranhj` (now D:\beeb\mine\jsbeeb-kieranhj).
+- Run: jsbeeb-kieranhj, the local jsbeeb clone it used, was deleted on 2026-11-27 (the fork is on GitHub), and `run.bat` with it; open the disc at https://bbc.xania.org or in b2 (Master model).
 
 ## Local changes
 - No tracked changes; untracked folders as above. No stashes.
@@ -38,4 +35,4 @@ screens). Effects playground / demo parts, 2017-2021.
   No TODO/plan found; the README is one line.
 
 ## See also
-README.md; D:\beeb\mine\jsbeeb-kieranhj (the emulator run.bat uses).
+README.md.
