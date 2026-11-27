@@ -23,3 +23,5 @@ $RECYCLE.BIN/
 # =========================
 compile.txt
 run.bat
+.vscode/
+__pycache__/
